@@ -1,0 +1,49 @@
+# Build artifacts
+/target/
+debug/
+release/
+
+# Rust
+**/*.rs.bk
+Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node / TypeScript bindings
+node_modules/
+dist/
+*.tgz
+bindings/typescript/pkg/
+
+# Python bindings
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+*.so
+.venv/
+venv/
+
+# Java bindings
+bindings/java/target/
+*.class
+*.jar
+
+# Test outputs
+*.llm.json
+*.codec.json
+test-output/
+
+# Environment
+.env
+.env.local
