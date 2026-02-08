@@ -68,6 +68,5 @@ pub fn convert(schema: &Value, options: &ConvertOptions) -> Result<ConvertResult
 ///
 /// The rehydrated data in the original schema shape.
 pub fn rehydrate(data: &Value, codec: &Codec) -> Result<Value, ConvertError> {
-    let _ = (data, codec);
-    todo!("Implementation coming soon")
+    rehydrator::rehydrate(data, codec)
 }

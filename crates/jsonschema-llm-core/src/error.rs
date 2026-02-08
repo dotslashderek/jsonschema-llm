@@ -15,4 +15,7 @@ pub enum ConvertError {
 
     #[error("Unsupported schema feature at {path}: {feature}")]
     UnsupportedFeature { path: String, feature: String },
+
+    #[error("Rehydration error: {0}")]
+    RehydrationError(String),
 }
