@@ -14,7 +14,7 @@ use serde_json::{json, Map, Value};
 use crate::codec::Transform;
 use crate::config::{ConvertOptions, Target};
 use crate::error::ConvertError;
-use crate::schema_utils::recurse_into_children;
+use crate::schema_utils::{build_path, recurse_into_children};
 
 /// Field name for the map key in the transpiled array item.
 const KEY_FIELD: &str = "key";
@@ -223,7 +223,7 @@ fn extract_additional_properties(
         property_name: property_name.clone(),
     });
     transforms.push(Transform::MapToArray {
-        path: format!("{}/properties/{}", path, property_name),
+        path: build_path(path, &["properties", &property_name]),
         key_field: KEY_FIELD.to_string(),
     });
 }
