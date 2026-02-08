@@ -87,8 +87,8 @@ fn walk(
             // Recurse into all children
             let mut new_obj = serde_json::Map::new();
             for (key, value) in obj {
-                if key == "$defs" {
-                    // Skip $defs during traversal — we resolve from the extracted copy
+                if path == "#" && key == "$defs" {
+                    // At the root, skip $defs during traversal — we resolve from the extracted copy
                     continue;
                 }
                 let child_path = build_path(path, &[key]);
@@ -142,7 +142,7 @@ fn resolve_ref(
         return Ok(serde_json::json!({
             "type": "string",
             "description": format!(
-                "JSON-encoded {}. Parse with JSON.parse() after generation.",
+                "JSON-encoded {}. Parse as JSON after generation.",
                 type_name
             )
         }));
@@ -162,8 +162,11 @@ fn resolve_ref(
 
         Ok(result)
     } else {
-        // Unknown ref — leave as-is (shouldn't happen if Pass 0 ran correctly)
-        Ok(serde_json::json!({ "$ref": ref_str }))
+        // Unknown ref — fail fast to avoid dangling $ref after $defs are stripped
+        Err(ConvertError::UnresolvableRef {
+            path: path.to_string(),
+            reference: ref_str.to_string(),
+        })
     }
 }
 
