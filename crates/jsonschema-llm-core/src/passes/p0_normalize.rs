@@ -1,13 +1,20 @@
 //! Pass 0: Schema Normalization
-//! Resolves $ref, normalizes draft syntax, detects recursive cycles.
+//! Resolves $ref pointers (root-relative only), normalizes draft syntax,
+//! and detects recursive cycles.
 //!
 //! This is the foundational pass — all downstream passes (1–7) assume refs are
 //! resolved and syntax is normalized. Pass 0 performs:
 //!
-//! 1. `items` (array form) → `prefixItems` normalization
+//! 1. `items` (array form) → `prefixItems` + `additionalItems` → `items`
 //! 2. `$ref` resolution via JSON Pointer traversal with DFS cycle detection
 //! 3. `definitions` → `$defs` rename (post-resolution, Phase 3)
 //! 4. `$defs` cleanup (strip fully-inlined entries, preserve recursive)
+//!
+//! ## Limitations
+//!
+//! - Only root-relative JSON Pointers (`#/...`) are supported.
+//! - `$id` / `$anchor` scoped resolution is not implemented.
+//! - External (`http://...`) and dynamic refs are rejected with errors.
 
 use std::collections::HashSet;
 
@@ -102,6 +109,10 @@ fn normalize_items_recursive(value: &mut Value) {
         if !obj.contains_key("prefixItems") {
             if let Some(items) = obj.remove("items") {
                 obj.insert("prefixItems".to_string(), items);
+            }
+            // Draft 4-7: `additionalItems` becomes `items` in 2020-12.
+            if let Some(additional) = obj.remove("additionalItems") {
+                obj.insert("items".to_string(), additional);
             }
         } else {
             // Both exist — drop the array-form items (redundant in 2020-12).
@@ -249,10 +260,16 @@ fn resolve_single_ref(
     // Apply annotation overrides onto the resolved definition.
     let mut merged = match resolved {
         Value::Object(m) => m,
-        other => {
-            // Resolved to a non-object (e.g., {type: string}) — wrap it.
+        Value::Bool(true) => Map::new(),
+        Value::Bool(false) => {
             let mut m = Map::new();
-            m.insert("$resolved".to_string(), other);
+            m.insert("not".to_string(), Value::Object(Map::new()));
+            m
+        }
+        other => {
+            // Resolved to a non-object primitive — wrap it for annotation merge.
+            let mut m = Map::new();
+            m.insert("const".to_string(), other);
             m
         }
     };
@@ -393,6 +410,11 @@ fn cleanup(schema: Value, _recursive_refs: &[String]) -> Value {
                 }
             }
         }
+
+        // Rewrite remaining `$ref` pointers from #/definitions/ to #/$defs/.
+        let mut schema = Value::Object(obj);
+        rewrite_definition_refs(&mut schema);
+        obj = schema.as_object().unwrap().clone();
     }
 
     // Strip $defs entries that are not referenced by remaining recursive refs.
@@ -412,6 +434,29 @@ fn cleanup(schema: Value, _recursive_refs: &[String]) -> Value {
     }
 
     Value::Object(obj)
+}
+
+/// Rewrite `$ref` pointers from `#/definitions/` to `#/$defs/` after rename.
+fn rewrite_definition_refs(value: &mut Value) {
+    match value {
+        Value::Object(obj) => {
+            if let Some(Value::String(ref_str)) = obj.get("$ref") {
+                if let Some(rest) = ref_str.strip_prefix("#/definitions/") {
+                    let new_ref = format!("#/$defs/{}", rest);
+                    obj.insert("$ref".to_string(), Value::String(new_ref));
+                }
+            }
+            for v in obj.values_mut() {
+                rewrite_definition_refs(v);
+            }
+        }
+        Value::Array(arr) => {
+            for v in arr.iter_mut() {
+                rewrite_definition_refs(v);
+            }
+        }
+        _ => {}
+    }
 }
 
 /// Walk the schema and collect definition names that are still referenced
