@@ -12,7 +12,7 @@ use serde_json::Value;
 use crate::codec::{Codec, Transform};
 use crate::codec_warning::{Warning, WarningKind};
 use crate::error::ConvertError;
-use crate::schema_utils::split_path;
+use crate::schema_utils::{escape_pointer_segment, split_path};
 
 /// Result of rehydration, including the restored data and any warnings.
 pub struct RehydrateResult {
@@ -108,11 +108,27 @@ fn apply_transform(
         // Skip the keyword and the following segment (e.g. "anyOf" + "0")
         let skip_to = if rest.is_empty() { rest } else { &rest[1..] };
 
-        // Special case: patternProperties iterates all object values
+        // Special case: patternProperties iterates matching object values
         if segment == "patternProperties" {
-            if let Some(obj) = data.as_object_mut() {
-                for val in obj.values_mut() {
-                    apply_transform(val, skip_to, transform)?;
+            if let Some(pattern) = rest.first() {
+                match regex::Regex::new(pattern) {
+                    Ok(re) => {
+                        if let Some(obj) = data.as_object_mut() {
+                            for (key, val) in obj.iter_mut() {
+                                if re.is_match(key) {
+                                    apply_transform(val, skip_to, transform)?;
+                                }
+                            }
+                        }
+                    }
+                    Err(_) => {
+                        // Invalid regex — fall back to applying to all values
+                        if let Some(obj) = data.as_object_mut() {
+                            for val in obj.values_mut() {
+                                apply_transform(val, skip_to, transform)?;
+                            }
+                        }
+                    }
                 }
             }
             return Ok(());
@@ -289,19 +305,39 @@ fn validate_constraints(data: &Value, codec: &Codec) -> Vec<Warning> {
 
     // Pre-compile regex patterns
     let mut regex_cache: HashMap<String, Regex> = HashMap::new();
+    let mut invalid_patterns: Vec<(String, String, String)> = Vec::new();
     for dc in &codec.dropped_constraints {
         if dc.constraint == "pattern" {
             if let Some(pat) = dc.value.as_str() {
-                if let Ok(re) = Regex::new(pat) {
-                    regex_cache.insert(pat.to_string(), re);
-                } else {
-                    tracing::warn!(pattern = %pat, "invalid regex pattern in dropped constraint, skipping");
+                match Regex::new(pat) {
+                    Ok(re) => {
+                        regex_cache.insert(pat.to_string(), re);
+                    }
+                    Err(e) => {
+                        tracing::warn!(pattern = %pat, error = %e, "invalid regex in dropped constraint");
+                        invalid_patterns.push((dc.path.clone(), pat.to_string(), e.to_string()));
+                    }
                 }
             }
         }
     }
 
     let mut warnings = Vec::new();
+
+    // Emit warnings for invalid regex patterns
+    for (path, pat, err) in &invalid_patterns {
+        warnings.push(Warning {
+            data_path: String::new(),
+            schema_path: path.clone(),
+            kind: WarningKind::ConstraintViolation {
+                constraint: "pattern".to_string(),
+            },
+            message: format!(
+                "constraint 'pattern' ({}) has invalid regex and cannot be validated: {}",
+                pat, err
+            ),
+        });
+    }
 
     for dc in &codec.dropped_constraints {
         // Advisory constraints — just note they were dropped
@@ -390,7 +426,11 @@ fn locate_data_nodes<'a>(
                     Ok(re) => {
                         for (key, val) in obj {
                             if re.is_match(key) {
-                                let child_path = format!("{}/{}", current_data_path, key);
+                                let child_path = format!(
+                                    "{}/{}",
+                                    current_data_path,
+                                    escape_pointer_segment(key)
+                                );
                                 locate_data_nodes(val, segments, next_pos, child_path, out);
                             }
                         }
@@ -438,7 +478,8 @@ fn locate_data_nodes<'a>(
         if let Some(key) = segments.get(pos + 1) {
             if let Some(obj) = data.as_object() {
                 if let Some(child) = obj.get(key.as_str()) {
-                    let child_path = format!("{}/{}", current_data_path, key);
+                    let child_path =
+                        format!("{}/{}", current_data_path, escape_pointer_segment(key));
                     locate_data_nodes(child, segments, pos + 2, child_path, out);
                 }
             }
@@ -509,11 +550,11 @@ fn check_constraint(
         "minLength" => {
             let s = value.as_str()?;
             let bound = expected.as_u64()? as usize;
-            if s.len() < bound {
+            let char_count = s.chars().count();
+            if char_count < bound {
                 Some(format!(
                     "string length {} is less than minLength {}",
-                    s.len(),
-                    bound
+                    char_count, bound
                 ))
             } else {
                 None
@@ -522,11 +563,11 @@ fn check_constraint(
         "maxLength" => {
             let s = value.as_str()?;
             let bound = expected.as_u64()? as usize;
-            if s.len() > bound {
+            let char_count = s.chars().count();
+            if char_count > bound {
                 Some(format!(
                     "string length {} exceeds maxLength {}",
-                    s.len(),
-                    bound
+                    char_count, bound
                 ))
             } else {
                 None
