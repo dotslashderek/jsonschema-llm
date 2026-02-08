@@ -7,6 +7,8 @@
 //!
 //! Emits `NullableOptional` codec entries for each optional→nullable transformation.
 
+use std::collections::HashSet;
+
 use serde_json::{json, Map, Value};
 
 use crate::codec::Transform;
@@ -100,7 +102,7 @@ fn enforce_object_strict(
     let all_keys = extract_property_keys(obj);
     let optional_keys: Vec<String> = all_keys
         .iter()
-        .filter(|k| !required_keys.contains(k))
+        .filter(|k| !required_keys.contains(k.as_str()))
         .cloned()
         .collect();
 
@@ -124,7 +126,7 @@ fn is_typed_object(obj: &Map<String, Value>) -> bool {
 }
 
 /// Extract the current `required` array from a schema object as a set of strings.
-fn extract_required_set(obj: &Map<String, Value>) -> Vec<String> {
+fn extract_required_set(obj: &Map<String, Value>) -> HashSet<String> {
     obj.get("required")
         .and_then(Value::as_array)
         .map(|arr| {
@@ -213,14 +215,17 @@ fn recurse_into_properties(
     config: &ConvertOptions,
     transforms: &mut Vec<Transform>,
 ) -> Result<(), ConvertError> {
-    if let Some(Value::Object(props)) = obj.get("properties").cloned() {
-        let mut new_props = Map::new();
-        for (key, val) in &props {
+    if let Some(props) = obj.get("properties").and_then(Value::as_object) {
+        let keys: Vec<String> = props.keys().cloned().collect();
+        for key in keys {
             let child_path = format!("{}/properties/{}", path, key);
-            let walked = walk(val, &child_path, depth + 1, config, transforms)?;
-            new_props.insert(key.clone(), walked);
+            let val = obj["properties"][&key].clone();
+            let walked = walk(&val, &child_path, depth + 1, config, transforms)?;
+            obj.get_mut("properties")
+                .and_then(Value::as_object_mut)
+                .unwrap()
+                .insert(key, walked);
         }
-        obj.insert("properties".to_string(), Value::Object(new_props));
     }
     Ok(())
 }
