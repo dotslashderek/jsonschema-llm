@@ -137,6 +137,14 @@ fn is_opaque(obj: &Map<String, Value>) -> bool {
         return false;
     }
 
+    // Has reference keywords → not opaque (defers definition).
+    if obj.contains_key("$ref")
+        || obj.contains_key("$dynamicRef")
+        || obj.contains_key("$recursiveRef")
+    {
+        return false;
+    }
+
     // Check additionalProperties:
     // - Missing → opaque (implicit any)
     // - true → opaque (explicit any)
@@ -177,12 +185,11 @@ fn stringify_object(
     // Preserve selected metadata.
     for key in ["title", "examples", "nullable", "default", "$comment"] {
         if let Some(val) = obj.get(key) {
-            // For default, try to stringify if it's an object/array.
-            if key == "default" {
-                if let Ok(s) = serde_json::to_string(val) {
-                    result.insert(key.to_string(), Value::String(s));
-                }
-                // If serialization fails, silently drop.
+            // For default, stringify only if it's an object/array.
+            if key == "default" && (val.is_object() || val.is_array()) {
+                let s = serde_json::to_string(val)
+                    .expect("serializing serde_json::Value should not fail");
+                result.insert(key.to_string(), Value::String(s));
                 continue;
             }
             result.insert(key.to_string(), val.clone());
@@ -476,5 +483,52 @@ mod tests {
         assert_eq!(second_output, first_output);
         assert_eq!(second_transforms.len(), 0);
         assert!(!first_transforms.is_empty());
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 14: Object with $ref → unchanged (not opaque)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_not_opaque_ref() {
+        let input = json!({
+            "type": "object",
+            "$ref": "#/definitions/SomeType"
+        });
+
+        // Should NOT be stringified because $ref means it's not opaque
+        let (output, transforms) = run(input.clone());
+
+        assert_eq!(output, input);
+        assert_eq!(transforms.len(), 0);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 15: Default value handling
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_default_handling_objects() {
+        let input = json!({
+            "type": "object",
+            "default": { "a": 1 }, // Object default -> stringified
+            "description": "desc"
+        });
+
+        let (output, _) = run(input);
+
+        // Object default should be stringified
+        assert_eq!(output["default"], json!("{\"a\":1}"));
+    }
+
+    #[test]
+    fn test_default_handling_primitives() {
+        let input = json!({
+            "type": "object",
+            "default": "some-string", // String default -> preserved as-is
+        });
+
+        let (output, _) = run(input);
+
+        // String default should be preserved, NOT double-encoded
+        assert_eq!(output["default"], json!("some-string"));
     }
 }
