@@ -23,6 +23,7 @@
 //! ```
 
 pub mod codec;
+pub mod codec_warning;
 pub mod config;
 pub mod error;
 pub mod passes;
@@ -32,8 +33,10 @@ pub mod schema_utils;
 use serde_json::Value;
 
 pub use codec::Codec;
+pub use codec_warning::Warning;
 pub use config::{ConvertOptions, Target};
 pub use error::ConvertError;
+pub use rehydrator::RehydrateResult;
 
 /// Result of a schema conversion.
 pub struct ConvertResult {
@@ -67,7 +70,7 @@ pub fn convert(schema: &Value, options: &ConvertOptions) -> Result<ConvertResult
 ///
 /// # Returns
 ///
-/// The rehydrated data in the original schema shape.
-pub fn rehydrate(data: &Value, codec: &Codec) -> Result<Value, ConvertError> {
+/// The rehydrated data with warnings about constraint violations.
+pub fn rehydrate(data: &Value, codec: &Codec) -> Result<RehydrateResult, ConvertError> {
     rehydrator::rehydrate(data, codec)
 }
