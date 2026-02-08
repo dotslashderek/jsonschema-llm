@@ -384,9 +384,24 @@ fn locate_data_nodes<'a>(
 
         if segment == "patternProperties" {
             if let Some(obj) = data.as_object() {
-                for (key, val) in obj {
-                    let child_path = format!("{}/{}", current_data_path, key);
-                    locate_data_nodes(val, segments, next_pos, child_path, out);
+                // Extract pattern from the next segment and filter matching keys
+                let pattern = segments.get(pos + 1).map(|s| s.as_str()).unwrap_or(".*");
+                match regex::Regex::new(pattern) {
+                    Ok(re) => {
+                        for (key, val) in obj {
+                            if re.is_match(key) {
+                                let child_path = format!("{}/{}", current_data_path, key);
+                                locate_data_nodes(val, segments, next_pos, child_path, out);
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        tracing::warn!(
+                            pattern,
+                            error = %e,
+                            "invalid patternProperties regex, skipping"
+                        );
+                    }
                 }
             }
             return;
@@ -1071,5 +1086,27 @@ mod tests {
         let data = json!({"other": 1});
         let result = rehydrate(&data, &codec).unwrap();
         assert!(result.warnings.is_empty());
+    }
+
+    // Test 27: patternProperties constraint only warns for matching keys
+    #[test]
+    fn test_warning_pattern_properties_regex_filter() {
+        use crate::codec::DroppedConstraint;
+        let mut codec = Codec::new();
+        codec.dropped_constraints.push(DroppedConstraint {
+            path: "#/patternProperties/^S_".to_string(),
+            constraint: "minLength".to_string(),
+            value: json!(5),
+        });
+
+        let data = json!({
+            "S_name": "Al",       // matches ^S_, len 2 < 5 → warning
+            "S_code": "ABCDE",   // matches ^S_, len 5 ≥ 5 → no warning
+            "other": "XY"        // does NOT match ^S_ → no warning
+        });
+
+        let result = rehydrate(&data, &codec).unwrap();
+        assert_eq!(result.warnings.len(), 1);
+        assert_eq!(result.warnings[0].data_path, "/S_name");
     }
 }
