@@ -95,13 +95,21 @@ where
         "definitions",
         "dependentSchemas",
     ] {
-        if let Some(Value::Object(map)) = obj.remove(keyword) {
-            let mut new_map = Map::new();
-            for (key, val) in map {
-                let child_path = build_path(path, &[keyword, &key]);
-                new_map.insert(key, walk_fn(&val, &child_path, depth + 1)?);
+        if let Some(val) = obj.remove(keyword) {
+            match val {
+                Value::Object(map) => {
+                    let mut new_map = Map::new();
+                    for (key, val) in map {
+                        let child_path = build_path(path, &[keyword, &key]);
+                        new_map.insert(key, walk_fn(&val, &child_path, depth + 1)?);
+                    }
+                    obj.insert(keyword.to_string(), Value::Object(new_map));
+                }
+                other => {
+                    // Not a map-of-schemas — preserve as-is
+                    obj.insert(keyword.to_string(), other);
+                }
             }
-            obj.insert(keyword.to_string(), Value::Object(new_map));
         }
     }
 
@@ -134,13 +142,21 @@ where
     // --- Array-of-schemas keywords ---
     // `anyOf`, `oneOf`, `allOf`, `prefixItems`
     for keyword in ["anyOf", "oneOf", "allOf", "prefixItems"] {
-        if let Some(Value::Array(variants)) = obj.remove(keyword) {
-            let mut walked = Vec::with_capacity(variants.len());
-            for (i, variant) in variants.into_iter().enumerate() {
-                let child_path = build_path(path, &[keyword, &i.to_string()]);
-                walked.push(walk_fn(&variant, &child_path, depth + 1)?);
+        if let Some(val) = obj.remove(keyword) {
+            match val {
+                Value::Array(variants) => {
+                    let mut walked = Vec::with_capacity(variants.len());
+                    for (i, variant) in variants.into_iter().enumerate() {
+                        let child_path = build_path(path, &[keyword, &i.to_string()]);
+                        walked.push(walk_fn(&variant, &child_path, depth + 1)?);
+                    }
+                    obj.insert(keyword.to_string(), Value::Array(walked));
+                }
+                other => {
+                    // Not an array-of-schemas — preserve as-is
+                    obj.insert(keyword.to_string(), other);
+                }
             }
-            obj.insert(keyword.to_string(), Value::Array(walked));
         }
     }
 
@@ -356,5 +372,30 @@ mod tests {
         assert_eq!(paths.len(), 2);
         assert!(paths.contains(&"#/items/0".to_string()));
         assert!(paths.contains(&"#/items/1".to_string()));
+    }
+
+    #[test]
+    fn test_recurse_preserves_unexpected_types_on_keywords() {
+        // Regression: map-of-schemas keyword with non-object value,
+        // and array-of-schemas keyword with non-array value should
+        // be preserved — not silently dropped.
+        let mut schema = json!({
+            "$defs": true,
+            "anyOf": "invalid",
+            "allOf": 42
+        });
+
+        let obj = schema.as_object_mut().unwrap();
+        recurse_into_children(
+            obj,
+            "#",
+            0,
+            &mut |val: &Value, _path: &str, _depth: usize| Ok(val.clone()),
+        )
+        .unwrap();
+
+        assert_eq!(obj.get("$defs"), Some(&json!(true)));
+        assert_eq!(obj.get("anyOf"), Some(&json!("invalid")));
+        assert_eq!(obj.get("allOf"), Some(&json!(42)));
     }
 }
