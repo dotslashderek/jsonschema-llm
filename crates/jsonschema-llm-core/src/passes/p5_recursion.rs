@@ -52,8 +52,13 @@ pub fn break_recursion(
 
     let result = walk(schema, &defs, config, &mut ref_counts, &mut transforms, "#")?;
 
-    // Strip $defs from the result — all refs are now inlined or broken
-    let result = strip_defs(result);
+    // Safety check: only strip $defs if no dangling $ref nodes remain
+    let result = if has_remaining_refs(&result) {
+        tracing::warn!("Schema still contains $ref nodes after Pass 5 — keeping $defs");
+        result
+    } else {
+        strip_defs(result)
+    };
 
     Ok(RecursionPassResult {
         schema: result,
@@ -184,6 +189,28 @@ fn strip_defs(mut schema: Value) -> Value {
         obj.remove("$defs");
     }
     schema
+}
+
+/// Check if any `$ref` nodes remain in the schema (excluding `$defs`).
+fn has_remaining_refs(schema: &Value) -> bool {
+    match schema {
+        Value::Object(obj) => {
+            for (key, value) in obj {
+                if key == "$defs" {
+                    continue;
+                }
+                if key == "$ref" {
+                    return true;
+                }
+                if has_remaining_refs(value) {
+                    return true;
+                }
+            }
+            false
+        }
+        Value::Array(arr) => arr.iter().any(has_remaining_refs),
+        _ => false,
+    }
 }
 
 #[cfg(test)]
