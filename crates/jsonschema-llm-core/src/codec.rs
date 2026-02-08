@@ -38,6 +38,10 @@ pub enum Transform {
         path: String,
         property_name: String,
     },
+    RecursiveInflate {
+        path: String,
+        original_ref: String,
+    },
 }
 
 /// A constraint that was dropped during conversion.

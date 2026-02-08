@@ -19,8 +19,12 @@ pub enum Target {
 pub struct ConvertOptions {
     /// Target provider. Default: OpenAI Strict.
     pub target: Target,
-    /// Maximum recursion depth before breaking cycles.
+    /// Maximum traversal depth for Pass 0 ref resolution (stack overflow guard).
     pub max_depth: usize,
+    /// Maximum number of times a recursive type may be inlined before
+    /// being replaced with an opaque JSON-string placeholder (Pass 5).
+    /// Default: 3. Keep low to avoid exponential schema expansion.
+    pub recursion_limit: usize,
     /// Polymorphism strategy override.
     pub polymorphism: PolymorphismStrategy,
 }
@@ -40,6 +44,7 @@ impl Default for ConvertOptions {
         Self {
             target: Target::OpenaiStrict,
             max_depth: 50,
+            recursion_limit: 3,
             polymorphism: PolymorphismStrategy::AnyOf,
         }
     }
