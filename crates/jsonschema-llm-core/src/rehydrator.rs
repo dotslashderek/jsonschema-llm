@@ -43,7 +43,9 @@ fn apply_transform(
                 apply_transform(item, &path_parts[1..], transform)?;
             }
         }
-        // If data is not an array (e.g. null or mismatched), we skip silently (robustness).
+        // Robustness for structural/path mismatches:
+        // If this node is not an array, we skip traversal silently.
+        // Note: value-level transforms (e.g. JsonStringParse) may still return hard errors.
         return Ok(());
     }
 
@@ -53,14 +55,20 @@ fn apply_transform(
             // SPECIAL CASE: NullableOptional
             // If we are at the parent object and the path targets a child property that is Nullable,
             // we perform the check here to have access to the parent map for removal.
-            if let Transform::NullableOptional { .. } = transform {
+            if let Transform::NullableOptional {
+                original_required, ..
+            } = transform
+            {
                 // If this is the last hop (properties/KEY)
                 if path_parts.len() == 2 {
-                    if let Some(obj) = data.as_object_mut() {
-                        // Check if the value exists and is null
-                        if let Some(val) = obj.get(*key) {
-                            if val.is_null() {
-                                obj.remove(*key);
+                    // Only strip null values for properties that were NOT originally required.
+                    // Required properties should keep their null value.
+                    if !original_required {
+                        if let Some(obj) = data.as_object_mut() {
+                            if let Some(val) = obj.get(*key) {
+                                if val.is_null() {
+                                    obj.remove(*key);
+                                }
                             }
                         }
                     }
@@ -444,5 +452,25 @@ mod tests {
         let result = rehydrate(&data, &codec).unwrap();
         assert_eq!(result["_extra"], json!("not an object"));
         assert_eq!(result["fixed"], json!("keep"));
+    }
+
+    // Test 13: Originally required nullable keeps null value
+    #[test]
+    fn test_strip_nullable_required_preserves_null() {
+        let mut codec = Codec::new();
+        codec.transforms.push(Transform::NullableOptional {
+            path: "#/properties/required_field".to_string(),
+            original_required: true,
+        });
+
+        let data = json!({
+            "other": 1,
+            "required_field": null
+        });
+
+        let result = rehydrate(&data, &codec).unwrap();
+        // Required field should keep its null value
+        assert_eq!(result["required_field"], json!(null));
+        assert_eq!(result["other"], json!(1));
     }
 }
