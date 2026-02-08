@@ -1444,4 +1444,30 @@ mod tests {
         assert!(msgs.iter().any(|m| m.contains("less than minItems")));
         assert!(msgs.iter().any(|m| m.contains("exceeds maxItems")));
     }
+
+    // Test: RecursiveInflate rehydration round-trip
+    #[test]
+    fn test_recursive_inflate_rehydration() {
+        let mut codec = Codec::new();
+        codec.transforms.push(Transform::RecursiveInflate {
+            path: "#/properties/child".to_string(),
+            original_ref: "#/$defs/Node".to_string(),
+        });
+
+        // Simulate LLM output where the recursive child is a JSON-encoded string
+        let data = json!({
+            "value": 42,
+            "child": "{\"value\": 99}"
+        });
+
+        let result = rehydrate(&data, &codec).unwrap();
+
+        // The JSON string should be parsed back into an object
+        assert_eq!(result.data["value"], 42);
+        assert_eq!(result.data["child"]["value"], 99);
+        assert!(
+            result.data["child"].is_object(),
+            "child should be an object after rehydration"
+        );
+    }
 }
