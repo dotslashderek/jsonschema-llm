@@ -131,8 +131,15 @@ fn is_opaque(obj: &Map<String, Value>) -> bool {
         return false;
     }
 
-    // Has composition keywords → composite, not opaque.
-    if obj.contains_key("allOf") || obj.contains_key("oneOf") || obj.contains_key("anyOf") {
+    // Has composition or conditional keywords → composite, not opaque.
+    if obj.contains_key("allOf")
+        || obj.contains_key("oneOf")
+        || obj.contains_key("anyOf")
+        || obj.contains_key("not")
+        || obj.contains_key("if")
+        || obj.contains_key("then")
+        || obj.contains_key("else")
+    {
         return false;
     }
 
@@ -194,19 +201,19 @@ fn stringify_object(
         "dependentSchemas",
         "propertyNames",
         "unevaluatedProperties",
-        // Enum/const were checked in is_opaque, but strip to be safe/clean
+        // Enum/const were checked in is_opaque, but strip defensively
         "enum",
         "const",
+        // Conditional applicators — not expected on opaque schemas, but strip for coherence
+        "not",
+        "if",
+        "then",
+        "else",
     ] {
         result.remove(key);
     }
 
-    // Append instruction to description.
-    // Actually, original code used OPAQUE_DESC_SUFFIX which likely has a leading space.
-    // Let's stick to the logic: if desc exists append suffix, else use default.
-    // But default includes the instruction.
-
-    // We'll reconstruct description logic to match previous behavior but on the cloned map.
+    // If a description exists, append the opaque suffix; otherwise, set the default description.
     if let Some(desc) = result.get("description").and_then(Value::as_str) {
         let new_desc = format!("{}{}", desc, OPAQUE_DESC_SUFFIX);
         result.insert("description".to_string(), Value::String(new_desc));
@@ -217,15 +224,28 @@ fn stringify_object(
         );
     }
 
-    // Handle default value stringification if present
-    // We already have the default in `result` (cloned), but we might need to transform it.
-    if let Some(val) = result.get("default") {
-        // For default, stringify only if it's an object/array.
+    // Stringify object/array values in `default` to match the new string type.
+    if let Some(val) = result.get("default").cloned() {
         if val.is_object() || val.is_array() {
-            let s =
-                serde_json::to_string(val).expect("serializing serde_json::Value should not fail");
-            result.insert("default".to_string(), Value::String(s));
+            if let Ok(s) = serde_json::to_string(&val) {
+                result.insert("default".to_string(), Value::String(s));
+            }
         }
+    }
+
+    // Stringify object/array entries in `examples` to match the new string type.
+    if let Some(examples) = result.get("examples").and_then(Value::as_array).cloned() {
+        let stringified: Vec<Value> = examples
+            .into_iter()
+            .map(|v| {
+                if v.is_object() || v.is_array() {
+                    serde_json::to_string(&v).map(Value::String).unwrap_or(v)
+                } else {
+                    v
+                }
+            })
+            .collect();
+        result.insert("examples".to_string(), Value::Array(stringified));
     }
 
     // Emit codec transform.
@@ -601,5 +621,55 @@ mod tests {
         assert_eq!(output["readOnly"], true);
         assert_eq!(output["extraField"], "value");
         assert!(output.get("minProperties").is_none());
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 18: Conditional keywords (if/not) → not opaque
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_not_opaque_conditional() {
+        let input = json!({
+            "type": "object",
+            "if": { "properties": { "x": { "const": 1 } } },
+            "then": { "required": ["y"] }
+        });
+
+        let (output, transforms) = run(input.clone());
+        assert_eq!(output, input);
+        assert_eq!(transforms.len(), 0);
+    }
+
+    #[test]
+    fn test_not_opaque_not() {
+        let input = json!({
+            "type": "object",
+            "not": { "required": ["forbidden"] }
+        });
+
+        let (output, transforms) = run(input.clone());
+        assert_eq!(output, input);
+        assert_eq!(transforms.len(), 0);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 19: Examples with object/array entries → stringified
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_examples_stringified() {
+        let input = json!({
+            "type": "object",
+            "examples": [{"a": 1}, "plain-string", [1, 2, 3]]
+        });
+
+        let (output, _) = run(input);
+
+        assert_eq!(output["type"], "string");
+        let examples = output["examples"].as_array().unwrap();
+        // Object example → stringified
+        assert_eq!(examples[0], json!("{\"a\":1}"));
+        // String example → preserved
+        assert_eq!(examples[1], json!("plain-string"));
+        // Array example → stringified
+        assert_eq!(examples[2], json!("[1,2,3]"));
     }
 }
