@@ -34,6 +34,10 @@ pub enum Transform {
         discriminator: String,
         variants: Vec<String>,
     },
+    ExtractAdditionalProperties {
+        path: String,
+        property_name: String,
+    },
 }
 
 /// A constraint that was dropped during conversion.
