@@ -471,11 +471,23 @@ fn locate_data_nodes<'a>(
 
         if segment == "patternProperties" {
             if let Some(obj) = data.as_object() {
-                // Extract pattern from the next segment; bail if missing
+                // Extract pattern from the next segment; bail with warning if missing
                 let Some(pattern_segment) = segments.get(pos + 1) else {
                     tracing::warn!(
                         "missing regex segment after patternProperties in schema path, skipping"
                     );
+                    warnings.push(Warning {
+                        data_path: if current_data_path.is_empty() {
+                            "/".to_string()
+                        } else {
+                            current_data_path.clone()
+                        },
+                        schema_path: schema_path.to_string(),
+                        kind: WarningKind::ConstraintUnevaluable {
+                            constraint: "patternProperties".to_string(),
+                        },
+                        message: "missing regex segment after patternProperties in schema path; constraint cannot be evaluated".to_string(),
+                    });
                     return;
                 };
                 let pattern = pattern_segment.as_str();
@@ -1305,5 +1317,68 @@ mod tests {
         assert!(
             matches!(&result.warnings[0].kind, WarningKind::ConstraintUnevaluable { constraint } if constraint == "pattern")
         );
+    }
+
+    // Test 30: Missing regex segment after patternProperties
+    #[test]
+    fn test_missing_pattern_properties_segment() {
+        use crate::codec::DroppedConstraint;
+        let mut codec = Codec::new();
+        // Path ends at patternProperties without a regex segment
+        codec.dropped_constraints.push(DroppedConstraint {
+            path: "#/patternProperties".to_string(),
+            constraint: "minLength".to_string(),
+            value: json!(5),
+        });
+
+        let data = json!({"any": "value"});
+        let result = rehydrate(&data, &codec).unwrap();
+        assert_eq!(result.warnings.len(), 1);
+        assert_eq!(result.warnings[0].schema_path, "#/patternProperties");
+        assert!(result.warnings[0].message.contains("missing regex segment"));
+        assert!(
+            matches!(&result.warnings[0].kind, WarningKind::ConstraintUnevaluable { constraint } if constraint == "patternProperties")
+        );
+    }
+
+    // Test 31: Additional numeric and length constraints
+    #[test]
+    fn test_additional_numeric_constraints() {
+        use crate::codec::DroppedConstraint;
+        let mut codec = Codec::new();
+        
+        let constraints = vec![
+            ("#/properties/ex_min", "exclusiveMinimum", json!(10)),
+            ("#/properties/ex_max", "exclusiveMaximum", json!(20)),
+            ("#/properties/min_len", "minLength", json!(5)),
+            ("#/properties/min_items", "minItems", json!(2)),
+            ("#/properties/max_items", "maxItems", json!(2)),
+        ];
+
+        for (path, constraint, value) in constraints {
+            codec.dropped_constraints.push(DroppedConstraint {
+                path: path.to_string(),
+                constraint: constraint.to_string(),
+                value,
+            });
+        }
+
+        let data = json!({
+            "ex_min": 10,        // Fail: 10 is not > 10
+            "ex_max": 20,        // Fail: 20 is not < 20
+            "min_len": "fail",   // Fail: len 4 < 5
+            "min_items": [1],    // Fail: len 1 < 2
+            "max_items": [1, 2, 3] // Fail: len 3 > 2
+        });
+
+        let result = rehydrate(&data, &codec).unwrap();
+        assert_eq!(result.warnings.len(), 5);
+
+        let msgs: Vec<&str> = result.warnings.iter().map(|w| w.message.as_str()).collect();
+        assert!(msgs.iter().any(|m| m.contains("not greater than exclusive minimum")));
+        assert!(msgs.iter().any(|m| m.contains("not less than exclusive maximum")));
+        assert!(msgs.iter().any(|m| m.contains("less than minLength")));
+        assert!(msgs.iter().any(|m| m.contains("less than minItems")));
+        assert!(msgs.iter().any(|m| m.contains("exceeds maxItems")));
     }
 }
