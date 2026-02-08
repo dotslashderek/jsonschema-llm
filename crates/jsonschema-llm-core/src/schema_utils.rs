@@ -52,6 +52,41 @@ pub fn build_path(parent: &str, segments: &[&str]) -> String {
     path
 }
 
+/// Unescape a single path segment per RFC 6901.
+///
+/// - `~1` → `/`
+/// - `~0` → `~`
+///
+/// Order matters: unescape `~1` first to avoid double-unescaping.
+/// Returns `Cow::Borrowed` when no unescaping is needed (the common case).
+pub fn unescape_pointer_segment(segment: &str) -> Cow<str> {
+    if segment.contains('~') {
+        Cow::Owned(segment.replace("~1", "/").replace("~0", "~"))
+    } else {
+        Cow::Borrowed(segment)
+    }
+}
+
+/// Split a JSON Pointer path into decoded segments.
+///
+/// Strips the leading `#` fragment identifier (if present), splits on `/`,
+/// and unescapes each segment per RFC 6901.
+///
+/// # Example
+/// ```
+/// use jsonschema_llm_core::schema_utils::split_path;
+/// assert_eq!(split_path("#/properties/a~1b/items"), vec!["properties", "a/b", "items"]);
+/// assert_eq!(split_path("#"), Vec::<String>::new());
+/// ```
+pub fn split_path(path: &str) -> Vec<String> {
+    let stripped = path.strip_prefix('#').unwrap_or(path);
+    stripped
+        .split('/')
+        .filter(|s| !s.is_empty())
+        .map(|s| unescape_pointer_segment(s).into_owned())
+        .collect()
+}
+
 // ---------------------------------------------------------------------------
 // Shared schema traversal
 // ---------------------------------------------------------------------------
@@ -397,5 +432,60 @@ mod tests {
         assert_eq!(obj.get("$defs"), Some(&json!(true)));
         assert_eq!(obj.get("anyOf"), Some(&json!("invalid")));
         assert_eq!(obj.get("allOf"), Some(&json!(42)));
+    }
+
+    // --- unescape_pointer_segment tests ---
+
+    #[test]
+    fn test_unescape_no_special() {
+        assert_eq!(unescape_pointer_segment("hello"), "hello");
+    }
+
+    #[test]
+    fn test_unescape_tilde() {
+        assert_eq!(unescape_pointer_segment("a~0b"), "a~b");
+    }
+
+    #[test]
+    fn test_unescape_slash() {
+        assert_eq!(unescape_pointer_segment("a~1b"), "a/b");
+    }
+
+    #[test]
+    fn test_unescape_both() {
+        assert_eq!(unescape_pointer_segment("a~0b~1c"), "a~b/c");
+    }
+
+    #[test]
+    fn test_escape_unescape_roundtrip() {
+        let original = "my/key~with~special/chars";
+        let escaped = escape_pointer_segment(original);
+        let unescaped = unescape_pointer_segment(&escaped);
+        assert_eq!(unescaped, original);
+    }
+
+    // --- split_path tests ---
+
+    #[test]
+    fn test_split_path_simple() {
+        assert_eq!(split_path("#/properties/name"), vec!["properties", "name"]);
+    }
+
+    #[test]
+    fn test_split_path_with_escapes() {
+        assert_eq!(
+            split_path("#/properties/a~1b/items"),
+            vec!["properties", "a/b", "items"]
+        );
+    }
+
+    #[test]
+    fn test_split_path_root() {
+        assert_eq!(split_path("#"), Vec::<String>::new());
+    }
+
+    #[test]
+    fn test_split_path_no_fragment() {
+        assert_eq!(split_path("/properties/x"), vec!["properties", "x"]);
     }
 }
