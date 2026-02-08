@@ -109,7 +109,7 @@ fn enforce_object_strict(
     // 1. Wrap each optional property with anyOf: [T, {type: null}]
     wrap_optional_properties(obj, &optional_keys, path, transforms);
 
-    // 2. Set `required` to all property keys (preserving original order + appending optionals)
+    // 2. Set `required` to all property keys in `properties` order
     set_all_required(obj, &all_keys);
 
     // 3. Seal the object
@@ -571,11 +571,13 @@ mod tests {
         };
 
         let result = enforce_strict(&input, &config);
-        assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Recursion depth exceeded"));
+        let err = result.unwrap_err();
+        match err {
+            ConvertError::RecursionDepthExceeded { max_depth, .. } => {
+                assert_eq!(max_depth, config.max_depth);
+            }
+            other => panic!("expected RecursionDepthExceeded, got: {:?}", other),
+        }
     }
 
     // -----------------------------------------------------------------------
