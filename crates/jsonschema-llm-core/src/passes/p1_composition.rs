@@ -338,7 +338,7 @@ fn merge_properties(
     for (prop_key, prop_val) in overlay_props {
         if let Some(existing) = base_map.remove(&prop_key) {
             // Both define this property — full recursive merge
-            let prop_path = format!("{}/properties/{}", path, prop_key);
+            let prop_path = build_path(path, &["properties", &prop_key]);
             let merged = merge_two(existing, prop_val, &prop_path, dropped)?;
             base_map.insert(prop_key, merged);
         } else {
@@ -528,7 +528,7 @@ fn merge_additional_properties(
 
     // Both schemas → recursive merge
     if existing.is_object() && overlay_val.is_object() {
-        let child_path = format!("{}/additionalProperties", path);
+        let child_path = build_path(path, &["additionalProperties"]);
         let merged = merge_two(existing, overlay_val, &child_path, dropped)?;
         result.insert("additionalProperties".to_string(), merged);
         return Ok(());
@@ -552,7 +552,7 @@ fn merge_items(
     };
 
     if existing.is_object() && overlay_val.is_object() {
-        let child_path = format!("{}/items", path);
+        let child_path = build_path(path, &["items"]);
         let merged = merge_two(existing, overlay_val, &child_path, dropped)?;
         result.insert("items".to_string(), merged);
     } else {
