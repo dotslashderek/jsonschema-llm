@@ -15,6 +15,7 @@ use crate::error::ConvertError;
 use crate::schema_utils::{escape_pointer_segment, split_path};
 
 /// Result of rehydration, including the restored data and any warnings.
+#[derive(Debug, Clone)]
 pub struct RehydrateResult {
     /// The rehydrated data in the original schema shape.
     pub data: Value,
@@ -305,7 +306,7 @@ fn validate_constraints(data: &Value, codec: &Codec) -> Vec<Warning> {
 
     // Pre-compile regex patterns
     let mut regex_cache: HashMap<String, Regex> = HashMap::new();
-    let mut invalid_patterns: Vec<(String, String, String)> = Vec::new();
+    let mut invalid_patterns: Vec<(String, String, String, bool)> = Vec::new();
     for dc in &codec.dropped_constraints {
         if dc.constraint == "pattern" {
             if let Some(pat) = dc.value.as_str() {
@@ -315,7 +316,12 @@ fn validate_constraints(data: &Value, codec: &Codec) -> Vec<Warning> {
                     }
                     Err(e) => {
                         tracing::warn!(pattern = %pat, error = %e, "invalid regex in dropped constraint");
-                        invalid_patterns.push((dc.path.clone(), pat.to_string(), e.to_string()));
+                        invalid_patterns.push((
+                            dc.path.clone(),
+                            pat.to_string(),
+                            e.to_string(),
+                            false,
+                        ));
                     }
                 }
             } else {
@@ -324,6 +330,7 @@ fn validate_constraints(data: &Value, codec: &Codec) -> Vec<Warning> {
                     dc.path.clone(),
                     dc.value.to_string(),
                     "expected string value".to_string(),
+                    true,
                 ));
             }
         }
@@ -332,17 +339,25 @@ fn validate_constraints(data: &Value, codec: &Codec) -> Vec<Warning> {
     let mut warnings = Vec::new();
 
     // Emit warnings for invalid regex patterns
-    for (path, pat, err) in &invalid_patterns {
+    for (path, pat, err, is_non_string) in &invalid_patterns {
+        let message = if *is_non_string {
+            format!(
+                "constraint 'pattern' value ({}) is not a string and cannot be validated",
+                pat
+            )
+        } else {
+            format!(
+                "constraint 'pattern' ({}) has invalid regex and cannot be validated: {}",
+                pat, err
+            )
+        };
         warnings.push(Warning {
             data_path: "/".to_string(),
             schema_path: path.clone(),
             kind: WarningKind::ConstraintUnevaluable {
                 constraint: "pattern".to_string(),
             },
-            message: format!(
-                "constraint 'pattern' ({}) has invalid regex and cannot be validated: {}",
-                pat, err
-            ),
+            message,
         });
     }
 
@@ -381,6 +396,7 @@ fn validate_constraints(data: &Value, codec: &Codec) -> Vec<Warning> {
             String::new(),
             &mut nodes,
             &mut warnings,
+            &dc.path,
         );
 
         if nodes.is_empty() {
@@ -422,6 +438,7 @@ fn locate_data_nodes<'a>(
     current_data_path: String,
     out: &mut Vec<(String, &'a Value)>,
     warnings: &mut Vec<Warning>,
+    schema_path: &str,
 ) {
     if pos >= segments.len() {
         out.push((current_data_path, data));
@@ -432,7 +449,15 @@ fn locate_data_nodes<'a>(
 
     // Schema-structural: skip single
     if SKIP_SINGLE.contains(&segment) {
-        locate_data_nodes(data, segments, pos + 1, current_data_path, out, warnings);
+        locate_data_nodes(
+            data,
+            segments,
+            pos + 1,
+            current_data_path,
+            out,
+            warnings,
+            schema_path,
+        );
         return;
     }
 
@@ -465,7 +490,13 @@ fn locate_data_nodes<'a>(
                                     escape_pointer_segment(key)
                                 );
                                 locate_data_nodes(
-                                    val, segments, next_pos, child_path, out, warnings,
+                                    val,
+                                    segments,
+                                    next_pos,
+                                    child_path,
+                                    out,
+                                    warnings,
+                                    schema_path,
                                 );
                             }
                         }
@@ -482,7 +513,7 @@ fn locate_data_nodes<'a>(
                             } else {
                                 current_data_path.clone()
                             },
-                            schema_path: segments.iter().map(|s| s.as_str()).collect::<Vec<_>>().join("/"),
+                            schema_path: schema_path.to_string(),
                             kind: WarningKind::ConstraintUnevaluable {
                                 constraint: "patternProperties".to_string(),
                             },
@@ -497,7 +528,15 @@ fn locate_data_nodes<'a>(
             return;
         }
 
-        locate_data_nodes(data, segments, next_pos, current_data_path, out, warnings);
+        locate_data_nodes(
+            data,
+            segments,
+            next_pos,
+            current_data_path,
+            out,
+            warnings,
+            schema_path,
+        );
         return;
     }
 
@@ -506,7 +545,15 @@ fn locate_data_nodes<'a>(
         if let Some(arr) = data.as_array() {
             for (i, item) in arr.iter().enumerate() {
                 let child_path = format!("{}/{}", current_data_path, i);
-                locate_data_nodes(item, segments, pos + 1, child_path, out, warnings);
+                locate_data_nodes(
+                    item,
+                    segments,
+                    pos + 1,
+                    child_path,
+                    out,
+                    warnings,
+                    schema_path,
+                );
             }
         }
         return;
@@ -517,7 +564,15 @@ fn locate_data_nodes<'a>(
         if let Some(arr) = data.as_array() {
             if let Some(item) = arr.get(index) {
                 let child_path = format!("{}/{}", current_data_path, index);
-                locate_data_nodes(item, segments, pos + 1, child_path, out, warnings);
+                locate_data_nodes(
+                    item,
+                    segments,
+                    pos + 1,
+                    child_path,
+                    out,
+                    warnings,
+                    schema_path,
+                );
             }
         }
         return;
@@ -530,7 +585,15 @@ fn locate_data_nodes<'a>(
                 if let Some(child) = obj.get(key.as_str()) {
                     let child_path =
                         format!("{}/{}", current_data_path, escape_pointer_segment(key));
-                    locate_data_nodes(child, segments, pos + 2, child_path, out, warnings);
+                    locate_data_nodes(
+                        child,
+                        segments,
+                        pos + 2,
+                        child_path,
+                        out,
+                        warnings,
+                        schema_path,
+                    );
                 }
             }
         }
@@ -1238,7 +1301,7 @@ mod tests {
         let result = rehydrate(&data, &codec).unwrap();
         assert_eq!(result.warnings.len(), 1);
         assert_eq!(result.warnings[0].data_path, "/");
-        assert!(result.warnings[0].message.contains("expected string value"));
+        assert!(result.warnings[0].message.contains("is not a string"));
         assert!(
             matches!(&result.warnings[0].kind, WarningKind::ConstraintUnevaluable { constraint } if constraint == "pattern")
         );
