@@ -66,8 +66,12 @@ fn walk(
 
     let mut result = obj.clone();
 
-    // If this is a `type: object` with `properties`, enforce strict mode.
-    if is_typed_object(&result) && result.contains_key("properties") {
+    // If this is a `type: object`, enforce strict mode.
+    // Objects without `properties` get sealed with an empty properties map.
+    if is_typed_object(&result) {
+        if !result.contains_key("properties") {
+            result.insert("properties".to_string(), json!({}));
+        }
         enforce_object_strict(&mut result, path, transforms);
     }
 
@@ -168,17 +172,21 @@ fn wrap_optional_properties(
 }
 
 /// Wrap a single schema in `anyOf: [schema, {type: null}]`.
-/// Hoists any top-level `description` into the non-null variant.
+/// Hoists any top-level `description` and `title` into the non-null variant.
 fn wrap_nullable(mut schema: Value) -> Value {
-    // Extract description from the top level — it belongs on the non-null variant.
+    // Extract metadata from the top level — it belongs on the non-null variant.
     let description = schema.as_object_mut().and_then(|o| o.remove("description"));
+    let title = schema.as_object_mut().and_then(|o| o.remove("title"));
 
     let mut non_null_variant = schema;
 
-    // If we extracted a description, put it inside the non-null variant.
-    if let Some(desc) = description {
-        if let Some(obj) = non_null_variant.as_object_mut() {
+    // Re-insert extracted metadata inside the non-null variant.
+    if let Some(obj) = non_null_variant.as_object_mut() {
+        if let Some(desc) = description {
             obj.insert("description".to_string(), desc);
+        }
+        if let Some(t) = title {
+            obj.insert("title".to_string(), t);
         }
     }
 
@@ -563,5 +571,53 @@ mod tests {
             .unwrap_err()
             .to_string()
             .contains("Recursion depth exceeded"));
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 8: Empty object (no properties) — sealed with empty props
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_empty_object_sealed() {
+        let input = json!({"type": "object"});
+
+        let (output, transforms) = run(input);
+
+        assert_eq!(output["additionalProperties"], json!(false));
+        assert_eq!(output["properties"], json!({}));
+        assert_eq!(output["required"], json!([]));
+        assert_eq!(transforms.len(), 0);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 9: Title hoisted alongside description in anyOf wrapping
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_title_hoisted_in_any_of() {
+        let input = json!({
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "bio": {
+                    "type": "string",
+                    "title": "Biography",
+                    "description": "A short biography"
+                }
+            },
+            "required": ["name"]
+        });
+
+        let (output, _) = run(input);
+
+        let bio = &output["properties"]["bio"];
+        let any_of = bio["anyOf"].as_array().unwrap();
+
+        // Non-null variant has both title and description
+        assert_eq!(any_of[0]["title"], json!("Biography"));
+        assert_eq!(any_of[0]["description"], json!("A short biography"));
+        assert_eq!(any_of[0]["type"], json!("string"));
+
+        // No top-level title or description on wrapper
+        assert!(bio.get("title").is_none());
+        assert!(bio.get("description").is_none());
     }
 }
