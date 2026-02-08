@@ -122,8 +122,12 @@ fn is_opaque(obj: &Map<String, Value>) -> bool {
         return false;
     }
 
-    // Has patternProperties → has structure.
-    if obj.contains_key("patternProperties") {
+    // Has non-empty patternProperties → has structure.
+    if obj
+        .get("patternProperties")
+        .and_then(Value::as_object)
+        .is_some_and(|p| !p.is_empty())
+    {
         return false;
     }
 
@@ -170,29 +174,57 @@ fn stringify_object(
     path: &str,
     transforms: &mut Vec<Transform>,
 ) -> Value {
-    let mut result = Map::new();
+    // 2. Clone the object and modify into a string schema.
+    // Instead of rebuilding from a whitelist (which drops unknown keywords),
+    // we clone everything and strip object-specific validation keywords.
+    let mut result = obj.clone();
 
     // Set type to string.
     result.insert("type".to_string(), Value::String("string".to_string()));
 
-    // Handle description: append suffix if exists, create default otherwise.
-    let description = match obj.get("description").and_then(Value::as_str) {
-        Some(existing) => format!("{}{}", existing, OPAQUE_DESC_SUFFIX),
-        None => DEFAULT_OPAQUE_DESC.to_string(),
-    };
-    result.insert("description".to_string(), Value::String(description));
+    // Strip object validation keywords.
+    for key in [
+        "properties",
+        "patternProperties",
+        "additionalProperties",
+        "required",
+        "minProperties",
+        "maxProperties",
+        "dependentRequired",
+        "dependentSchemas",
+        "propertyNames",
+        "unevaluatedProperties",
+        // Enum/const were checked in is_opaque, but strip to be safe/clean
+        "enum",
+        "const",
+    ] {
+        result.remove(key);
+    }
 
-    // Preserve selected metadata.
-    for key in ["title", "examples", "nullable", "default", "$comment"] {
-        if let Some(val) = obj.get(key) {
-            // For default, stringify only if it's an object/array.
-            if key == "default" && (val.is_object() || val.is_array()) {
-                let s = serde_json::to_string(val)
-                    .expect("serializing serde_json::Value should not fail");
-                result.insert(key.to_string(), Value::String(s));
-                continue;
-            }
-            result.insert(key.to_string(), val.clone());
+    // Append instruction to description.
+    // Actually, original code used OPAQUE_DESC_SUFFIX which likely has a leading space.
+    // Let's stick to the logic: if desc exists append suffix, else use default.
+    // But default includes the instruction.
+
+    // We'll reconstruct description logic to match previous behavior but on the cloned map.
+    if let Some(desc) = result.get("description").and_then(Value::as_str) {
+        let new_desc = format!("{}{}", desc, OPAQUE_DESC_SUFFIX);
+        result.insert("description".to_string(), Value::String(new_desc));
+    } else {
+        result.insert(
+            "description".to_string(),
+            Value::String(DEFAULT_OPAQUE_DESC.to_string()),
+        );
+    }
+
+    // Handle default value stringification if present
+    // We already have the default in `result` (cloned), but we might need to transform it.
+    if let Some(val) = result.get("default") {
+        // For default, stringify only if it's an object/array.
+        if val.is_object() || val.is_array() {
+            let s =
+                serde_json::to_string(val).expect("serializing serde_json::Value should not fail");
+            result.insert("default".to_string(), Value::String(s));
         }
     }
 
@@ -530,5 +562,44 @@ mod tests {
 
         // String default should be preserved, NOT double-encoded
         assert_eq!(output["default"], json!("some-string"));
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 16: Opaque with empty patternProperties -> opaque
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_opaque_pattern_properties_empty() {
+        let input = json!({
+            "type": "object",
+            "patternProperties": {}
+        });
+
+        // Should be stringified because patternProperties is empty
+        let (output, _) = run(input);
+
+        // If opaque, type becomes string
+        assert_eq!(output["type"], "string");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 17: Extended metadata preservation (deprecated, readOnly, etc.)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_metadata_preserved_extended() {
+        let input = json!({
+            "type": "object",
+            "deprecated": true,
+            "readOnly": true,
+            "minProperties": 1, // Should be stripped
+            "extraField": "value" // Should be preserved
+        });
+
+        let (output, _) = run(input);
+
+        assert_eq!(output["type"], "string");
+        assert_eq!(output["deprecated"], true);
+        assert_eq!(output["readOnly"], true);
+        assert_eq!(output["extraField"], "value");
+        assert!(output.get("minProperties").is_none());
     }
 }
