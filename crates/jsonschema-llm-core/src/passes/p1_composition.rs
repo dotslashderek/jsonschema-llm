@@ -10,6 +10,7 @@
 use crate::codec::DroppedConstraint;
 use crate::config::ConvertOptions;
 use crate::error::ConvertError;
+use crate::schema_utils::build_path;
 use serde_json::{Map, Value};
 use std::collections::HashSet;
 
@@ -54,24 +55,64 @@ fn walk(
     };
 
     // --- 1. Recurse into children FIRST (bottom-up) ---
+    // Cross-reference: keyword list should match schema_utils::recurse_into_children.
+    // P1 cannot use the shared helper because it consumes values and handles
+    // allOf by merging siblings.
 
     // properties
     if let Some(Value::Object(props)) = obj.remove("properties") {
         let mut new_props = Map::new();
         for (key, val) in props {
-            let child_path = format!("{}/properties/{}", path, key);
+            let child_path = build_path(path, &["properties", &key]);
             new_props.insert(key, walk(val, &child_path, depth + 1, config, dropped)?);
         }
         obj.insert("properties".to_string(), Value::Object(new_props));
     }
 
-    // items
+    // patternProperties
+    if let Some(Value::Object(props)) = obj.remove("patternProperties") {
+        let mut new_props = Map::new();
+        for (key, val) in props {
+            let child_path = build_path(path, &["patternProperties", &key]);
+            new_props.insert(key, walk(val, &child_path, depth + 1, config, dropped)?);
+        }
+        obj.insert("patternProperties".to_string(), Value::Object(new_props));
+    }
+
+    // $defs / definitions / dependentSchemas (map-of-schemas)
+    for keyword in ["$defs", "definitions", "dependentSchemas"] {
+        if let Some(Value::Object(defs)) = obj.remove(keyword) {
+            let mut new_defs = Map::new();
+            for (key, val) in defs {
+                let child_path = build_path(path, &[keyword, &key]);
+                new_defs.insert(key, walk(val, &child_path, depth + 1, config, dropped)?);
+            }
+            obj.insert(keyword.to_string(), Value::Object(new_defs));
+        }
+    }
+
+    // items (object or array form)
     if let Some(items) = obj.remove("items") {
-        let child_path = format!("{}/items", path);
-        obj.insert(
-            "items".to_string(),
-            walk(items, &child_path, depth + 1, config, dropped)?,
-        );
+        match items {
+            Value::Object(_) => {
+                let child_path = build_path(path, &["items"]);
+                obj.insert(
+                    "items".to_string(),
+                    walk(items, &child_path, depth + 1, config, dropped)?,
+                );
+            }
+            Value::Array(arr) => {
+                let mut walked = Vec::with_capacity(arr.len());
+                for (i, item) in arr.into_iter().enumerate() {
+                    let child_path = build_path(path, &["items", &i.to_string()]);
+                    walked.push(walk(item, &child_path, depth + 1, config, dropped)?);
+                }
+                obj.insert("items".to_string(), Value::Array(walked));
+            }
+            other => {
+                obj.insert("items".to_string(), other);
+            }
+        }
     }
 
     // anyOf / oneOf
@@ -79,31 +120,54 @@ fn walk(
         if let Some(Value::Array(variants)) = obj.remove(*keyword) {
             let mut new_variants = Vec::new();
             for (i, v) in variants.into_iter().enumerate() {
-                let child_path = format!("{}/{}/{}", path, keyword, i);
+                let child_path = build_path(path, &[keyword, &i.to_string()]);
                 new_variants.push(walk(v, &child_path, depth + 1, config, dropped)?);
             }
             obj.insert(keyword.to_string(), Value::Array(new_variants));
         }
     }
 
-    // additionalProperties (when schema object, not bool)
-    if let Some(ap) = obj.remove("additionalProperties") {
-        if ap.is_object() {
-            let child_path = format!("{}/additionalProperties", path);
-            obj.insert(
-                "additionalProperties".to_string(),
-                walk(ap, &child_path, depth + 1, config, dropped)?,
-            );
-        } else {
-            obj.insert("additionalProperties".to_string(), ap);
+    // Single-schema keywords: additionalProperties, unevaluatedProperties,
+    // propertyNames, unevaluatedItems, contains, not, if, then, else
+    for keyword in [
+        "additionalProperties",
+        "unevaluatedProperties",
+        "propertyNames",
+        "unevaluatedItems",
+        "contains",
+        "not",
+        "if",
+        "then",
+        "else",
+    ] {
+        if let Some(val) = obj.remove(keyword) {
+            if val.is_object() {
+                let child_path = build_path(path, &[keyword]);
+                obj.insert(
+                    keyword.to_string(),
+                    walk(val, &child_path, depth + 1, config, dropped)?,
+                );
+            } else {
+                obj.insert(keyword.to_string(), val);
+            }
         }
+    }
+
+    // prefixItems (array-of-schemas)
+    if let Some(Value::Array(items)) = obj.remove("prefixItems") {
+        let mut walked = Vec::with_capacity(items.len());
+        for (i, item) in items.into_iter().enumerate() {
+            let child_path = build_path(path, &["prefixItems", &i.to_string()]);
+            walked.push(walk(item, &child_path, depth + 1, config, dropped)?);
+        }
+        obj.insert("prefixItems".to_string(), Value::Array(walked));
     }
 
     // allOf — recurse into sub-schemas before merging
     if let Some(Value::Array(sub_schemas)) = obj.remove("allOf") {
         let mut walked = Vec::new();
         for (i, sub) in sub_schemas.into_iter().enumerate() {
-            let child_path = format!("{}/allOf/{}", path, i);
+            let child_path = build_path(path, &["allOf", &i.to_string()]);
             walked.push(walk(sub, &child_path, depth + 1, config, dropped)?);
         }
 

@@ -14,6 +14,7 @@ use serde_json::{json, Map, Value};
 use crate::codec::Transform;
 use crate::config::ConvertOptions;
 use crate::error::ConvertError;
+use crate::schema_utils::{build_path, recurse_into_children};
 
 /// Result of running the strict enforcement pass.
 #[derive(Debug)]
@@ -78,12 +79,9 @@ fn walk(
     }
 
     // Recurse into all structural children that may contain nested schemas.
-    recurse_into_properties(&mut result, path, depth, config, transforms)?;
-    recurse_into_items(&mut result, path, depth, config, transforms)?;
-    recurse_into_variants(&mut result, "anyOf", path, depth, config, transforms)?;
-    recurse_into_variants(&mut result, "oneOf", path, depth, config, transforms)?;
-    recurse_into_variants(&mut result, "allOf", path, depth, config, transforms)?;
-    recurse_into_additional_properties(&mut result, path, depth, config, transforms)?;
+    recurse_into_children(&mut result, path, depth, &mut |val, child_path, d| {
+        walk(val, child_path, d, config, transforms)
+    })?;
 
     Ok(Value::Object(result))
 }
@@ -147,8 +145,9 @@ fn extract_property_keys(obj: &Map<String, Value>) -> Vec<String> {
 }
 
 /// Wrap each optional property in `anyOf: [original_schema, {type: null}]`.
-/// If the original schema has a top-level `description`, move it inside the
-/// non-null `anyOf` variant.
+/// If the property schema is already nullable (has `type: ["...", "null"]`
+/// or `anyOf` containing `{type: "null"}`), skips the wrap but still emits
+/// a `NullableOptional` transform so the rehydrator knows to strip `null`.
 fn wrap_optional_properties(
     obj: &mut Map<String, Value>,
     optional_keys: &[String],
@@ -162,15 +161,45 @@ fn wrap_optional_properties(
 
     for key in optional_keys {
         if let Some(prop_schema) = props.get(key).cloned() {
-            let wrapped = wrap_nullable(prop_schema);
-            props.insert(key.clone(), wrapped);
-
+            if !is_already_nullable(&prop_schema) {
+                let wrapped = wrap_nullable(prop_schema);
+                props.insert(key.clone(), wrapped);
+            }
+            // Always emit transform — rehydrator needs to know null → undefined
             transforms.push(Transform::NullableOptional {
-                path: format!("{}/properties/{}", path, key),
+                path: build_path(path, &["properties", key]),
                 original_required: false,
             });
         }
     }
+}
+
+/// Check if a schema already allows `null`.
+///
+/// Two forms are recognised:
+/// - `type: ["...", "null"]` (type array containing "null")
+/// - `anyOf: [... , {type: "null"}]` (variant list containing null type)
+fn is_already_nullable(schema: &Value) -> bool {
+    if let Some(obj) = schema.as_object() {
+        // Check type array form: type: ["string", "null"]
+        if let Some(type_val) = obj.get("type") {
+            if let Some(arr) = type_val.as_array() {
+                if arr.iter().any(|t| t.as_str() == Some("null")) {
+                    return true;
+                }
+            }
+        }
+        // Check anyOf form: anyOf: [..., {type: "null"}]
+        if let Some(any_of) = obj.get("anyOf").and_then(Value::as_array) {
+            if any_of
+                .iter()
+                .any(|v| v.get("type").and_then(Value::as_str) == Some("null"))
+            {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 /// Wrap a single schema in `anyOf: [schema, {type: null}]`.
@@ -201,88 +230,6 @@ fn wrap_nullable(mut schema: Value) -> Value {
 fn set_all_required(obj: &mut Map<String, Value>, all_keys: &[String]) {
     let required: Vec<Value> = all_keys.iter().map(|k| Value::String(k.clone())).collect();
     obj.insert("required".to_string(), Value::Array(required));
-}
-
-// ---------------------------------------------------------------------------
-// Recursive descent into child schemas
-// ---------------------------------------------------------------------------
-
-/// Recurse into each value inside `properties`.
-fn recurse_into_properties(
-    obj: &mut Map<String, Value>,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-    transforms: &mut Vec<Transform>,
-) -> Result<(), ConvertError> {
-    if let Some(props) = obj.get("properties").and_then(Value::as_object) {
-        let keys: Vec<String> = props.keys().cloned().collect();
-        for key in keys {
-            let child_path = format!("{}/properties/{}", path, key);
-            let val = obj["properties"][&key].clone();
-            let walked = walk(&val, &child_path, depth + 1, config, transforms)?;
-            obj.get_mut("properties")
-                .and_then(Value::as_object_mut)
-                .unwrap()
-                .insert(key, walked);
-        }
-    }
-    Ok(())
-}
-
-/// Recurse into `items` (array element schema).
-fn recurse_into_items(
-    obj: &mut Map<String, Value>,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-    transforms: &mut Vec<Transform>,
-) -> Result<(), ConvertError> {
-    if let Some(items) = obj.get("items").cloned() {
-        let child_path = format!("{}/items", path);
-        let walked = walk(&items, &child_path, depth + 1, config, transforms)?;
-        obj.insert("items".to_string(), walked);
-    }
-    Ok(())
-}
-
-/// Recurse into each variant of an `anyOf`, `oneOf`, or `allOf` array.
-fn recurse_into_variants(
-    obj: &mut Map<String, Value>,
-    keyword: &str,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-    transforms: &mut Vec<Transform>,
-) -> Result<(), ConvertError> {
-    if let Some(Value::Array(variants)) = obj.get(keyword).cloned() {
-        let mut new_variants = Vec::new();
-        for (i, variant) in variants.iter().enumerate() {
-            let child_path = format!("{}/{}/{}", path, keyword, i);
-            let walked = walk(variant, &child_path, depth + 1, config, transforms)?;
-            new_variants.push(walked);
-        }
-        obj.insert(keyword.to_string(), Value::Array(new_variants));
-    }
-    Ok(())
-}
-
-/// Recurse into `additionalProperties` when it is a schema object (not a bool).
-fn recurse_into_additional_properties(
-    obj: &mut Map<String, Value>,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-    transforms: &mut Vec<Transform>,
-) -> Result<(), ConvertError> {
-    if let Some(ap) = obj.get("additionalProperties").cloned() {
-        if ap.is_object() {
-            let child_path = format!("{}/additionalProperties", path);
-            let walked = walk(&ap, &child_path, depth + 1, config, transforms)?;
-            obj.insert("additionalProperties".to_string(), walked);
-        }
-    }
-    Ok(())
 }
 
 // ===========================================================================
@@ -626,5 +573,80 @@ mod tests {
         // No top-level title or description on wrapper
         assert!(bio.get("title").is_none());
         assert!(bio.get("description").is_none());
+    }
+
+    // -- #15: Skip already-nullable tests --
+
+    #[test]
+    fn test_skip_already_nullable_anyof() {
+        // Optional property with anyOf: [T, {type: null}] — already nullable
+        let input = json!({
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "alias": {
+                    "anyOf": [
+                        { "type": "string" },
+                        { "type": "null" }
+                    ]
+                }
+            },
+            "required": ["name"]
+        });
+        let (schema, _transforms) = run(input);
+        let alias = &schema["properties"]["alias"];
+        // Should NOT be double-wrapped (no anyOf containing anyOf)
+        let any_of = alias["anyOf"].as_array().unwrap();
+        assert_eq!(
+            any_of.len(),
+            2,
+            "should keep original 2 variants, not add another null"
+        );
+        assert_eq!(any_of[0], json!({ "type": "string" }));
+        assert_eq!(any_of[1], json!({ "type": "null" }));
+    }
+
+    #[test]
+    fn test_skip_already_nullable_type_array() {
+        // Optional property with type: ["string", "null"] — already nullable
+        let input = json!({
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "nickname": { "type": ["string", "null"] }
+            },
+            "required": ["name"]
+        });
+        let (schema, _transforms) = run(input);
+        let nickname = &schema["properties"]["nickname"];
+        // Should NOT be wrapped in anyOf — type array already allows null
+        assert_eq!(nickname["type"], json!(["string", "null"]));
+        assert!(
+            nickname.get("anyOf").is_none(),
+            "should not add anyOf wrapper"
+        );
+    }
+
+    #[test]
+    fn test_nullable_still_emits_transform() {
+        // Even when we skip wrapping, we still emit NullableOptional transform
+        let input = json!({
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "alias": { "type": ["string", "null"] }
+            },
+            "required": ["name"]
+        });
+        let (_schema, transforms) = run(input);
+        // Transform should exist for the already-nullable field
+        let alias_transform = transforms.iter().find(|t| match t {
+            Transform::NullableOptional { path, .. } => path.contains("alias"),
+            _ => false,
+        });
+        assert!(
+            alias_transform.is_some(),
+            "must emit transform even when skipping wrap"
+        );
     }
 }

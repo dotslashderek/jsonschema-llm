@@ -14,6 +14,7 @@ use serde_json::{Map, Value};
 
 use crate::config::{ConvertOptions, PolymorphismStrategy, Target};
 use crate::error::ConvertError;
+use crate::schema_utils::recurse_into_children;
 
 /// Result of running the polymorphism simplification pass.
 #[derive(Debug)]
@@ -75,14 +76,10 @@ fn walk(
             // --- Rename oneOf → anyOf (with collision handling) ---
             rename_oneof_to_anyof(&mut new_obj);
 
-            // --- Recurse into child schemas ---
-            recurse_into_properties(&mut new_obj, path, depth, config)?;
-            recurse_into_items(&mut new_obj, path, depth, config)?;
-            recurse_into_additional_properties(&mut new_obj, path, depth, config)?;
-            recurse_into_variants(&mut new_obj, "anyOf", path, depth, config)?;
-            recurse_into_variants(&mut new_obj, "oneOf", path, depth, config)?;
-            recurse_into_variants(&mut new_obj, "allOf", path, depth, config)?;
-            recurse_into_defs(&mut new_obj, path, depth, config)?;
+            // --- Recurse into all child schemas via shared traversal ---
+            recurse_into_children(&mut new_obj, path, depth, &mut |val, child_path, d| {
+                walk(val, child_path, d, config)
+            })?;
 
             Ok(Value::Object(new_obj))
         }
@@ -126,89 +123,6 @@ fn rename_oneof_to_anyof(obj: &mut Map<String, Value>) {
         // Simple case: no collision, just rename.
         obj.insert("anyOf".to_string(), one_of);
     }
-}
-
-// ---------------------------------------------------------------------------
-// Recursion helpers
-// ---------------------------------------------------------------------------
-
-fn recurse_into_properties(
-    obj: &mut Map<String, Value>,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-) -> Result<(), ConvertError> {
-    if let Some(props) = obj.get_mut("properties").and_then(Value::as_object_mut) {
-        for (key, value) in props.iter_mut() {
-            let child_path = format!("{}/properties/{}", path, key);
-            *value = walk(value, &child_path, depth + 1, config)?;
-        }
-    }
-    Ok(())
-}
-
-fn recurse_into_items(
-    obj: &mut Map<String, Value>,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-) -> Result<(), ConvertError> {
-    if let Some(items) = obj.get_mut("items") {
-        if items.is_object() {
-            let child_path = format!("{}/items", path);
-            *items = walk(items, &child_path, depth + 1, config)?;
-        }
-    }
-    Ok(())
-}
-
-fn recurse_into_additional_properties(
-    obj: &mut Map<String, Value>,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-) -> Result<(), ConvertError> {
-    if let Some(ap) = obj.get_mut("additionalProperties") {
-        if ap.is_object() {
-            let child_path = format!("{}/additionalProperties", path);
-            *ap = walk(ap, &child_path, depth + 1, config)?;
-        }
-    }
-    Ok(())
-}
-
-fn recurse_into_variants(
-    obj: &mut Map<String, Value>,
-    keyword: &str,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-) -> Result<(), ConvertError> {
-    if let Some(variants) = obj.get_mut(keyword).and_then(Value::as_array_mut) {
-        for (i, variant) in variants.iter_mut().enumerate() {
-            let child_path = format!("{}/{}/{}", path, keyword, i);
-            *variant = walk(variant, &child_path, depth + 1, config)?;
-        }
-    }
-    Ok(())
-}
-
-fn recurse_into_defs(
-    obj: &mut Map<String, Value>,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-) -> Result<(), ConvertError> {
-    // Handle both "definitions" (Draft 7) and "$defs" (Draft 2019-09+)
-    for keyword in ["definitions", "$defs"] {
-        if let Some(defs) = obj.get_mut(keyword).and_then(Value::as_object_mut) {
-            for (key, value) in defs.iter_mut() {
-                let child_path = format!("{}/{}/{}", path, keyword, key);
-                *value = walk(value, &child_path, depth + 1, config)?;
-            }
-        }
-    }
-    Ok(())
 }
 
 // ===========================================================================

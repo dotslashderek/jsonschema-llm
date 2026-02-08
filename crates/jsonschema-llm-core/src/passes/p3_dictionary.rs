@@ -14,6 +14,7 @@ use serde_json::{json, Map, Value};
 use crate::codec::Transform;
 use crate::config::{ConvertOptions, Target};
 use crate::error::ConvertError;
+use crate::schema_utils::recurse_into_children;
 
 /// Field name for the map key in the transpiled array item.
 const KEY_FIELD: &str = "key";
@@ -99,13 +100,10 @@ fn walk(
         extract_additional_properties(&mut result, path, transforms);
     }
 
-    // Recurse into all structural children.
-    recurse_into_properties(&mut result, path, depth, config, transforms)?;
-    recurse_into_items(&mut result, path, depth, config, transforms)?;
-    recurse_into_variants(&mut result, "anyOf", path, depth, config, transforms)?;
-    recurse_into_variants(&mut result, "oneOf", path, depth, config, transforms)?;
-    recurse_into_variants(&mut result, "allOf", path, depth, config, transforms)?;
-    recurse_into_additional_properties(&mut result, path, depth, config, transforms)?;
+    // Recurse into all structural children via shared traversal.
+    recurse_into_children(&mut result, path, depth, &mut |val, child_path, d| {
+        walk(val, child_path, d, config, transforms)
+    })?;
 
     Ok(Value::Object(result))
 }
@@ -246,87 +244,6 @@ fn build_array_schema(value_schema: &Value, key_field: &str) -> Value {
             "additionalProperties": false,
         }
     })
-}
-
-// ---------------------------------------------------------------------------
-// Recursive descent into child schemas
-// ---------------------------------------------------------------------------
-
-/// Recurse into each value inside `properties`.
-fn recurse_into_properties(
-    obj: &mut Map<String, Value>,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-    transforms: &mut Vec<Transform>,
-) -> Result<(), ConvertError> {
-    if let Some(Value::Object(props)) = obj.get_mut("properties") {
-        let keys: Vec<String> = props.keys().cloned().collect();
-        for key in keys {
-            if let Some(val) = props.remove(&key) {
-                let child_path = format!("{}/properties/{}", path, key);
-                let walked = walk(&val, &child_path, depth + 1, config, transforms)?;
-                props.insert(key, walked);
-            }
-        }
-    }
-    Ok(())
-}
-
-/// Recurse into `items` (array element schema).
-fn recurse_into_items(
-    obj: &mut Map<String, Value>,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-    transforms: &mut Vec<Transform>,
-) -> Result<(), ConvertError> {
-    if let Some(items) = obj.remove("items") {
-        let child_path = format!("{}/items", path);
-        let walked = walk(&items, &child_path, depth + 1, config, transforms)?;
-        obj.insert("items".to_string(), walked);
-    }
-    Ok(())
-}
-
-/// Recurse into each variant of an `anyOf`, `oneOf`, or `allOf` array.
-fn recurse_into_variants(
-    obj: &mut Map<String, Value>,
-    keyword: &str,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-    transforms: &mut Vec<Transform>,
-) -> Result<(), ConvertError> {
-    if let Some(Value::Array(variants)) = obj.remove(keyword) {
-        let mut walked_variants = Vec::with_capacity(variants.len());
-        for (i, variant) in variants.into_iter().enumerate() {
-            let child_path = format!("{}/{}/{}", path, keyword, i);
-            walked_variants.push(walk(&variant, &child_path, depth + 1, config, transforms)?);
-        }
-        obj.insert(keyword.to_string(), Value::Array(walked_variants));
-    }
-    Ok(())
-}
-
-/// Recurse into `additionalProperties` when it is a schema object (not a bool).
-fn recurse_into_additional_properties(
-    obj: &mut Map<String, Value>,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-    transforms: &mut Vec<Transform>,
-) -> Result<(), ConvertError> {
-    if let Some(ap) = obj.remove("additionalProperties") {
-        if ap.is_object() {
-            let child_path = format!("{}/additionalProperties", path);
-            let walked = walk(&ap, &child_path, depth + 1, config, transforms)?;
-            obj.insert("additionalProperties".to_string(), walked);
-        } else {
-            obj.insert("additionalProperties".to_string(), ap);
-        }
-    }
-    Ok(())
 }
 
 // ===========================================================================
