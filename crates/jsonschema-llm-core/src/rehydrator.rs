@@ -37,6 +37,7 @@ pub fn rehydrate(data: &Value, codec: &Codec) -> Result<RehydrateResult, Convert
             Transform::NullableOptional { path, .. } => path,
             Transform::DiscriminatorAnyOf { path, .. } => path,
             Transform::ExtractAdditionalProperties { path, .. } => path,
+            Transform::RecursiveInflate { path, .. } => path,
         };
 
         let segments = split_path(path_str);
@@ -221,6 +222,9 @@ fn execute_transform(data: &mut Value, transform: &Transform) -> Result<(), Conv
         }
         Transform::DiscriminatorAnyOf { .. } => {
             // No-op
+        }
+        Transform::RecursiveInflate { .. } => {
+            parse_json_string(data)?;
         }
     }
     Ok(())
