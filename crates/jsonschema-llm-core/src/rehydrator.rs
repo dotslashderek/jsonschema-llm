@@ -108,7 +108,10 @@ fn apply_transform(
         tracing::trace!(segment, "skipping schema-structural keyword pair");
         // Skip the keyword and the following segment (e.g. "anyOf" + "0")
         if rest.is_empty() {
-            tracing::trace!(segment, "incomplete schema-structural keyword pair, stopping");
+            tracing::trace!(
+                segment,
+                "incomplete schema-structural keyword pair, stopping"
+            );
             return Ok(());
         }
         let skip_to = &rest[1..];
@@ -1398,7 +1401,7 @@ mod tests {
     fn test_additional_numeric_constraints() {
         use crate::codec::DroppedConstraint;
         let mut codec = Codec::new();
-        
+
         let constraints = vec![
             ("#/properties/ex_min", "exclusiveMinimum", json!(10)),
             ("#/properties/ex_max", "exclusiveMaximum", json!(20)),
@@ -1427,8 +1430,12 @@ mod tests {
         assert_eq!(result.warnings.len(), 5);
 
         let msgs: Vec<&str> = result.warnings.iter().map(|w| w.message.as_str()).collect();
-        assert!(msgs.iter().any(|m| m.contains("not greater than exclusive minimum")));
-        assert!(msgs.iter().any(|m| m.contains("not less than exclusive maximum")));
+        assert!(msgs
+            .iter()
+            .any(|m| m.contains("not greater than exclusive minimum")));
+        assert!(msgs
+            .iter()
+            .any(|m| m.contains("not less than exclusive maximum")));
         assert!(msgs.iter().any(|m| m.contains("less than minLength")));
         assert!(msgs.iter().any(|m| m.contains("less than minItems")));
         assert!(msgs.iter().any(|m| m.contains("exceeds maxItems")));
