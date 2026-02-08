@@ -609,4 +609,51 @@ mod tests {
         assert_eq!(second_transforms.len(), 0);
         assert!(!first_transforms.is_empty());
     }
+
+    // -----------------------------------------------------------------------
+    // Test 11: Mixed object collision — _additional already exists
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_mixed_object_collision() {
+        let input = json!({
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "_additional": { "type": "boolean" }
+            },
+            "additionalProperties": { "type": "integer" }
+        });
+
+        let (output, transforms) = run(input);
+
+        // Original properties preserved.
+        assert_eq!(output["properties"]["name"], json!({"type": "string"}));
+        assert_eq!(
+            output["properties"]["_additional"],
+            json!({"type": "boolean"})
+        );
+
+        // Extracted AP renamed to avoid collision.
+        let extracted = &output["properties"]["_additional_extra"];
+        assert_eq!(extracted["type"], "array");
+        assert_eq!(
+            extracted["items"]["properties"]["value"],
+            json!({"type": "integer"})
+        );
+
+        // Codec records the actual name used.
+        assert_eq!(transforms.len(), 2);
+        match &transforms[0] {
+            Transform::ExtractAdditionalProperties { property_name, .. } => {
+                assert_eq!(property_name, "_additional_extra");
+            }
+            other => panic!("expected ExtractAdditionalProperties, got: {:?}", other),
+        }
+        match &transforms[1] {
+            Transform::MapToArray { path, .. } => {
+                assert_eq!(path, "#/properties/_additional_extra");
+            }
+            other => panic!("expected MapToArray, got: {:?}", other),
+        }
+    }
 }
