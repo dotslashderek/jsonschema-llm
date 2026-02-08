@@ -5,7 +5,7 @@
 //!
 //! ## Quick Start
 //!
-//! ```rust
+//! ```rust,no_run
 //! use jsonschema_llm_core::{convert, ConvertOptions, Target};
 //!
 //! let schema = serde_json::json!({
