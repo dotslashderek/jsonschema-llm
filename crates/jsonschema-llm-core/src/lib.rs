@@ -27,6 +27,7 @@ pub mod config;
 pub mod error;
 pub mod passes;
 pub mod rehydrator;
+pub mod schema_utils;
 
 use serde_json::Value;
 
