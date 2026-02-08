@@ -162,7 +162,7 @@ fn merge_two(
         match k.as_str() {
             // --- Recursive merge: properties ---
             "properties" => {
-                merge_properties(&mut result, v);
+                merge_properties(&mut result, v, path, dropped)?;
             }
 
             // --- Union: required ---
@@ -244,36 +244,33 @@ fn merge_two(
 // Merge helpers
 // ---------------------------------------------------------------------------
 
-/// Recursively merge `properties`: shared keys merge recursively, new keys added.
-fn merge_properties(result: &mut Map<String, Value>, overlay_val: Value) {
+/// Recursively merge `properties`: shared keys merge via `merge_two`, new keys added.
+fn merge_properties(
+    result: &mut Map<String, Value>,
+    overlay_val: Value,
+    path: &str,
+    dropped: &mut Vec<DroppedConstraint>,
+) -> Result<(), ConvertError> {
     let Value::Object(overlay_props) = overlay_val else {
-        return;
+        return Ok(());
     };
     let base_props = result
         .entry("properties")
         .or_insert_with(|| Value::Object(Map::new()));
     let Some(base_map) = base_props.as_object_mut() else {
-        return;
+        return Ok(());
     };
     for (prop_key, prop_val) in overlay_props {
-        if let Some(existing) = base_map.get_mut(&prop_key) {
-            // Both define this property — merge recursively
-            if let (Some(existing_obj), Some(overlay_obj)) =
-                (existing.as_object(), prop_val.as_object())
-            {
-                let mut merged = existing_obj.clone();
-                for (ek, ev) in overlay_obj {
-                    merged.insert(ek.clone(), ev.clone());
-                }
-                *existing = Value::Object(merged);
-            } else {
-                // Non-objects: overlay wins
-                *existing = prop_val;
-            }
+        if let Some(existing) = base_map.remove(&prop_key) {
+            // Both define this property — full recursive merge
+            let prop_path = format!("{}/properties/{}", path, prop_key);
+            let merged = merge_two(existing, prop_val, &prop_path, dropped)?;
+            base_map.insert(prop_key, merged);
         } else {
             base_map.insert(prop_key, prop_val);
         }
     }
+    Ok(())
 }
 
 /// Union `required` arrays (deduplicated).
@@ -287,13 +284,13 @@ fn merge_required(result: &mut Map<String, Value>, overlay_val: Value) {
     let Some(base_arr) = base_req.as_array_mut() else {
         return;
     };
-    let existing: HashSet<String> = base_arr
+    let mut seen: HashSet<String> = base_arr
         .iter()
         .filter_map(|v| v.as_str().map(String::from))
         .collect();
     for item in overlay_arr {
         if let Some(s) = item.as_str() {
-            if !existing.contains(s) {
+            if seen.insert(s.to_string()) {
                 base_arr.push(item);
             }
         }
@@ -868,5 +865,27 @@ mod tests {
 
         let (output, _) = run(input);
         assert_eq!(output["type"], "string");
+    }
+
+    // -----------------------------------------------------------------------
+    // 16. AP symmetry: true + schema (reversed order) keeps schema
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_ap_true_schema_reversed() {
+        let input = json!({
+            "allOf": [
+                {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                }
+            ]
+        });
+
+        let (output, _) = run(input);
+        assert_eq!(output["additionalProperties"], json!({"type": "string"}));
     }
 }
