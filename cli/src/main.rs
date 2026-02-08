@@ -49,16 +49,21 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Convert { input, output, codec, target } => {
-            eprintln!(
-                "Converting {} for target '{}'...",
-                input.display(),
-                target
-            );
+        Commands::Convert {
+            input,
+            output,
+            codec,
+            target,
+        } => {
+            eprintln!("Converting {} for target '{}'...", input.display(), target);
             // TODO: implement
             eprintln!("Not yet implemented. Coming soon!");
         }
-        Commands::Rehydrate { input, codec, output } => {
+        Commands::Rehydrate {
+            input,
+            codec,
+            output,
+        } => {
             eprintln!(
                 "Rehydrating {} with codec {}...",
                 input.display(),
