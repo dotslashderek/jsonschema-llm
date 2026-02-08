@@ -21,12 +21,13 @@ The algorithm targets **OpenAI Strict Mode** as the baseline compilation target 
 
 ### Pass 0: Schema Normalization
 
-| Property       | Value                                                                                    |
-| -------------- | ---------------------------------------------------------------------------------------- |
-| **Detects**    | `$ref` pointers, draft version differences, `$id`/`$anchor` declarations                 |
-| **Transforms** | Resolves all `$ref` to inline definitions; normalizes draft syntax                       |
-| **Lossy**      | No — purely structural                                                                   |
-| **Ordering**   | Must be **first** — all subsequent passes assume a fully resolved, self-contained schema |
+| Property        | Value                                                                                                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Detects**     | `$ref` pointers, draft version differences, `items` (array form), `definitions` keyword                                                                                   |
+| **Transforms**  | Resolves all `$ref` to inline definitions; normalizes draft syntax; migrates `items` array → `prefixItems` + `additionalItems` → `items`; renames `definitions` → `$defs` |
+| **Lossy**       | No — purely structural                                                                                                                                                    |
+| **Ordering**    | Must be **first** — all subsequent passes assume a fully resolved, self-contained schema                                                                                  |
+| **Limitations** | Root-relative JSON Pointers only (`#/...`). `$id`/`$anchor` scoped resolution deferred.                                                                                   |
 
 ### Pass 1: Composition Compilation (`allOf` Merge)
 
@@ -144,28 +145,32 @@ The algorithm targets **OpenAI Strict Mode** as the baseline compilation target 
 ## Rust Architecture
 
 > [!WARNING]
-> **G's warning: "The Visitor Pattern is a trap."** JSON Schema is recursive and cyclic. Use **Recursive Descent Transformer** with `Cow<Schema>` (clone-on-write) and explicit `Context` struct.
+> **G's original suggestion of `Cow<Schema>` was not adopted.** The codebase uses `serde_json::Value` with explicit cloning. The recursive descent transformer pattern is used, but clone-on-write was unnecessary given the pass-by-pass pipeline design.
 
-- **`Cow<Schema>`** — Avoid deep cloning unchanged branches
-- **Context struct** — `CodecBuilder` + `RootSchema` (ref lookup) + `Config` passed down stack
-- **Depth Guard** — Hard limit at 50 levels. Error or fallback to opaque.
+- **`serde_json::Value`** — All schema manipulation uses `Value` cloning for simplicity
+- **Context struct** — e.g., `RefContext` in Pass 0 bundles root schema + config + traversal state
+- **Depth Guard** — Configurable limit (default 50). Error on exceeded depth.
 - **WASM-first** — Enable running converter in-browser (e.g., Gravitee Console "AI Ready" preview)
+
+> [!NOTE]
+> **Considered and deferred: `Cow<Schema>` clone-on-write.** Schema sizes are inherently bounded by LLM context windows — the converted schema must fit in the model's input alongside prompts and context. With practical ceilings around 64KB of schema JSON, clone-on-write would save microseconds on an operation that already runs in milliseconds. The bottleneck is always LLM inference, not the transformer.
 
 ---
 
-## v0.1 Implementation Priority
+## v0.1 Implementation Status
 
-| Priority | Pass       | Name                  | Why                                    |
-| -------- | ---------- | --------------------- | -------------------------------------- |
-| 1        | Pass 6     | Strict Enforcer       | Gatekeeper — nothing runs without this |
-| 2        | Pass 3     | Dictionary Transpiler | Essential for Gravitee maps            |
-| 3        | Pass 1     | Composition           | Gravitee relies on allOf inheritance   |
-| 4        | Rehydrator | (Python first)        | Verify output immediately              |
-| 5        | Pass 2     | Polymorphism          | `anyOf` strategy — accuracy fixer      |
-| 6        | Pass 4     | Opaque Fallback       | Safety net for open-ended objects      |
-| 7        | Pass 0     | Normalization         | $ref resolution (inline)               |
-| 8        | Pass 5     | Recursion Breaking    | Edge case handling                     |
-| 9        | Pass 7     | Constraint Pruning    | Polish                                 |
+| Priority | Pass       | Name                  | Status         |
+| -------- | ---------- | --------------------- | -------------- |
+| 1        | Pass 6     | Strict Enforcer       | ✅ Implemented |
+| 2        | Pass 3     | Dictionary Transpiler | ✅ Implemented |
+| 3        | Pass 1     | Composition           | ✅ Implemented |
+| 4        | Rehydrator | (Rust)                | ✅ Implemented |
+| 5        | Pass 2     | Polymorphism          | ✅ Implemented |
+| 6        | Pass 4     | Opaque Fallback       | ✅ Implemented |
+| 7        | Pass 0     | Normalization         | ✅ Implemented |
+| 8        | Pass 5     | Recursion Breaking    | 🔲 Stub        |
+| 9        | Pass 7     | Constraint Pruning    | 🔲 Stub        |
+| 10       | Pipeline   | `convert()` wiring    | 🔲 Stub        |
 
 ---
 
@@ -186,11 +191,17 @@ The algorithm targets **OpenAI Strict Mode** as the baseline compilation target 
 jsonschema-llm/
 ├── crates/
 │   └── jsonschema-llm-core/   # Rust core library
-├── cli/                       # Rust CLI binary
-├── bindings/
-│   ├── typescript/            # WASM bindings
-│   ├── java/                  # JNI or GraalVM
-│   └── python/                # PyO3
+│       └── src/
+│           ├── lib.rs          # Public API (convert + rehydrate)
+│           ├── passes/         # One module per pass (p0–p7)
+│           ├── codec.rs        # Codec builder
+│           ├── rehydrator.rs   # Reverse transforms
+│           └── schema_utils.rs # Shared path/traversal utilities
+├── cli/                       # Rust CLI binary (stub)
+├── bindings/                  # Language bindings (not yet implemented)
+│   ├── typescript/            # WASM (planned)
+│   ├── java/                  # JNI (planned)
+│   └── python/                # PyO3 (planned)
 ├── docs/
 │   └── algorithm.md           # This specification
 └── README.md

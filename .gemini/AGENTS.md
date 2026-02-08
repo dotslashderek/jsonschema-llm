@@ -12,8 +12,7 @@
 ## Working Agreements
 
 1. **Read `docs/algorithm.md` first** — this is the formal algorithm specification with all design decisions and rationale from 4 rounds of Council deliberation.
-2. **Follow v0.1 priority order** — implement passes in the order specified in the algorithm doc.
+2. **Follow pass implementation order** — passes 0–4 and 6 are complete; passes 5 and 7 remain.
 3. **TDD** — write tests before implementing each pass.
-4. **Use `Cow<Schema>`** — avoid deep cloning unchanged schema branches.
-5. **Depth Guard** — never recurse deeper than 50 levels without a guard.
-6. **Commit atomically** — one pass per commit, with tests.
+4. **Depth Guard** — never recurse deeper than the configurable limit (default 50) without a guard.
+5. **Commit atomically** — one pass per commit, with tests.

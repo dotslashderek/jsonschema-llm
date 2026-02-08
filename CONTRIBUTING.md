@@ -7,9 +7,6 @@ Thanks for your interest in contributing! This project is in early development a
 ### Prerequisites
 
 - [Rust](https://www.rust-lang.org/tools/install) (stable, latest)
-- [Python 3.11+](https://www.python.org/) (for PyO3 bindings and testing)
-- [Node.js 20+](https://nodejs.org/) (for WASM bindings)
-- [pnpm](https://pnpm.io/) (for TypeScript workspace)
 
 ### Building
 
@@ -20,11 +17,11 @@ cargo build
 # Run tests
 cargo test
 
-# Build CLI
-cargo build --bin jsonschema-llm
+# Run clippy
+cargo clippy -- -D warnings
 
-# Build WASM bindings
-cd bindings/typescript && wasm-pack build
+# Check formatting
+cargo fmt -- --check
 ```
 
 ### Testing
@@ -32,16 +29,12 @@ cd bindings/typescript && wasm-pack build
 The project uses a multi-layer testing strategy:
 
 1. **Unit tests** — Rust `#[test]` modules within each pass
-2. **Integration tests** — Full pipeline tests with real schemas
-3. **Round-trip tests** — Convert → mock LLM output → rehydrate → verify original shape
-4. **Provider validation** — Live tests against OpenAI/Gemini APIs (requires API keys)
+2. **Integration tests** — Full pipeline tests with real schemas (planned)
+3. **Doc tests** — Examples in `lib.rs` and `schema_utils.rs`
 
 ```bash
-# Unit + integration tests
+# Unit + doc tests
 cargo test
-
-# Round-trip tests (Python)
-cd bindings/python && python -m pytest
 ```
 
 ### Project Structure
@@ -52,18 +45,17 @@ jsonschema-llm/
 │   └── jsonschema-llm-core/   # Core Rust library
 │       └── src/
 │           ├── lib.rs          # Public API
-│           ├── passes/         # One module per pass
+│           ├── passes/         # One module per pass (p0–p7)
 │           ├── codec.rs        # Codec builder
-│           └── rehydrator.rs   # Reverse transforms
-├── cli/                       # CLI binary
-├── bindings/
-│   ├── typescript/            # WASM bindings
-│   ├── java/                  # JNI bindings
-│   └── python/                # PyO3 bindings
-├── docs/
-│   └── algorithm.md           # Formal algorithm spec
-└── tests/
-    └── schemas/               # Test schemas
+│           ├── rehydrator.rs   # Reverse transforms
+│           └── schema_utils.rs # Shared path/traversal utilities
+├── cli/                       # CLI binary (stub)
+├── bindings/                  # Language bindings (not yet implemented)
+│   ├── typescript/            # WASM (planned)
+│   ├── java/                  # JNI (planned)
+│   └── python/                # PyO3 (planned)
+└── docs/
+    └── algorithm.md           # Formal algorithm spec
 ```
 
 ## Pull Request Process
@@ -76,7 +68,7 @@ jsonschema-llm/
 ## Code Style
 
 - Follow standard Rust conventions (`rustfmt`, `clippy`)
-- Use `Cow<'a, T>` for clone-on-write where applicable
+- Use `serde_json::Value` for schema manipulation
 - Document all public APIs with doc comments
 - Each pass should be a self-contained module in `crates/jsonschema-llm-core/src/passes/`
 

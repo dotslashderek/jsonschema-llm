@@ -190,21 +190,21 @@ The converted schema was accepted by **OpenAI Strict Mode**. The LLM generated a
 └────────┬────────┘
          │
     ┌────▼─────────────────────────┐
-    │ Pass 0: Normalization        │  Resolve $ref, normalize drafts
+    │ Pass 0: Normalization        │  ✅ Resolve $ref, normalize drafts
     ├──────────────────────────────┤
-    │ Pass 1: Composition          │  Merge allOf into flat objects
+    │ Pass 1: Composition          │  ✅ Merge allOf into flat objects
     ├──────────────────────────────┤
-    │ Pass 2: Polymorphism         │  oneOf → anyOf
+    │ Pass 2: Polymorphism         │  ✅ oneOf → anyOf
     ├──────────────────────────────┤
-    │ Pass 3: Dictionary           │  Map<K,V> → Array<{key, value}>
+    │ Pass 3: Dictionary           │  ✅ Map<K,V> → Array<{key, value}>
     ├──────────────────────────────┤
-    │ Pass 4: Opaque Types         │  {type: object} → {type: string}
+    │ Pass 4: Opaque Types         │  ✅ {type: object} → {type: string}
     ├──────────────────────────────┤
-    │ Pass 5: Recursion            │  Break cycles at depth limit
+    │ Pass 5: Recursion            │  🔲 Break cycles at depth limit
     ├──────────────────────────────┤
-    │ Pass 6: Strict Enforcement   │  additionalProperties: false, all required
+    │ Pass 6: Strict Enforcement   │  ✅ additionalProperties: false, all required
     ├──────────────────────────────┤
-    │ Pass 7: Constraint Pruning   │  Drop unsupported constraints
+    │ Pass 7: Constraint Pruning   │  🔲 Drop unsupported constraints
     └────────┬─────────────────────┘
              │
     ┌────────▼────────┐   ┌───────────┐
@@ -525,13 +525,28 @@ original_shape = rehydrate(llm_output, codec)
 └───────┘ └──────────┘ └──────────┘ └─────────┘
 ```
 
-The core library is written in **Rust** with bindings for TypeScript (WASM), Python (PyO3), and Java (JNI). The Rust core is designed to be WASM-friendly, enabling in-browser schema conversion.
+The core library is written in **Rust** using `serde_json::Value` for schema manipulation with recursive descent transformers. Language bindings (TypeScript via WASM, Python via PyO3, Java via JNI) are planned but not yet implemented.
 
 ---
 
 ## Project Status
 
 🚧 **Under active development.**
+
+| Component              | Status         | Notes                                                   |
+| ---------------------- | -------------- | ------------------------------------------------------- |
+| Pass 0: Normalization  | ✅ Complete    | `$ref` resolution, cycle detection, draft normalization |
+| Pass 1: Composition    | ✅ Complete    | `allOf` merge with property/required union              |
+| Pass 2: Polymorphism   | ✅ Complete    | `oneOf` → `anyOf` rewrite                               |
+| Pass 3: Dictionary     | ✅ Complete    | Map → Array transpilation with codec                    |
+| Pass 4: Opaque Types   | ✅ Complete    | Stringification with codec                              |
+| Pass 5: Recursion      | 🔲 Stub        | Cycle breaking at depth limit                           |
+| Pass 6: Strict Mode    | ✅ Complete    | `additionalProperties: false`, nullable optionals       |
+| Pass 7: Constraints    | 🔲 Stub        | Constraint pruning, enum sorting                        |
+| Rehydrator             | ✅ Complete    | Full reverse transforms with advisory warnings          |
+| Pipeline (`convert()`) | 🔲 Stub        | Wires passes together                                   |
+| CLI                    | 🔲 Stub        | `clap`-based binary shell                               |
+| Bindings               | 🔲 Not started | TypeScript (WASM), Python (PyO3), Java (JNI)            |
 
 The algorithm has been validated against:
 
