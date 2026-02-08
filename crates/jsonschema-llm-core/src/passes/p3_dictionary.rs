@@ -15,6 +15,13 @@ use crate::codec::Transform;
 use crate::config::{ConvertOptions, Target};
 use crate::error::ConvertError;
 
+/// Field name for the map key in the transpiled array item.
+const KEY_FIELD: &str = "key";
+/// Field name for the map value in the transpiled array item.
+const VALUE_FIELD: &str = "value";
+/// Default property name for extracted `additionalProperties` in mixed objects.
+const ADDITIONAL_PROPERTY: &str = "_additional";
+
 /// Result of running the dictionary transpilation pass.
 #[derive(Debug)]
 pub struct DictPassResult {
@@ -152,7 +159,7 @@ fn transpile_pure_map(
         .cloned()
         .unwrap_or(json!({}));
 
-    let mut array_schema = build_array_schema(&value_schema, "key");
+    let mut array_schema = build_array_schema(&value_schema, KEY_FIELD);
 
     // Preserve metadata on the outer array.
     if let Some(desc) = obj.get("description") {
@@ -170,7 +177,7 @@ fn transpile_pure_map(
 
     transforms.push(Transform::MapToArray {
         path: path.to_string(),
-        key_field: "key".to_string(),
+        key_field: KEY_FIELD.to_string(),
     });
 
     array_schema
@@ -185,24 +192,36 @@ fn extract_additional_properties(
 ) {
     let value_schema = obj.remove("additionalProperties").unwrap_or(json!({}));
 
-    let array_schema = build_array_schema(&value_schema, "key");
+    let array_schema = build_array_schema(&value_schema, KEY_FIELD);
 
-    // Insert as a named property.
+    // Choose a property name that doesn't collide with existing properties.
     let props = obj
         .entry("properties")
         .or_insert_with(|| json!({}))
         .as_object_mut()
         .unwrap();
-    props.insert("_additional".to_string(), array_schema);
+
+    let property_name = if props.contains_key(ADDITIONAL_PROPERTY) {
+        // Find a unique name by appending underscores.
+        let mut candidate = format!("{}_{}", ADDITIONAL_PROPERTY, "extra");
+        while props.contains_key(&candidate) {
+            candidate.push('_');
+        }
+        candidate
+    } else {
+        ADDITIONAL_PROPERTY.to_string()
+    };
+
+    props.insert(property_name.clone(), array_schema);
 
     // Emit codec entries: first the extraction, then the map-to-array.
     transforms.push(Transform::ExtractAdditionalProperties {
         path: path.to_string(),
-        property_name: "_additional".to_string(),
+        property_name: property_name.clone(),
     });
     transforms.push(Transform::MapToArray {
-        path: format!("{}/properties/_additional", path),
-        key_field: "key".to_string(),
+        path: format!("{}/properties/{}", path, property_name),
+        key_field: KEY_FIELD.to_string(),
     });
 }
 
@@ -216,9 +235,9 @@ fn build_array_schema(value_schema: &Value, key_field: &str) -> Value {
             "type": "object",
             "properties": {
                 key_field: { "type": "string" },
-                "value": value_schema,
+                VALUE_FIELD: value_schema,
             },
-            "required": [key_field, "value"],
+            "required": [key_field, VALUE_FIELD],
             "additionalProperties": false,
         }
     })
