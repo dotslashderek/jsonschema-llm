@@ -106,18 +106,27 @@ fn apply_transform(
 fn restore_map(data: &mut Value, key_field: &str) -> Result<(), ConvertError> {
     // Expecting Array of Objects -> Object
     if let Some(arr) = data.as_array() {
+        // Pre-validate: every entry must be an object with key_field (string) and "value".
+        // If any entry is malformed, skip the entire transform to avoid data loss.
+        let all_valid = arr.iter().all(|item| {
+            item.as_object()
+                .map(|obj| {
+                    obj.get(key_field).and_then(|v| v.as_str()).is_some()
+                        && obj.contains_key("value")
+                })
+                .unwrap_or(false)
+        });
+
+        if !all_valid {
+            return Ok(()); // Skip silently — preserve original array
+        }
+
         let mut map = serde_json::Map::new();
         for item in arr {
-            if let Some(obj) = item.as_object() {
-                // Extract key
-                let key_val = obj.get(key_field).and_then(|v| v.as_str());
-                // Extract value (assuming standard "value" field)
-                let val = obj.get("value");
-
-                if let (Some(k), Some(v)) = (key_val, val) {
-                    map.insert(k.to_string(), v.clone());
-                }
-            }
+            let obj = item.as_object().unwrap(); // safe: pre-validated
+            let k = obj.get(key_field).unwrap().as_str().unwrap();
+            let v = obj.get("value").unwrap();
+            map.insert(k.to_string(), v.clone()); // Duplicate keys: last wins
         }
         *data = Value::Object(map);
     }
@@ -128,10 +137,12 @@ fn parse_json_string(data: &mut Value) -> Result<(), ConvertError> {
     if let Some(s) = data.as_str() {
         match serde_json::from_str::<Value>(s) {
             Ok(parsed) => *data = parsed,
-            Err(_) => {
+            Err(e) => {
+                // Truncate to avoid leaking large LLM output into logs
+                let preview: String = s.chars().take(100).collect();
                 return Err(ConvertError::RehydrationError(format!(
-                    "Failed to parse JSON string: {}",
-                    s
+                    "Failed to parse JSON string ({}): {}...",
+                    e, preview
                 )));
             }
         }
@@ -144,13 +155,19 @@ fn restore_additional_properties(
     property_name: &str,
 ) -> Result<(), ConvertError> {
     if let Some(obj) = data.as_object_mut() {
-        if let Some(extra) = obj.remove(property_name) {
-            if let Some(extra_obj) = extra.as_object() {
-                for (k, v) in extra_obj {
-                    obj.insert(k.clone(), v.clone());
-                }
+        // Validate type BEFORE removing — don't drop non-object values
+        let is_object = obj
+            .get(property_name)
+            .map(|v| v.is_object())
+            .unwrap_or(false);
+
+        if is_object {
+            let extra = obj.remove(property_name).unwrap(); // safe: checked above
+            for (k, v) in extra.as_object().unwrap() {
+                obj.insert(k.clone(), v.clone());
             }
         }
+        // If property_name is missing or not an object, skip silently
     }
     Ok(())
 }
@@ -382,5 +399,50 @@ mod tests {
         let result = rehydrate(&data, &codec).unwrap();
         assert!(result["outer"].get("inner").is_none());
         assert_eq!(result["outer"]["config"], json!({"x": 1}));
+    }
+
+    // Test 11: Malformed map entries — preserve original array
+    #[test]
+    fn test_restore_map_malformed_skips() {
+        let mut codec = Codec::new();
+        codec.transforms.push(Transform::MapToArray {
+            path: "#/properties/map".to_string(),
+            key_field: "key".to_string(),
+        });
+
+        // Second entry is missing "value" field → entire transform should be skipped
+        let data = json!({
+            "map": [
+                {"key": "a", "value": 1},
+                {"key": "b"}
+            ]
+        });
+
+        let result = rehydrate(&data, &codec).unwrap();
+        // Original array preserved, not partially converted
+        assert!(result["map"].is_array());
+        assert_eq!(result["map"].as_array().unwrap().len(), 2);
+    }
+
+    // Test 12: Non-object extra property — preserve original value
+    #[test]
+    fn test_extract_ap_non_object_preserved() {
+        let mut codec = Codec::new();
+        codec
+            .transforms
+            .push(Transform::ExtractAdditionalProperties {
+                path: "#".to_string(),
+                property_name: "_extra".to_string(),
+            });
+
+        // _extra is a string, not an object → should be preserved as-is
+        let data = json!({
+            "fixed": "keep",
+            "_extra": "not an object"
+        });
+
+        let result = rehydrate(&data, &codec).unwrap();
+        assert_eq!(result["_extra"], json!("not an object"));
+        assert_eq!(result["fixed"], json!("keep"));
     }
 }
