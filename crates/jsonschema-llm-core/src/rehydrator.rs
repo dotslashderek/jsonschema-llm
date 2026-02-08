@@ -27,6 +27,10 @@ pub fn rehydrate(data: &Value, codec: &Codec) -> Result<Value, ConvertError> {
             crate::codec::Transform::DiscriminatorAnyOf { .. } => {
                 // No action needed — anyOf data comes back structurally correct
             }
+            crate::codec::Transform::ExtractAdditionalProperties { .. } => {
+                // Spread entries from synthetic property back into parent (Issue #5)
+                todo!()
+            }
         }
     }
 
