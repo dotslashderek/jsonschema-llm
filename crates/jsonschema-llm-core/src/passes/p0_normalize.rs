@@ -494,9 +494,10 @@ fn collect_refs_recursive(value: &Value, refs: &mut HashSet<String>) {
                     .strip_prefix("#/$defs/")
                     .or_else(|| ref_val.strip_prefix("#/definitions/"))
                 {
-                    // Take the first segment (the definition name).
+                    // RFC 6901: unescape pointer segments before matching.
                     let def_name = rest.split('/').next().unwrap_or(rest);
-                    refs.insert(def_name.to_string());
+                    let def_name = def_name.replace("~1", "/").replace("~0", "~");
+                    refs.insert(def_name);
                 }
             }
             for v in obj.values() {
