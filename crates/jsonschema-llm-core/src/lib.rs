@@ -70,7 +70,30 @@ pub fn convert(schema: &Value, options: &ConvertOptions) -> Result<ConvertResult
 ///
 /// # Returns
 ///
-/// The rehydrated data with warnings about constraint violations.
+/// A [`RehydrateResult`] containing the rehydrated data and any advisory warnings
+/// about constraint violations encountered during rehydration. Warnings do not
+/// cause rehydration to fail; they are intended for logging or inspection.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// use jsonschema_llm_core::{rehydrate, Codec};
+/// use serde_json::json;
+///
+/// // In practice, obtain `codec` from a prior `convert(...)` call.
+/// let codec = Codec::new();
+/// let llm_output = json!({"name": "Ada", "age": 36});
+///
+/// let result = rehydrate(&llm_output, &codec).unwrap();
+///
+/// // Access the rehydrated data.
+/// let data = &result.data;
+///
+/// // Inspect any advisory warnings (constraint violations, unevaluable constraints).
+/// for warning in &result.warnings {
+///     eprintln!("warning at {}: {}", warning.data_path, warning.message);
+/// }
+/// ```
 pub fn rehydrate(data: &Value, codec: &Codec) -> Result<RehydrateResult, ConvertError> {
     rehydrator::rehydrate(data, codec)
 }

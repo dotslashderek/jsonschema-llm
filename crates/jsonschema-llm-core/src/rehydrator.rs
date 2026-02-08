@@ -374,7 +374,14 @@ fn validate_constraints(data: &Value, codec: &Codec) -> Vec<Warning> {
 
         // Locate data nodes for this constraint's path
         let mut nodes = Vec::new();
-        locate_data_nodes(data, &split_path(&dc.path), 0, String::new(), &mut nodes);
+        locate_data_nodes(
+            data,
+            &split_path(&dc.path),
+            0,
+            String::new(),
+            &mut nodes,
+            &mut warnings,
+        );
 
         if nodes.is_empty() {
             // Path didn't resolve — not necessarily an error (data may be absent)
@@ -406,12 +413,15 @@ fn validate_constraints(data: &Value, codec: &Codec) -> Vec<Warning> {
 /// Recursively locate data nodes matching a schema path (read-only).
 ///
 /// Collects `(data_path, &Value)` tuples for each data node the schema path resolves to.
+/// When `warnings` is provided, path-resolution issues (e.g. invalid regex) are surfaced
+/// as `ConstraintUnevaluable` warnings rather than silently skipped.
 fn locate_data_nodes<'a>(
     data: &'a Value,
     segments: &[String],
     pos: usize,
     current_data_path: String,
     out: &mut Vec<(String, &'a Value)>,
+    warnings: &mut Vec<Warning>,
 ) {
     if pos >= segments.len() {
         out.push((current_data_path, data));
@@ -422,7 +432,7 @@ fn locate_data_nodes<'a>(
 
     // Schema-structural: skip single
     if SKIP_SINGLE.contains(&segment) {
-        locate_data_nodes(data, segments, pos + 1, current_data_path, out);
+        locate_data_nodes(data, segments, pos + 1, current_data_path, out, warnings);
         return;
     }
 
@@ -436,8 +446,15 @@ fn locate_data_nodes<'a>(
 
         if segment == "patternProperties" {
             if let Some(obj) = data.as_object() {
-                // Extract pattern from the next segment and filter matching keys
-                let pattern = segments.get(pos + 1).map(|s| s.as_str()).unwrap_or(".*");
+                // Extract pattern from the next segment; bail if missing
+                let Some(pattern_segment) = segments.get(pos + 1) else {
+                    tracing::warn!(
+                        "missing regex segment after patternProperties in schema path, skipping"
+                    );
+                    return;
+                };
+                let pattern = pattern_segment.as_str();
+
                 match regex::Regex::new(pattern) {
                     Ok(re) => {
                         for (key, val) in obj {
@@ -447,7 +464,9 @@ fn locate_data_nodes<'a>(
                                     current_data_path,
                                     escape_pointer_segment(key)
                                 );
-                                locate_data_nodes(val, segments, next_pos, child_path, out);
+                                locate_data_nodes(
+                                    val, segments, next_pos, child_path, out, warnings,
+                                );
                             }
                         }
                     }
@@ -455,15 +474,30 @@ fn locate_data_nodes<'a>(
                         tracing::warn!(
                             pattern,
                             error = %e,
-                            "invalid patternProperties regex, skipping"
+                            "invalid patternProperties regex in constraint path, skipping"
                         );
+                        warnings.push(Warning {
+                            data_path: if current_data_path.is_empty() {
+                                "/".to_string()
+                            } else {
+                                current_data_path.clone()
+                            },
+                            schema_path: segments.iter().map(|s| s.as_str()).collect::<Vec<_>>().join("/"),
+                            kind: WarningKind::ConstraintUnevaluable {
+                                constraint: "patternProperties".to_string(),
+                            },
+                            message: format!(
+                                "patternProperties regex '{}' is invalid and cannot be evaluated: {}",
+                                pattern, e
+                            ),
+                        });
                     }
                 }
             }
             return;
         }
 
-        locate_data_nodes(data, segments, next_pos, current_data_path, out);
+        locate_data_nodes(data, segments, next_pos, current_data_path, out, warnings);
         return;
     }
 
@@ -472,7 +506,7 @@ fn locate_data_nodes<'a>(
         if let Some(arr) = data.as_array() {
             for (i, item) in arr.iter().enumerate() {
                 let child_path = format!("{}/{}", current_data_path, i);
-                locate_data_nodes(item, segments, pos + 1, child_path, out);
+                locate_data_nodes(item, segments, pos + 1, child_path, out, warnings);
             }
         }
         return;
@@ -483,7 +517,7 @@ fn locate_data_nodes<'a>(
         if let Some(arr) = data.as_array() {
             if let Some(item) = arr.get(index) {
                 let child_path = format!("{}/{}", current_data_path, index);
-                locate_data_nodes(item, segments, pos + 1, child_path, out);
+                locate_data_nodes(item, segments, pos + 1, child_path, out, warnings);
             }
         }
         return;
@@ -496,7 +530,7 @@ fn locate_data_nodes<'a>(
                 if let Some(child) = obj.get(key.as_str()) {
                     let child_path =
                         format!("{}/{}", current_data_path, escape_pointer_segment(key));
-                    locate_data_nodes(child, segments, pos + 2, child_path, out);
+                    locate_data_nodes(child, segments, pos + 2, child_path, out, warnings);
                 }
             }
         }
