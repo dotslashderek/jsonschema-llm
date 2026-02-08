@@ -209,11 +209,21 @@ fn resolve_single_ref(
     depth: usize,
     ctx: &mut RefContext<'_>,
 ) -> Result<Value, ConvertError> {
-    // Reject non-local refs.
+    // Only root-relative JSON Pointers ("#" or "#/...") are supported.
     if !ref_str.starts_with('#') {
         return Err(ConvertError::UnsupportedFeature {
             path: path.to_string(),
             feature: format!("non-local $ref: {}", ref_str),
+        });
+    }
+
+    // Reject anchor-style fragment refs (e.g., "#Foo") — we only support
+    // JSON Pointer syntax. Without this check they'd fall through to
+    // `UnresolvableRef` with a confusing error message.
+    if ref_str != "#" && !ref_str.starts_with("#/") {
+        return Err(ConvertError::UnsupportedFeature {
+            path: path.to_string(),
+            feature: format!("$anchor / non-pointer fragment $ref: {}", ref_str),
         });
     }
 
@@ -1080,5 +1090,93 @@ mod tests {
             defs.contains_key("TreeNode"),
             "TreeNode should remain in $defs"
         );
+    }
+
+    #[test]
+    fn test_anchor_style_ref_error() {
+        let input = json!({
+            "type": "object",
+            "properties": {
+                "name": { "$ref": "#Foo" }
+            }
+        });
+        let config = ConvertOptions::default();
+        let result = normalize(&input, &config);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        match &err {
+            ConvertError::UnsupportedFeature { feature, .. } => {
+                assert!(
+                    feature.contains("non-pointer fragment"),
+                    "Expected non-pointer fragment error, got: {}",
+                    feature
+                );
+            }
+            other => panic!("Expected UnsupportedFeature, got: {:?}", other),
+        }
+    }
+
+    #[test]
+    fn test_additional_items_migration_basic() {
+        let input = json!({
+            "items": [{ "type": "string" }, { "type": "integer" }],
+            "additionalItems": { "type": "boolean" }
+        });
+        let (output, _) = run(input);
+
+        // items array → prefixItems
+        assert_eq!(
+            output["prefixItems"],
+            json!([{ "type": "string" }, { "type": "integer" }])
+        );
+        // additionalItems → items
+        assert_eq!(output["items"], json!({ "type": "boolean" }));
+        // additionalItems should be gone
+        assert!(output.get("additionalItems").is_none());
+    }
+
+    #[test]
+    fn test_additional_items_migration_with_existing_prefix_items() {
+        let input = json!({
+            "prefixItems": [{ "type": "string" }],
+            "items": [{ "type": "integer" }],
+            "additionalItems": { "type": "boolean" }
+        });
+        let (output, _) = run(input);
+
+        // prefixItems preserved
+        assert_eq!(output["prefixItems"], json!([{ "type": "string" }]));
+        // redundant array-form items dropped, additionalItems → items
+        assert_eq!(output["items"], json!({ "type": "boolean" }));
+        assert!(output.get("additionalItems").is_none());
+    }
+
+    #[test]
+    fn test_boolean_schema_cleanup() {
+        // Top-level `true` schema → empty object
+        let config = ConvertOptions::default();
+        let result = normalize(&json!(true), &config).unwrap();
+        assert_eq!(result.schema, json!({}));
+
+        // Top-level `false` schema → { "not": {} }
+        let result = normalize(&json!(false), &config).unwrap();
+        assert_eq!(result.schema, json!({ "not": {} }));
+    }
+
+    #[test]
+    fn test_additional_items_ref_traversal() {
+        let input = json!({
+            "$defs": {
+                "Extra": { "type": "number" }
+            },
+            "prefixItems": [{ "type": "string" }],
+            "items": [{ "type": "integer" }],
+            "additionalItems": { "$ref": "#/$defs/Extra" }
+        });
+        let (output, _) = run(input);
+
+        // additionalItems had a $ref that should be resolved and migrated to items
+        assert_eq!(output["items"], json!({ "type": "number" }));
+        assert!(output.get("additionalItems").is_none());
     }
 }
