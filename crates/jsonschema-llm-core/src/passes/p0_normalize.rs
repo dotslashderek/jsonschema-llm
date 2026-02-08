@@ -117,6 +117,10 @@ fn normalize_items_recursive(value: &mut Value) {
         } else {
             // Both exist — drop the array-form items (redundant in 2020-12).
             obj.remove("items");
+            // Still migrate legacy `additionalItems` → `items` in 2020-12.
+            if let Some(additional) = obj.remove("additionalItems") {
+                obj.insert("items".to_string(), additional);
+            }
         }
     }
 
@@ -356,6 +360,7 @@ fn recurse_children(
         "then",
         "else",
         "items",
+        "additionalItems",
     ] {
         if let Some(val) = obj.remove(key) {
             if val.is_object() {
