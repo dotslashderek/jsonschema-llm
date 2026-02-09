@@ -234,10 +234,18 @@ fn test_convert_with_recursion() {
     // Just verify it doesn't panic and produces a valid result
     assert!(result.schema["properties"].as_object().is_some());
 
-    // There should be RecursiveInflate transforms in the codec
-    let serialized = serde_json::to_string(&result.schema).unwrap();
+    // Ensure no unresolved `$ref` entries remain in the converted schema
+    fn has_ref_key(val: &serde_json::Value) -> bool {
+        match val {
+            serde_json::Value::Object(map) => {
+                map.contains_key("$ref") || map.values().any(has_ref_key)
+            }
+            serde_json::Value::Array(arr) => arr.iter().any(has_ref_key),
+            _ => false,
+        }
+    }
     assert!(
-        !serialized.contains("\"$ref\""),
+        !has_ref_key(&result.schema),
         "all $ref nodes should be resolved or broken"
     );
 }
