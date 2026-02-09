@@ -165,8 +165,6 @@ fn unsupported_constraints(target: Target) -> &'static [&'static str] {
         "else",
         // Extended keywords (Gemini review feedback)
         "multipleOf",
-        "exclusiveMinimum",
-        "exclusiveMaximum",
         "minProperties",
         "maxProperties",
         "propertyNames",
