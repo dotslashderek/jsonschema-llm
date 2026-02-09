@@ -1,9 +1,14 @@
 //! Pass 4: Opaque Type Stringification
 //!
-//! Detects "opaque" object schemas — `{type: object}` with no properties,
-//! no pattern properties, no composition keywords, and no enum/const — and
-//! converts them to `{type: string}` with a description instructing the LLM
-//! to produce a JSON-encoded string.
+//! Detects "opaque" schemas that LLMs cannot generate structured output for
+//! and converts them to `{type: string}` with a description instructing the
+//! LLM to produce a JSON-encoded string.
+//!
+//! Two detection paths:
+//! - **Typed opaque**: `{type: object}` with no properties, no patternProperties,
+//!   no composition keywords, and no enum/const.
+//! - **Untyped opaque**: Schemas with no `type` keyword at all AND no structural,
+//!   primitive-validation, or array keywords (e.g., `{}`, `{description: "..."}`).
 //!
 //! This is the "escape hatch" for open-ended configuration objects that LLM
 //! providers can't generate structured output for.
@@ -78,8 +83,8 @@ fn walk(
 
     let mut result = obj.clone();
 
-    // Check for opaque pattern BEFORE recursing into children.
-    if is_opaque(&result) {
+    // Check for opaque patterns BEFORE recursing into children.
+    if is_opaque(&result) || is_untyped_opaque(&result) {
         let stringified = stringify_object(&result, path, transforms);
         return Ok(stringified);
     }
@@ -96,8 +101,8 @@ fn walk(
 // Detection
 // ---------------------------------------------------------------------------
 
-/// Check if a schema object is "opaque" — an open-ended object with no
-/// structural definition that an LLM cannot generate.
+/// Check if a schema object is "opaque" — an explicitly-typed open-ended object
+/// with no structural definition that an LLM cannot generate.
 ///
 /// An object is opaque if ALL of:
 /// - `type: "object"` (explicit)
@@ -171,6 +176,104 @@ fn is_opaque(obj: &Map<String, Value>) -> bool {
     }
 }
 
+/// Check if a schema without a `type` keyword is "untyped opaque" — a schema
+/// with no structural, composition, primitive-validation, or array keywords.
+///
+/// Examples: `{}`, `{"description": "..."}`, `{"title": "...", "description": "..."}`.
+///
+/// Returns false for schemas that imply a type via validation keywords:
+/// - String indicators: `minLength`, `maxLength`, `pattern`, `format`
+/// - Numeric indicators: `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`
+/// - Array indicators: `items`, `prefixItems`, `contains`, `minItems`, `maxItems`, `uniqueItems`
+/// - Object indicators: `properties`, `patternProperties`, `additionalProperties` (structural),
+///   and `required`, `minProperties`, `maxProperties`, `dependentRequired`, etc. (validation)
+fn is_untyped_opaque(obj: &Map<String, Value>) -> bool {
+    // Must NOT have a type keyword (typed objects are handled by is_opaque).
+    if obj.contains_key("type") {
+        return false;
+    }
+
+    // Has properties/patternProperties → structured, not opaque.
+    if obj.contains_key("properties") || obj.contains_key("patternProperties") {
+        return false;
+    }
+
+    // Has additionalProperties (false or schema) → structural intent.
+    match obj.get("additionalProperties") {
+        Some(Value::Bool(false)) => return false, // sealed empty
+        Some(Value::Object(_)) => return false,   // map pattern
+        _ => {}                                   // missing/true/empty → continue
+    }
+
+    // Has object-validation keywords → implicit object, not opaque.
+    // (These imply `type: "object"` even without an explicit type.)
+    if obj.contains_key("required")
+        || obj.contains_key("minProperties")
+        || obj.contains_key("maxProperties")
+        || obj.contains_key("dependentRequired")
+        || obj.contains_key("dependentSchemas")
+        || obj.contains_key("propertyNames")
+        || obj.contains_key("unevaluatedProperties")
+    {
+        return false;
+    }
+
+    // Has composition, conditional, or reference keywords → not opaque.
+    if obj.contains_key("allOf")
+        || obj.contains_key("oneOf")
+        || obj.contains_key("anyOf")
+        || obj.contains_key("not")
+        || obj.contains_key("if")
+        || obj.contains_key("then")
+        || obj.contains_key("else")
+        || obj.contains_key("$ref")
+        || obj.contains_key("$dynamicRef")
+        || obj.contains_key("$recursiveRef")
+    {
+        return false;
+    }
+
+    // Has enum or const → constrained values, not opaque.
+    if obj.contains_key("enum") || obj.contains_key("const") {
+        return false;
+    }
+
+    // Has array-type indicators → implicit array, not opaque.
+    if obj.contains_key("items")
+        || obj.contains_key("prefixItems")
+        || obj.contains_key("additionalItems")
+        || obj.contains_key("unevaluatedItems")
+        || obj.contains_key("contains")
+        || obj.contains_key("minItems")
+        || obj.contains_key("maxItems")
+        || obj.contains_key("uniqueItems")
+    {
+        return false;
+    }
+
+    // Has string-type indicators → implicit string, not opaque.
+    if obj.contains_key("minLength")
+        || obj.contains_key("maxLength")
+        || obj.contains_key("pattern")
+        || obj.contains_key("format")
+    {
+        return false;
+    }
+
+    // Has numeric-type indicators → implicit number, not opaque.
+    if obj.contains_key("minimum")
+        || obj.contains_key("maximum")
+        || obj.contains_key("exclusiveMinimum")
+        || obj.contains_key("exclusiveMaximum")
+        || obj.contains_key("multipleOf")
+    {
+        return false;
+    }
+
+    // Nothing structural → untyped opaque.
+    true
+}
+
 // ---------------------------------------------------------------------------
 // Transformation
 // ---------------------------------------------------------------------------
@@ -189,7 +292,7 @@ fn stringify_object(
     // Set type to string.
     result.insert("type".to_string(), Value::String("string".to_string()));
 
-    // Strip object validation keywords.
+    // Strip object validation keywords and any stray structural keywords.
     for key in [
         "properties",
         "patternProperties",
@@ -201,6 +304,11 @@ fn stringify_object(
         "dependentSchemas",
         "propertyNames",
         "unevaluatedProperties",
+        // Array keywords (defensive — should be excluded by detection, but strip for coherence)
+        "items",
+        "prefixItems",
+        "additionalItems",
+        "contains",
         // Enum/const were checked in is_opaque, but strip defensively
         "enum",
         "const",
