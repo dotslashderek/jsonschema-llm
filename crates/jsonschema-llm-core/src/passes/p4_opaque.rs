@@ -201,11 +201,11 @@ fn is_untyped_opaque(obj: &Map<String, Value>) -> bool {
         return false;
     }
 
-    // Has additionalProperties (false or schema) → structural intent.
+    // Has additionalProperties (false or non-empty schema) → structural intent.
     match obj.get("additionalProperties") {
         Some(Value::Bool(false)) => return false, // sealed empty
-        Some(Value::Object(_)) => return false,   // map pattern
-        _ => {}                                   // missing/true/empty → continue
+        Some(Value::Object(ap)) if !ap.is_empty() => return false, // non-trivial map pattern
+        _ => {}                                   // missing/true/empty-object → continue
     }
 
     // Has object-validation keywords → implicit object, not opaque.
@@ -250,6 +250,8 @@ fn is_untyped_opaque(obj: &Map<String, Value>) -> bool {
         || obj.contains_key("minItems")
         || obj.contains_key("maxItems")
         || obj.contains_key("uniqueItems")
+        || obj.contains_key("minContains")
+        || obj.contains_key("maxContains")
     {
         return false;
     }
@@ -890,6 +892,33 @@ mod tests {
     #[test]
     fn test_not_opaque_implicit_number() {
         let input = json!({ "minimum": 0 });
+
+        let (output, transforms) = run(input.clone());
+
+        assert_eq!(output, input);
+        assert_eq!(transforms.len(), 0);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 27: additionalProperties: {} → opaque (empty object = "any" schema)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_untyped_opaque_additional_properties_empty() {
+        let input = json!({ "additionalProperties": {} });
+
+        let (output, transforms) = run(input);
+
+        assert_eq!(output["type"], "string");
+        assert!(output.get("additionalProperties").is_none());
+        assert_eq!(transforms.len(), 1);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 28: minContains → unchanged (implicit array, NOT opaque)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_not_opaque_min_contains() {
+        let input = json!({ "minContains": 1 });
 
         let (output, transforms) = run(input.clone());
 
