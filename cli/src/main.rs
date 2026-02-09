@@ -15,7 +15,7 @@ struct Cli {
     #[command(subcommand)]
     command: Commands,
 
-    /// Enable verbose logging (sets RUST_LOG=debug)
+    /// Enable verbose logging (sets log level to debug)
     #[arg(short, long, global = true)]
     verbose: bool,
 }
@@ -40,7 +40,7 @@ enum Commands {
         target: TargetArg,
 
         /// Polymorphism strategy
-        #[arg(long, value_enum, default_value_t = PolymorphismArg::Anyof)]
+        #[arg(long, value_enum, default_value_t = PolymorphismArg::AnyOf)]
         polymorphism: PolymorphismArg,
 
         /// Max traversal depth for ref resolution
@@ -94,14 +94,15 @@ impl From<TargetArg> for Target {
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 enum PolymorphismArg {
-    Anyof,
+    #[value(name = "anyof")]
+    AnyOf,
     Flatten,
 }
 
 impl From<PolymorphismArg> for PolymorphismStrategy {
     fn from(val: PolymorphismArg) -> Self {
         match val {
-            PolymorphismArg::Anyof => PolymorphismStrategy::AnyOf,
+            PolymorphismArg::AnyOf => PolymorphismStrategy::AnyOf,
             PolymorphismArg::Flatten => PolymorphismStrategy::Flatten,
         }
     }
@@ -216,7 +217,7 @@ fn write_json<T: serde::Serialize>(
             .with_context(|| format!("Failed to create output file: {}", p.display()))?;
         Box::new(BufWriter::new(file))
     } else {
-        Box::new(io::stdout())
+        Box::new(BufWriter::new(io::stdout().lock()))
     };
 
     match format {
