@@ -15,6 +15,11 @@ pub enum Target {
 }
 
 /// Options for schema conversion.
+///
+/// ## Serialization Format
+///
+/// Fields are serialized in `kebab-case` (e.g., `max-depth`, `recursion-limit`).
+/// This naming convention is part of the public API contract for FFI and config files.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ConvertOptions {
@@ -49,5 +54,38 @@ impl Default for ConvertOptions {
             recursion_limit: 3,
             polymorphism: PolymorphismStrategy::AnyOf,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_convert_options_serde_round_trip() {
+        let opts = ConvertOptions {
+            target: Target::Gemini,
+            max_depth: 100,
+            recursion_limit: 5,
+            polymorphism: PolymorphismStrategy::Flatten,
+        };
+
+        // Serialize to JSON
+        let json = serde_json::to_string(&opts).unwrap();
+
+        // Verify kebab-case field names are in the JSON
+        assert!(json.contains("\"max-depth\""));
+        assert!(json.contains("\"recursion-limit\""));
+        assert!(json.contains("\"gemini\""));
+        assert!(json.contains("\"flatten\""));
+
+        // Deserialize back
+        let deserialized: ConvertOptions = serde_json::from_str(&json).unwrap();
+
+        // Verify round-trip preserved values
+        assert_eq!(deserialized.target, Target::Gemini);
+        assert_eq!(deserialized.max_depth, 100);
+        assert_eq!(deserialized.recursion_limit, 5);
+        assert_eq!(deserialized.polymorphism, PolymorphismStrategy::Flatten);
     }
 }

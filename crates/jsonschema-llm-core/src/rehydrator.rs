@@ -200,7 +200,9 @@ fn apply_transform(
                         }
                     }
                 } else {
-                    // Cache miss means invalid regex — already warned during cache build
+                    // Cache miss means invalid regex — already warned during cache build.
+                    // Skipping this transform is intentional: transforms are best-effort.
+                    // The codec itself is invalid if it references nonexistent/invalid regexes.
                     tracing::debug!(
                         pattern = %pattern,
                         "patternProperties regex not in cache (invalid?), skipping transform"
@@ -396,7 +398,7 @@ fn validate_constraints(
                     // Pattern was not cached — means it was invalid during cache build
                     // Re-compile to get error detail for the warning message
                     let error_detail = match Regex::new(pat) {
-                        Ok(_) => "unknown error".to_string(),
+                        Ok(_) => "regex missing from cache (internal error)".to_string(),
                         Err(e) => e.to_string(),
                     };
                     warnings.push(Warning {
@@ -579,6 +581,11 @@ fn locate_data_nodes<'a>(
                         pattern,
                         "patternProperties regex not in cache (invalid?), skipping constraint path"
                     );
+                    // Re-compile to get error detail for the warning message
+                    let error_detail = match Regex::new(pattern) {
+                        Ok(_) => "regex missing from cache (internal error)".to_string(),
+                        Err(e) => e.to_string(),
+                    };
                     warnings.push(Warning {
                         data_path: if current_data_path.is_empty() {
                             "/".to_string()
@@ -590,8 +597,8 @@ fn locate_data_nodes<'a>(
                             constraint: "patternProperties".to_string(),
                         },
                         message: format!(
-                            "patternProperties regex '{}' is invalid and cannot be evaluated",
-                            pattern
+                            "patternProperties regex '{}' is invalid and cannot be evaluated: {}",
+                            pattern, error_detail
                         ),
                     });
                 }
