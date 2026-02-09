@@ -261,6 +261,9 @@ fn is_untyped_opaque(obj: &Map<String, Value>) -> bool {
         || obj.contains_key("maxLength")
         || obj.contains_key("pattern")
         || obj.contains_key("format")
+        || obj.contains_key("contentEncoding")
+        || obj.contains_key("contentMediaType")
+        || obj.contains_key("contentSchema")
     {
         return false;
     }
@@ -919,6 +922,19 @@ mod tests {
     #[test]
     fn test_not_opaque_min_contains() {
         let input = json!({ "minContains": 1 });
+
+        let (output, transforms) = run(input.clone());
+
+        assert_eq!(output, input);
+        assert_eq!(transforms.len(), 0);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 29: contentEncoding → unchanged (implicit string, NOT opaque)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_not_opaque_content_encoding() {
+        let input = json!({ "contentEncoding": "base64" });
 
         let (output, transforms) = run(input.clone());
 
