@@ -248,6 +248,18 @@ fn test_convert_with_recursion() {
         !has_ref_key(&result.schema),
         "all $ref nodes should be resolved or broken"
     );
+
+    // The codec should contain RecursiveInflate transforms for broken cycles
+    let recursive_transforms: Vec<_> = result
+        .codec
+        .transforms
+        .iter()
+        .filter(|t| matches!(t, Transform::RecursiveInflate { .. }))
+        .collect();
+    assert!(
+        !recursive_transforms.is_empty(),
+        "recursive schema should produce RecursiveInflate transforms in the codec"
+    );
 }
 
 // ── Full Roundtrip ──────────────────────────────────────────────────────────
@@ -267,6 +279,19 @@ fn test_convert_full_roundtrip() {
     });
 
     let result = convert(&schema, &openai_options()).expect("convert should succeed");
+
+    // Verify codec has expected transforms before roundtripping
+    let map_transforms: Vec<_> = result
+        .codec
+        .transforms
+        .iter()
+        .filter(|t| matches!(t, Transform::MapToArray { .. }))
+        .collect();
+    assert_eq!(
+        map_transforms.len(),
+        1,
+        "tags map should produce exactly one MapToArray transform"
+    );
 
     // Simulate LLM output conforming to the converted schema
     // tags was transpiled to array — LLM returns array of {key, value}
