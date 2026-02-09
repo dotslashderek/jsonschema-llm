@@ -61,10 +61,10 @@ pub fn rehydrate(data: &Value, codec: &Codec) -> Result<RehydrateResult, Convert
 
 /// Pre-scan transform and constraint paths for patternProperties segments
 /// and compile their regex patterns into a reusable cache.
-fn build_pattern_properties_cache(codec: &Codec) -> HashMap<String, Regex> {
+fn build_pattern_properties_cache(codec: &Codec) -> HashMap<String, Result<Regex, String>> {
     let mut cache = HashMap::new();
 
-    // Scan transform paths
+    // Extract paths from transforms using match statement
     let transform_paths = codec.transforms.iter().map(|t| match t {
         Transform::MapToArray { path, .. } => path.as_str(),
         Transform::JsonStringParse { path } => path.as_str(),
@@ -73,28 +73,24 @@ fn build_pattern_properties_cache(codec: &Codec) -> HashMap<String, Regex> {
         Transform::ExtractAdditionalProperties { path, .. } => path.as_str(),
         Transform::RecursiveInflate { path, .. } => path.as_str(),
     });
-
-    // Scan constraint paths
     let constraint_paths = codec.dropped_constraints.iter().map(|dc| dc.path.as_str());
 
+    // Scan for patternProperties patterns
     for path in transform_paths.chain(constraint_paths) {
         let segments = split_path(path);
         for window in segments.windows(2) {
             if window[0] == "patternProperties" {
                 let pattern = &window[1];
                 if !cache.contains_key(pattern.as_str()) {
-                    match Regex::new(pattern) {
-                        Ok(re) => {
-                            cache.insert(pattern.clone(), re);
-                        }
-                        Err(e) => {
-                            tracing::warn!(
-                                pattern = %pattern,
-                                error = %e,
-                                "invalid patternProperties regex, will skip at usage sites"
-                            );
-                        }
+                    let result = Regex::new(pattern).map_err(|e| e.to_string());
+                    if let Err(ref err) = result {
+                        tracing::warn!(
+                            pattern = %pattern,
+                            error = %err,
+                            "invalid patternProperties regex, will skip at usage sites"
+                        );
                     }
+                    cache.insert(pattern.clone(), result);
                 }
             }
         }
@@ -105,18 +101,15 @@ fn build_pattern_properties_cache(codec: &Codec) -> HashMap<String, Regex> {
         if dc.constraint == "pattern" {
             if let Some(pat) = dc.value.as_str() {
                 if !cache.contains_key(pat) {
-                    match Regex::new(pat) {
-                        Ok(re) => {
-                            cache.insert(pat.to_string(), re);
-                        }
-                        Err(e) => {
-                            tracing::warn!(
-                                pattern = %pat,
-                                error = %e,
-                                "invalid regex in dropped constraint pattern — will emit ConstraintUnevaluable warning"
-                            );
-                        }
+                    let result = Regex::new(pat).map_err(|e| e.to_string());
+                    if let Err(ref err) = result {
+                        tracing::warn!(
+                            pattern = %pat,
+                            error = %err,
+                            "invalid regex in dropped constraint pattern — will emit ConstraintUnevaluable warning"
+                        );
                     }
+                    cache.insert(pat.to_string(), result);
                 }
             }
         }
@@ -158,7 +151,7 @@ fn apply_transform(
     data: &mut Value,
     path_parts: &[&str],
     transform: &Transform,
-    regex_cache: &HashMap<String, Regex>,
+    regex_cache: &HashMap<String, Result<Regex, String>>,
 ) -> Result<(), ConvertError> {
     // End of path — execute the transform
     if path_parts.is_empty() {
@@ -191,22 +184,24 @@ fn apply_transform(
         // Special case: patternProperties iterates matching object values
         if segment == "patternProperties" {
             if let Some(pattern) = rest.first() {
-                if let Some(re) = regex_cache.get(*pattern) {
-                    if let Some(obj) = data.as_object_mut() {
-                        for (key, val) in obj.iter_mut() {
-                            if re.is_match(key) {
-                                apply_transform(val, skip_to, transform, regex_cache)?;
+                match regex_cache.get(*pattern) {
+                    Some(Ok(re)) => {
+                        if let Some(obj) = data.as_object_mut() {
+                            for (key, val) in obj.iter_mut() {
+                                if re.is_match(key) {
+                                    apply_transform(val, skip_to, transform, regex_cache)?;
+                                }
                             }
                         }
                     }
-                } else {
-                    // Cache miss means invalid regex — already warned during cache build.
-                    // Skipping this transform is intentional: transforms are best-effort.
-                    // The codec itself is invalid if it references nonexistent/invalid regexes.
-                    tracing::debug!(
-                        pattern = %pattern,
-                        "patternProperties regex not in cache (invalid?), skipping transform"
-                    );
+                    Some(Err(_)) | None => {
+                        // Invalid regex (Err) or cache miss (None) — already warned during cache build.
+                        // Skipping this transform is intentional: transforms are best-effort.
+                        tracing::debug!(
+                            pattern = %pattern,
+                            "patternProperties regex invalid or not in cache, skipping transform"
+                        );
+                    }
                 }
             }
             return Ok(());
@@ -382,7 +377,7 @@ const ADVISORY_CONSTRAINTS: &[&str] = &["if", "then", "else"];
 fn validate_constraints(
     data: &Value,
     codec: &Codec,
-    regex_cache: &HashMap<String, Regex>,
+    regex_cache: &HashMap<String, Result<Regex, String>>,
 ) -> Vec<Warning> {
     if codec.dropped_constraints.is_empty() {
         return Vec::new();
@@ -394,24 +389,39 @@ fn validate_constraints(
     for dc in &codec.dropped_constraints {
         if dc.constraint == "pattern" {
             if let Some(pat) = dc.value.as_str() {
-                if !regex_cache.contains_key(pat) {
-                    // Pattern was not cached — means it was invalid during cache build
-                    // Re-compile to get error detail for the warning message
-                    let error_detail = match Regex::new(pat) {
-                        Ok(_) => "regex missing from cache (internal error)".to_string(),
-                        Err(e) => e.to_string(),
-                    };
-                    warnings.push(Warning {
-                        data_path: "/".to_string(),
-                        schema_path: dc.path.clone(),
-                        kind: WarningKind::ConstraintUnevaluable {
-                            constraint: "pattern".to_string(),
-                        },
-                        message: format!(
-                            "constraint 'pattern' ({}) cannot be validated: {}",
-                            pat, error_detail
-                        ),
-                    });
+                match regex_cache.get(pat) {
+                    Some(Err(err)) => {
+                        // Invalid regex (Err contains error string from compilation)
+                        warnings.push(Warning {
+                            data_path: "/".to_string(),
+                            schema_path: dc.path.clone(),
+                            kind: WarningKind::ConstraintUnevaluable {
+                                constraint: "pattern".to_string(),
+                            },
+                            message: format!(
+                                "constraint 'pattern' ({}) cannot be validated: {}",
+                                pat, err
+                            ),
+                        });
+                    }
+                    None => {
+                        // Cache miss (internal error - should never happen)
+                        warnings.push(Warning {
+                            data_path: "/".to_string(),
+                            schema_path: dc.path.clone(),
+                            kind: WarningKind::ConstraintUnevaluable {
+                                constraint: "pattern".to_string(),
+                            },
+                            message: format!(
+                                "constraint 'pattern' ({}) cannot be validated: regex missing from cache (internal error)",
+                                pat
+                            ),
+                        });
+                    }
+                    Some(Ok(_)) => {
+                        // Valid regex, no warning needed during validation_constraints pass
+                        // (actual validation happens in check_constraint)
+                    }
                 }
             } else {
                 // Non-string pattern value — cannot evaluate
@@ -509,7 +519,7 @@ fn locate_data_nodes<'a>(
     out: &mut Vec<(String, &'a Value)>,
     warnings: &mut Vec<Warning>,
     schema_path: &str,
-    regex_cache: &HashMap<String, Regex>,
+    regex_cache: &HashMap<String, Result<Regex, String>>,
 ) {
     if pos >= segments.len() {
         out.push((current_data_path, data));
@@ -558,49 +568,73 @@ fn locate_data_nodes<'a>(
                 };
                 let pattern = pattern_segment.as_str();
 
-                if let Some(re) = regex_cache.get(pattern) {
-                    for (key, val) in obj {
-                        if re.is_match(key) {
-                            let child_path =
-                                format!("{}/{}", current_data_path, escape_pointer_segment(key));
-                            locate_data_nodes(
-                                val,
-                                segments,
-                                pos + 2, // patternProperties + pattern consumed
-                                child_path,
-                                out,
-                                warnings,
-                                schema_path,
-                                regex_cache,
-                            );
+                match regex_cache.get(pattern) {
+                    Some(Ok(re)) => {
+                        for (key, val) in obj {
+                            if re.is_match(key) {
+                                let child_path = format!(
+                                    "{}/{}",
+                                    current_data_path,
+                                    escape_pointer_segment(key)
+                                );
+                                locate_data_nodes(
+                                    val,
+                                    segments,
+                                    pos + 2, // patternProperties + pattern consumed
+                                    child_path,
+                                    out,
+                                    warnings,
+                                    schema_path,
+                                    regex_cache,
+                                );
+                            }
                         }
                     }
-                } else {
-                    // Cache miss = invalid regex, already warned during cache build
-                    tracing::debug!(
-                        pattern,
-                        "patternProperties regex not in cache (invalid?), skipping constraint path"
-                    );
-                    // Re-compile to get error detail for the warning message
-                    let error_detail = match Regex::new(pattern) {
-                        Ok(_) => "regex missing from cache (internal error)".to_string(),
-                        Err(e) => e.to_string(),
-                    };
-                    warnings.push(Warning {
-                        data_path: if current_data_path.is_empty() {
-                            "/".to_string()
-                        } else {
-                            current_data_path.clone()
-                        },
-                        schema_path: schema_path.to_string(),
-                        kind: WarningKind::ConstraintUnevaluable {
-                            constraint: "patternProperties".to_string(),
-                        },
-                        message: format!(
-                            "patternProperties regex '{}' cannot be evaluated: {}",
-                            pattern, error_detail
-                        ),
-                    });
+                    Some(Err(err)) => {
+                        // Invalid regex (Err contains compile error string)
+                        tracing::debug!(
+                            pattern,
+                            error = %err,
+                            "patternProperties regex invalid, skipping constraint path"
+                        );
+                        warnings.push(Warning {
+                            data_path: if current_data_path.is_empty() {
+                                "/".to_string()
+                            } else {
+                                current_data_path.clone()
+                            },
+                            schema_path: schema_path.to_string(),
+                            kind: WarningKind::ConstraintUnevaluable {
+                                constraint: "patternProperties".to_string(),
+                            },
+                            message: format!(
+                                "patternProperties regex '{}' cannot be evaluated: {}",
+                                pattern, err
+                            ),
+                        });
+                    }
+                    None => {
+                        // Cache miss (internal error - should never happen)
+                        tracing::debug!(
+                            pattern,
+                            "patternProperties regex not in cache, skipping constraint path"
+                        );
+                        warnings.push(Warning {
+                            data_path: if current_data_path.is_empty() {
+                                "/".to_string()
+                            } else {
+                                current_data_path.clone()
+                            },
+                            schema_path: schema_path.to_string(),
+                            kind: WarningKind::ConstraintUnevaluable {
+                                constraint: "patternProperties".to_string(),
+                            },
+                            message: format!(
+                                "patternProperties regex '{}' cannot be evaluated: regex missing from cache (internal error)",
+                                pattern
+                            ),
+                        });
+                    }
                 }
             }
             return;
@@ -693,13 +727,13 @@ fn check_constraint(
     value: &Value,
     constraint: &str,
     expected: &Value,
-    regex_cache: &HashMap<String, Regex>,
+    regex_cache: &HashMap<String, Result<Regex, String>>,
 ) -> Option<String> {
     match constraint {
         "pattern" => {
             let s = value.as_str()?;
             let pat = expected.as_str()?;
-            let re = regex_cache.get(pat)?;
+            let re = regex_cache.get(pat)?.as_ref().ok()?; // Unwrap Result, skip if Err
             if !re.is_match(s) {
                 Some(format!("value {:?} does not match pattern {:?}", s, pat))
             } else {
