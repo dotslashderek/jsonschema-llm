@@ -10,6 +10,7 @@ use thiserror::Error;
 /// Language bindings (WASM, Python, Java) map these to native exception types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum ErrorCode {
     /// JSON parse or deserialization error (malformed input or invalid structure).
     JsonParseError,
@@ -27,7 +28,7 @@ pub enum ErrorCode {
 
 #[derive(Debug, Error)]
 pub enum ConvertError {
-    #[error("JSON parsing error: {0}")]
+    #[error("JSON error: {0}")]
     JsonError(#[from] serde_json::Error),
 
     #[error("Schema error at {path}: {message}")]

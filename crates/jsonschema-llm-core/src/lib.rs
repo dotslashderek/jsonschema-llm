@@ -152,6 +152,11 @@ pub fn rehydrate(data: &Value, codec: &Codec) -> Result<RehydrateResult, Convert
 // JSON-String Bridge API (FFI surface)
 // ---------------------------------------------------------------------------
 
+/// Format a `ConvertError` as a JSON string for FFI consumers.
+fn err_json(e: ConvertError) -> String {
+    e.to_json().to_string()
+}
+
 /// Convert a JSON Schema (as a JSON string) with options (as a JSON string).
 ///
 /// This is the FFI-friendly entry point — accepts and returns plain JSON strings.
@@ -170,12 +175,12 @@ pub fn rehydrate(data: &Value, codec: &Codec) -> Result<RehydrateResult, Convert
 /// * `Ok(String)` — `{"schema": {...}, "codec": {...}}`
 /// * `Err(String)` — `{"code": "...", "message": "...", "path": ...}`
 pub fn convert_json(schema_json: &str, options_json: &str) -> Result<String, String> {
-    let schema: Value = serde_json::from_str(schema_json)
-        .map_err(|e| ConvertError::JsonError(e).to_json().to_string())?;
-    let options: ConvertOptions = serde_json::from_str(options_json)
-        .map_err(|e| ConvertError::JsonError(e).to_json().to_string())?;
-    let result = convert(&schema, &options).map_err(|e| e.to_json().to_string())?;
-    serde_json::to_string(&result).map_err(|e| ConvertError::JsonError(e).to_json().to_string())
+    let schema: Value =
+        serde_json::from_str(schema_json).map_err(|e| err_json(ConvertError::JsonError(e)))?;
+    let options: ConvertOptions =
+        serde_json::from_str(options_json).map_err(|e| err_json(ConvertError::JsonError(e)))?;
+    let result = convert(&schema, &options).map_err(err_json)?;
+    serde_json::to_string(&result).map_err(|e| err_json(ConvertError::JsonError(e)))
 }
 
 /// Rehydrate LLM output (as a JSON string) using a codec (as a JSON string).
@@ -193,10 +198,10 @@ pub fn convert_json(schema_json: &str, options_json: &str) -> Result<String, Str
 /// * `Ok(String)` — `{"data": {...}, "warnings": [...]}`
 /// * `Err(String)` — `{"code": "...", "message": "...", "path": ...}`
 pub fn rehydrate_json(data_json: &str, codec_json: &str) -> Result<String, String> {
-    let data: Value = serde_json::from_str(data_json)
-        .map_err(|e| ConvertError::JsonError(e).to_json().to_string())?;
-    let codec: Codec = serde_json::from_str(codec_json)
-        .map_err(|e| ConvertError::JsonError(e).to_json().to_string())?;
-    let result = rehydrate(&data, &codec).map_err(|e| e.to_json().to_string())?;
-    serde_json::to_string(&result).map_err(|e| ConvertError::JsonError(e).to_json().to_string())
+    let data: Value =
+        serde_json::from_str(data_json).map_err(|e| err_json(ConvertError::JsonError(e)))?;
+    let codec: Codec =
+        serde_json::from_str(codec_json).map_err(|e| err_json(ConvertError::JsonError(e)))?;
+    let result = rehydrate(&data, &codec).map_err(err_json)?;
+    serde_json::to_string(&result).map_err(|e| err_json(ConvertError::JsonError(e)))
 }
