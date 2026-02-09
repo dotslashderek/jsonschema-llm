@@ -408,7 +408,7 @@ fn validate_constraints(
                             constraint: "pattern".to_string(),
                         },
                         message: format!(
-                            "constraint 'pattern' ({}) has invalid regex and cannot be validated: {}",
+                            "constraint 'pattern' ({}) cannot be validated: {}",
                             pat, error_detail
                         ),
                     });
@@ -577,7 +577,7 @@ fn locate_data_nodes<'a>(
                     }
                 } else {
                     // Cache miss = invalid regex, already warned during cache build
-                    tracing::warn!(
+                    tracing::debug!(
                         pattern,
                         "patternProperties regex not in cache (invalid?), skipping constraint path"
                     );
@@ -597,7 +597,7 @@ fn locate_data_nodes<'a>(
                             constraint: "patternProperties".to_string(),
                         },
                         message: format!(
-                            "patternProperties regex '{}' is invalid and cannot be evaluated: {}",
+                            "patternProperties regex '{}' cannot be evaluated: {}",
                             pattern, error_detail
                         ),
                     });
@@ -1416,7 +1416,8 @@ mod tests {
         assert_eq!(result.warnings.len(), 1);
         assert_eq!(result.warnings[0].data_path, "/");
         assert_eq!(result.warnings[0].schema_path, "#/properties/code");
-        assert!(result.warnings[0].message.contains("invalid regex"));
+        // The message should include the specific regex compilation error
+        assert!(result.warnings[0].message.contains("cannot be validated"));
         assert!(
             matches!(&result.warnings[0].kind, WarningKind::ConstraintUnevaluable { constraint } if constraint == "pattern")
         );
