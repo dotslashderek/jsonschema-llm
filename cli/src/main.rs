@@ -145,6 +145,7 @@ fn main() -> Result<()> {
             let schema: serde_json::Value = serde_json::from_reader(reader)
                 .with_context(|| format!("Failed to parse schema from: {}", input.display()))?;
 
+            // All fields set explicitly; clippy enforces exhaustiveness
             let options = ConvertOptions {
                 target: target.into(),
                 polymorphism: polymorphism.into(),
@@ -230,7 +231,7 @@ fn write_json<T: serde::Serialize>(
     }
 
     // Ensure trailing newline
-    writeln!(writer)?;
+    writeln!(writer).context("Failed to write trailing newline")?;
 
     Ok(())
 }

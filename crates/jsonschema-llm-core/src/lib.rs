@@ -64,6 +64,14 @@ pub fn convert(schema: &Value, options: &ConvertOptions) -> Result<ConvertResult
     let p0 = passes::p0_normalize::normalize(schema, options)?;
     let mut schema = p0.schema;
 
+    if !p0.recursive_refs.is_empty() {
+        tracing::debug!(
+            recursive_refs = ?p0.recursive_refs,
+            "detected {} recursive $ref cycle(s) — will be broken in Pass 5",
+            p0.recursive_refs.len()
+        );
+    }
+
     // Pass 1: Composition (allOf merge)
     let (s, dropped) = passes::p1_composition::compile_composition(&schema, options)?;
     schema = s;
