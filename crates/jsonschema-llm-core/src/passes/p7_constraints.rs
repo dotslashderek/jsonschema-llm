@@ -66,7 +66,7 @@ fn walk(
     };
 
     // 1. const → enum normalization (before sorting or pruning)
-    normalize_const_to_enum(obj, config.target);
+    normalize_const_to_enum(obj, path, config.target, dropped);
 
     // 2. Enum default-first sorting (before default is dropped)
     sort_enum_default_first(obj);
@@ -90,12 +90,23 @@ fn walk(
 ///
 /// Gemini supports `const` natively — skip normalization for that target.
 /// If both `const` and `enum` exist, `const` wins (intersection semantics).
-fn normalize_const_to_enum(obj: &mut Map<String, Value>, target: Target) {
+/// Emits a `DroppedConstraint` for the removed `const` keyword to enable rehydration.
+fn normalize_const_to_enum(
+    obj: &mut Map<String, Value>,
+    path: &str,
+    target: Target,
+    dropped: &mut Vec<DroppedConstraint>,
+) {
     if target == Target::Gemini {
         return;
     }
 
     if let Some(const_val) = obj.remove("const") {
+        dropped.push(DroppedConstraint {
+            path: path.to_string(),
+            constraint: "const".to_string(),
+            value: const_val.clone(),
+        });
         obj.insert("enum".to_string(), json!([const_val]));
     }
 }
@@ -285,19 +296,27 @@ mod tests {
             "const": "active"
         });
 
-        // OpenAI: const → enum: ["active"], const removed
-        let (openai_out, _) = run(input.clone(), Target::OpenaiStrict);
+        // OpenAI: const → enum: ["active"], const removed, codec entry emitted
+        let (openai_out, openai_dropped) = run(input.clone(), Target::OpenaiStrict);
         assert_eq!(openai_out["enum"], json!(["active"]));
         assert!(openai_out.get("const").is_none());
+        let const_entry = openai_dropped.iter().find(|d| d.constraint == "const");
+        assert!(
+            const_entry.is_some(),
+            "const must emit DroppedConstraint for rehydration"
+        );
+        assert_eq!(const_entry.unwrap().value, json!("active"));
 
         // Claude: same behavior
-        let (claude_out, _) = run(input.clone(), Target::Claude);
+        let (claude_out, claude_dropped) = run(input.clone(), Target::Claude);
         assert_eq!(claude_out["enum"], json!(["active"]));
         assert!(claude_out.get("const").is_none());
+        assert!(claude_dropped.iter().any(|d| d.constraint == "const"));
 
-        // Gemini: const preserved as-is
-        let (gemini_out, _) = run(input, Target::Gemini);
+        // Gemini: const preserved as-is, no codec entry
+        let (gemini_out, gemini_dropped) = run(input, Target::Gemini);
         assert_eq!(gemini_out["const"], json!("active"));
+        assert!(!gemini_dropped.iter().any(|d| d.constraint == "const"));
     }
 
     // -----------------------------------------------------------------------
@@ -489,5 +508,92 @@ mod tests {
         let (out_bool, dropped_bool) = run_openai(input_bool.clone());
         assert_eq!(out_bool, input_bool);
         assert_eq!(dropped_bool.len(), 0);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 10: const + enum collision (const wins)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_const_enum_collision() {
+        let input = json!({
+            "type": "string",
+            "const": "x",
+            "enum": ["y", "z"]
+        });
+
+        // OpenAI: const wins → enum: ["x"], original enum overwritten
+        let (out, dropped) = run_openai(input.clone());
+        assert_eq!(out["enum"], json!(["x"]));
+        assert!(out.get("const").is_none());
+        let const_drop = dropped.iter().find(|d| d.constraint == "const");
+        assert!(const_drop.is_some());
+        assert_eq!(const_drop.unwrap().value, json!("x"));
+
+        // Gemini: both preserved
+        let (gemini_out, _) = run(input, Target::Gemini);
+        assert_eq!(gemini_out["const"], json!("x"));
+        assert_eq!(gemini_out["enum"], json!(["y", "z"]));
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 11: default not in enum (skip silently)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_default_not_in_enum() {
+        let input = json!({
+            "type": "string",
+            "enum": ["alpha", "beta", "gamma"],
+            "default": "missing"
+        });
+
+        // Enum order unchanged (default not found → no sorting)
+        let (out, dropped) = run_openai(input);
+        assert_eq!(out["enum"], json!(["alpha", "beta", "gamma"]));
+
+        // default still dropped as unsupported
+        assert!(out.get("default").is_none());
+        assert!(dropped.iter().any(|d| d.constraint == "default"));
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 12: DroppedConstraint path correctness for nested nodes
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_nested_dropped_constraint_paths() {
+        let input = json!({
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                },
+                "age": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        });
+
+        let (_, dropped) = run_openai(input);
+
+        // Check that nested paths use correct JSON Pointer format
+        let name_drops: Vec<_> = dropped.iter().filter(|d| d.path.contains("name")).collect();
+        assert_eq!(
+            name_drops.len(),
+            2,
+            "name should have minLength + maxLength dropped"
+        );
+        for d in &name_drops {
+            assert_eq!(
+                d.path, "#/properties/name",
+                "path must use JSON Pointer format"
+            );
+        }
+
+        let age_drops: Vec<_> = dropped.iter().filter(|d| d.path.contains("age")).collect();
+        assert_eq!(age_drops.len(), 1);
+        assert_eq!(age_drops[0].path, "#/properties/age");
+        assert_eq!(age_drops[0].constraint, "minimum");
     }
 }
