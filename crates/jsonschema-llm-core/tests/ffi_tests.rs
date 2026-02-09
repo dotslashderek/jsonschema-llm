@@ -169,7 +169,7 @@ fn test_convert_json_invalid_options() {
 #[test]
 fn test_rehydrate_json_valid() {
     let data = r#"{"name": "Alice"}"#;
-    let codec = r#"{"$schema": "https://jsonschema-llm.dev/codec/v1", "transforms": [], "dropped_constraints": []}"#;
+    let codec = r#"{"$schema": "https://jsonschema-llm.dev/codec/v1", "transforms": [], "droppedConstraints": []}"#;
 
     let result = rehydrate_json(data, codec);
     assert!(result.is_ok(), "Expected Ok, got: {:?}", result);
@@ -181,7 +181,7 @@ fn test_rehydrate_json_valid() {
 
 #[test]
 fn test_rehydrate_json_invalid_data() {
-    let codec = r#"{"$schema": "https://jsonschema-llm.dev/codec/v1", "transforms": [], "dropped_constraints": []}"#;
+    let codec = r#"{"$schema": "https://jsonschema-llm.dev/codec/v1", "transforms": [], "droppedConstraints": []}"#;
     let result = rehydrate_json("not valid json", codec);
     assert!(result.is_err());
 
@@ -302,4 +302,167 @@ fn test_rehydrate_json_wrong_codec_shape() {
     let err_json: serde_json::Value =
         serde_json::from_str(&result.unwrap_err()).expect("Error string must be valid JSON");
     assert_eq!(err_json["code"].as_str().unwrap(), "json_parse_error");
+}
+
+// ===========================================================================
+// Issue #54 — Binding DTOs + API Versioning (Acceptance Tests)
+// ===========================================================================
+
+/// Bridge convert output must include apiVersion field.
+#[test]
+fn test_convert_json_has_api_version() {
+    let schema =
+        r#"{"type": "object", "properties": {"name": {"type": "string"}}, "required": ["name"]}"#;
+    let options = r#"{"target": "openai-strict", "max-depth": 50, "recursion-limit": 3, "polymorphism": "any-of"}"#;
+
+    let result = convert_json(schema, options).expect("convert_json should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+
+    assert!(
+        parsed.get("apiVersion").is_some(),
+        "Bridge output must include 'apiVersion' field"
+    );
+    assert_eq!(
+        parsed["apiVersion"].as_str().unwrap(),
+        "1.0",
+        "apiVersion must be '1.0'"
+    );
+}
+
+/// Bridge rehydrate output must include apiVersion field.
+#[test]
+fn test_rehydrate_json_has_api_version() {
+    let data = r#"{"name": "Alice"}"#;
+    let codec = r#"{"$schema": "https://jsonschema-llm.dev/codec/v1", "transforms": [], "droppedConstraints": []}"#;
+
+    let result = rehydrate_json(data, codec).expect("rehydrate_json should succeed");
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+
+    assert!(
+        parsed.get("apiVersion").is_some(),
+        "Bridge output must include 'apiVersion' field"
+    );
+    assert_eq!(
+        parsed["apiVersion"].as_str().unwrap(),
+        "1.0",
+        "apiVersion must be '1.0'"
+    );
+}
+
+/// Stability contract: apiVersion string must be exactly "1.0".
+#[test]
+fn test_api_version_stability() {
+    use jsonschema_llm_core::API_VERSION;
+    assert_eq!(API_VERSION, "1.0", "API_VERSION constant must be '1.0'");
+}
+
+/// Codec must serialize with camelCase field names.
+#[test]
+fn test_codec_camel_case_serialization() {
+    use jsonschema_llm_core::Codec;
+    let codec = Codec::new();
+    let json = serde_json::to_string(&codec).unwrap();
+
+    assert!(
+        json.contains("\"droppedConstraints\""),
+        "Codec field 'dropped_constraints' must serialize as 'droppedConstraints', got: {}",
+        json
+    );
+    assert!(
+        !json.contains("\"dropped_constraints\""),
+        "Codec must NOT contain snake_case 'dropped_constraints', got: {}",
+        json
+    );
+}
+
+/// Warning must serialize with camelCase field names.
+#[test]
+fn test_warning_camel_case_serialization() {
+    use jsonschema_llm_core::codec_warning::WarningKind;
+    use jsonschema_llm_core::Warning;
+
+    let warning = Warning {
+        data_path: "/foo".to_string(),
+        schema_path: "#/properties/foo".to_string(),
+        kind: WarningKind::ConstraintViolation {
+            constraint: "minimum".to_string(),
+        },
+        message: "test".to_string(),
+    };
+    let json = serde_json::to_string(&warning).unwrap();
+
+    assert!(
+        json.contains("\"dataPath\""),
+        "Warning field 'data_path' must serialize as 'dataPath', got: {}",
+        json
+    );
+    assert!(
+        json.contains("\"schemaPath\""),
+        "Warning field 'schema_path' must serialize as 'schemaPath', got: {}",
+        json
+    );
+}
+
+/// Codec version mismatch must produce structured error with specific code.
+#[test]
+fn test_codec_version_mismatch() {
+    let data = r#"{"name": "Alice"}"#;
+    // Use a v99 codec version that is incompatible
+    let codec = r#"{"$schema": "https://jsonschema-llm.dev/codec/v99", "transforms": [], "droppedConstraints": []}"#;
+
+    let result = rehydrate_json(data, codec);
+    assert!(result.is_err(), "Incompatible codec version must fail");
+
+    let err: serde_json::Value = serde_json::from_str(&result.unwrap_err()).unwrap();
+    assert_eq!(
+        err["code"].as_str().unwrap(),
+        "codec_version_mismatch",
+        "Error code must be 'codec_version_mismatch'"
+    );
+}
+
+/// Codec with malformed $schema URI must produce error, not panic.
+#[test]
+fn test_codec_version_malformed_uri() {
+    let data = r#"{"name": "Alice"}"#;
+    let codec = r#"{"$schema": "not-a-valid-uri", "transforms": [], "droppedConstraints": []}"#;
+
+    let result = rehydrate_json(data, codec);
+    assert!(result.is_err(), "Malformed codec URI must fail");
+
+    let err: serde_json::Value = serde_json::from_str(&result.unwrap_err()).unwrap();
+    assert!(err.get("code").is_some(), "Error must have 'code' field");
+}
+
+/// ErrorCode::CodecVersionMismatch must serialize to exact string.
+#[test]
+fn test_error_code_codec_version_mismatch_stability() {
+    let code = ErrorCode::CodecVersionMismatch;
+    let json = serde_json::to_value(code).unwrap();
+    assert_eq!(
+        json.as_str().unwrap(),
+        "codec_version_mismatch",
+        "ErrorCode::CodecVersionMismatch must serialize to 'codec_version_mismatch'"
+    );
+}
+
+/// Bridge convert output fields must be camelCase (schema, codec stay as-is since single-word).
+#[test]
+fn test_convert_bridge_camel_case_codec_fields() {
+    let schema =
+        r#"{"type": "object", "properties": {"name": {"type": "string"}}, "required": ["name"]}"#;
+    let options = r#"{"target": "openai-strict", "max-depth": 50, "recursion-limit": 3, "polymorphism": "any-of"}"#;
+
+    let result = convert_json(schema, options).expect("convert_json should succeed");
+
+    // The codec inside the bridge output must use camelCase
+    assert!(
+        result.contains("\"droppedConstraints\""),
+        "Codec in bridge output must use camelCase 'droppedConstraints', got: {}",
+        result
+    );
+    assert!(
+        !result.contains("\"dropped_constraints\""),
+        "Codec in bridge output must NOT use snake_case 'dropped_constraints'"
+    );
 }

@@ -40,6 +40,9 @@ pub use error::{ConvertError, ErrorCode};
 pub use rehydrator::RehydrateResult;
 pub use schema_utils::{build_path, escape_pointer_segment, split_path, unescape_pointer_segment};
 
+/// Bridge API version. Included in all FFI JSON responses.
+pub const API_VERSION: &str = "1.0";
+
 /// Result of a schema conversion.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConvertResult {
@@ -157,6 +160,30 @@ fn err_json(e: ConvertError) -> String {
     e.to_json().to_string()
 }
 
+// ---------------------------------------------------------------------------
+// Bridge Wrapper DTOs — inject apiVersion for FFI consumers
+// ---------------------------------------------------------------------------
+
+/// FFI envelope for conversion results. Injects `apiVersion` into the JSON output
+/// while keeping `ConvertResult` clean for Rust consumers.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BridgeConvertResult<'a> {
+    api_version: &'static str,
+    #[serde(flatten)]
+    inner: &'a ConvertResult,
+}
+
+/// FFI envelope for rehydration results. Injects `apiVersion` into the JSON output
+/// while keeping `RehydrateResult` clean for Rust consumers.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BridgeRehydrateResult<'a> {
+    api_version: &'static str,
+    #[serde(flatten)]
+    inner: &'a RehydrateResult,
+}
+
 /// Convert a JSON Schema (as a JSON string) with options (as a JSON string).
 ///
 /// This is the FFI-friendly entry point — accepts and returns plain JSON strings.
@@ -172,7 +199,7 @@ fn err_json(e: ConvertError) -> String {
 ///
 /// # Returns
 ///
-/// * `Ok(String)` — `{"schema": {...}, "codec": {...}}`
+/// * `Ok(String)` — `{"apiVersion": "1.0", "schema": {...}, "codec": {...}}`
 /// * `Err(String)` — `{"code": "...", "message": "...", "path": ...}`
 pub fn convert_json(schema_json: &str, options_json: &str) -> Result<String, String> {
     let schema: Value =
@@ -180,7 +207,11 @@ pub fn convert_json(schema_json: &str, options_json: &str) -> Result<String, Str
     let options: ConvertOptions =
         serde_json::from_str(options_json).map_err(|e| err_json(ConvertError::JsonError(e)))?;
     let result = convert(&schema, &options).map_err(err_json)?;
-    serde_json::to_string(&result).map_err(|e| err_json(ConvertError::JsonError(e)))
+    let bridge = BridgeConvertResult {
+        api_version: API_VERSION,
+        inner: &result,
+    };
+    serde_json::to_string(&bridge).map_err(|e| err_json(ConvertError::JsonError(e)))
 }
 
 /// Rehydrate LLM output (as a JSON string) using a codec (as a JSON string).
@@ -195,7 +226,7 @@ pub fn convert_json(schema_json: &str, options_json: &str) -> Result<String, Str
 ///
 /// # Returns
 ///
-/// * `Ok(String)` — `{"data": {...}, "warnings": [...]}`
+/// * `Ok(String)` — `{"apiVersion": "1.0", "data": {...}, "warnings": [...]}`
 /// * `Err(String)` — `{"code": "...", "message": "...", "path": ...}`
 pub fn rehydrate_json(data_json: &str, codec_json: &str) -> Result<String, String> {
     let data: Value =
@@ -203,5 +234,9 @@ pub fn rehydrate_json(data_json: &str, codec_json: &str) -> Result<String, Strin
     let codec: Codec =
         serde_json::from_str(codec_json).map_err(|e| err_json(ConvertError::JsonError(e)))?;
     let result = rehydrate(&data, &codec).map_err(err_json)?;
-    serde_json::to_string(&result).map_err(|e| err_json(ConvertError::JsonError(e)))
+    let bridge = BridgeRehydrateResult {
+        api_version: API_VERSION,
+        inner: &result,
+    };
+    serde_json::to_string(&bridge).map_err(|e| err_json(ConvertError::JsonError(e)))
 }

@@ -2,8 +2,15 @@
 
 use serde::{Deserialize, Serialize};
 
+/// Codec format version URI constant.
+pub const CODEC_SCHEMA_URI: &str = "https://jsonschema-llm.dev/codec/v1";
+
+/// Expected major version of the codec format.
+pub const CODEC_MAJOR_VERSION: u32 = 1;
+
 /// A collection of transformation records produced during schema conversion.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Codec {
     /// Schema URI for codec format versioning.
     #[serde(rename = "$schema")]
@@ -15,11 +22,15 @@ pub struct Codec {
 }
 
 /// A single transformation record.
+///
+/// The `type` tag uses `snake_case` (e.g. `"map_to_array"`), while variant
+/// fields use `camelCase` (e.g. `"keyField"`) for cross-language consistency.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Transform {
     MapToArray {
         path: String,
+        #[serde(rename = "keyField")]
         key_field: String,
     },
     JsonStringParse {
@@ -27,6 +38,7 @@ pub enum Transform {
     },
     NullableOptional {
         path: String,
+        #[serde(rename = "originalRequired")]
         original_required: bool,
     },
     DiscriminatorAnyOf {
@@ -36,16 +48,19 @@ pub enum Transform {
     },
     ExtractAdditionalProperties {
         path: String,
+        #[serde(rename = "propertyName")]
         property_name: String,
     },
     RecursiveInflate {
         path: String,
+        #[serde(rename = "originalRef")]
         original_ref: String,
     },
 }
 
 /// A constraint that was dropped during conversion.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DroppedConstraint {
     pub path: String,
     pub constraint: String,

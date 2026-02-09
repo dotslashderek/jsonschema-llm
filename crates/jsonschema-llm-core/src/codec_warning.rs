@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 
 /// A warning emitted when a dropped constraint is violated by LLM output.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Warning {
     /// Data location where the violation occurred (e.g. "/users/0/email").
     pub data_path: String,

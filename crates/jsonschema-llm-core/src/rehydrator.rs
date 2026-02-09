@@ -10,7 +10,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::codec::{Codec, Transform};
+use crate::codec::{Codec, Transform, CODEC_MAJOR_VERSION};
 use crate::codec_warning::{Warning, WarningKind};
 use crate::error::ConvertError;
 use crate::schema_utils::{escape_pointer_segment, split_path};
@@ -29,6 +29,9 @@ pub struct RehydrateResult {
 /// Applies transforms in REVERSE order (LIFO) to undo the stack of changes,
 /// then validates dropped constraints and collects warnings.
 pub fn rehydrate(data: &Value, codec: &Codec) -> Result<RehydrateResult, ConvertError> {
+    // Validate codec version — hard-fail on incompatible major version
+    validate_codec_version(codec)?;
+
     let mut result = data.clone();
 
     // Pre-compile all patternProperties regexes from transform and constraint paths
@@ -884,6 +887,43 @@ fn check_constraint(
         }
         _ => None,
     }
+}
+
+/// Validate the codec version against the expected major version.
+///
+/// The `$schema` URI is expected to end with `/v{major}` (e.g.
+/// `https://jsonschema-llm.dev/codec/v1`). Hard-fails on incompatible
+/// major version; tolerates unknown suffixes with a warning.
+fn validate_codec_version(codec: &Codec) -> Result<(), ConvertError> {
+    let uri = &codec.schema;
+
+    // Extract the last path segment after the final '/'
+    let version_segment = uri
+        .rsplit('/')
+        .next()
+        .and_then(|seg| seg.strip_prefix('v'))
+        .ok_or_else(|| ConvertError::CodecVersionMismatch {
+            found: uri.clone(),
+            expected: format!("URI ending with /v{}", CODEC_MAJOR_VERSION),
+        })?;
+
+    // Parse the major version (tolerates "1", "1.2", etc.)
+    let major_str = version_segment.split('.').next().unwrap_or(version_segment);
+    let major: u32 = major_str
+        .parse()
+        .map_err(|_| ConvertError::CodecVersionMismatch {
+            found: uri.clone(),
+            expected: format!("URI ending with /v{}", CODEC_MAJOR_VERSION),
+        })?;
+
+    if major != CODEC_MAJOR_VERSION {
+        return Err(ConvertError::CodecVersionMismatch {
+            found: format!("v{}", major),
+            expected: format!("v{}", CODEC_MAJOR_VERSION),
+        });
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]

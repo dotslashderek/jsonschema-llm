@@ -4,7 +4,7 @@
     {
       "type": "map_to_array",
       "path": "#/properties/tags",
-      "key_field": "key"
+      "keyField": "key"
     },
     {
       "type": "json_string_parse",
@@ -17,95 +17,95 @@
     {
       "type": "recursive_inflate",
       "path": "#/properties/organization/properties/children/items/properties/children/items/properties/children/items/properties/children/items/properties/children/items/properties/children/items/properties/children/items",
-      "original_ref": "#/$defs/OrgNode"
+      "originalRef": "#/$defs/OrgNode"
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/address",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/age",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/extraData",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/notes",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/organization",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/preferences",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/tags",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/address/anyOf/0/properties/zip",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/contacts/items/anyOf/1/properties/extension",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/notes/anyOf/0/properties/timestamp",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/organization/anyOf/0/properties/children",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/organization/anyOf/0/properties/children/anyOf/0/items/properties/children",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/organization/anyOf/0/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/organization/anyOf/0/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/organization/anyOf/0/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/organization/anyOf/0/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children",
-      "original_required": false
+      "originalRequired": false
     },
     {
       "type": "nullable_optional",
       "path": "#/properties/organization/anyOf/0/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children",
-      "original_required": false
+      "originalRequired": false
     }
   ],
-  "dropped_constraints": [
+  "droppedConstraints": [
     {
       "path": "#/properties/age/anyOf/0",
       "constraint": "minimum",

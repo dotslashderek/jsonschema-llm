@@ -24,6 +24,8 @@ pub enum ErrorCode {
     UnresolvableRef,
     /// Error during data rehydration.
     RehydrationError,
+    /// Codec version is incompatible with this library version.
+    CodecVersionMismatch,
 }
 
 #[derive(Debug, Error)]
@@ -45,6 +47,9 @@ pub enum ConvertError {
 
     #[error("Rehydration error: {0}")]
     RehydrationError(String),
+
+    #[error("Codec version mismatch: found {found}, expected {expected}")]
+    CodecVersionMismatch { found: String, expected: String },
 }
 
 impl ConvertError {
@@ -57,6 +62,7 @@ impl ConvertError {
             ConvertError::UnsupportedFeature { .. } => ErrorCode::UnsupportedFeature,
             ConvertError::UnresolvableRef { .. } => ErrorCode::UnresolvableRef,
             ConvertError::RehydrationError(_) => ErrorCode::RehydrationError,
+            ConvertError::CodecVersionMismatch { .. } => ErrorCode::CodecVersionMismatch,
         }
     }
 
@@ -71,6 +77,7 @@ impl ConvertError {
             ConvertError::UnsupportedFeature { path, .. } => Some(path),
             ConvertError::UnresolvableRef { path, .. } => Some(path),
             ConvertError::RehydrationError(_) => None,
+            ConvertError::CodecVersionMismatch { .. } => None,
         }
     }
 
