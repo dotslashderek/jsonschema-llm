@@ -918,8 +918,8 @@ fn validate_codec_version(codec: &Codec) -> Result<(), ConvertError> {
 
     if major != CODEC_MAJOR_VERSION {
         return Err(ConvertError::CodecVersionMismatch {
-            found: format!("v{}", major),
-            expected: format!("v{}", CODEC_MAJOR_VERSION),
+            found: uri.clone(),
+            expected: format!("URI ending with /v{}", CODEC_MAJOR_VERSION),
         });
     }
 
