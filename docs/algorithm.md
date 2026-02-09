@@ -168,9 +168,13 @@ The algorithm targets **OpenAI Strict Mode** as the baseline compilation target 
 | 5        | Pass 2     | Polymorphism          | ✅ Implemented |
 | 6        | Pass 4     | Opaque Fallback       | ✅ Implemented |
 | 7        | Pass 0     | Normalization         | ✅ Implemented |
-| 8        | Pass 5     | Recursion Breaking    | 🔲 Stub        |
-| 9        | Pass 7     | Constraint Pruning    | 🔲 Stub        |
-| 10       | Pipeline   | `convert()` wiring    | 🔲 Stub        |
+| 8        | Pass 5     | Recursion Breaking    | ✅ Implemented |
+| 9        | Pass 7     | Constraint Pruning    | ✅ Implemented |
+| 10       | Pipeline   | `convert()` wiring    | ✅ Implemented |
+| 11       | CLI        | `jsonschema-llm`      | ✅ Implemented |
+
+> [!NOTE]
+> This table reflects the shipped v0.1 state. All passes and the CLI are implemented.
 
 ---
 
