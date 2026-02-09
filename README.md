@@ -592,35 +592,47 @@ original_shape = rehydrate(llm_output, codec)
 └───────┘ └──────────┘ └──────────┘ └─────────┘
 ```
 
-The core library is written in **Rust** using `serde_json::Value` for schema manipulation with recursive descent transformers. Language bindings (TypeScript via WASM, Python via PyO3, Java via JNI) are planned but not yet implemented.
+The core library is written in **Rust** using `serde_json::Value` for schema manipulation with recursive descent transformers. Language bindings are tracked as separate epics: [TypeScript via WASM](https://github.com/dotslashderek/jsonschema-llm/issues/38), [Python via PyO3](https://github.com/dotslashderek/jsonschema-llm/issues/39), and [Java via JNI](https://github.com/dotslashderek/jsonschema-llm/issues/40) — all blocked on the [FFI Facade](https://github.com/dotslashderek/jsonschema-llm/issues/37) prerequisite.
 
 ---
 
 ## Project Status
 
-🚧 **Under active development.**
+### v0.1 — Core Pipeline ✅
 
-| Component              | Status         | Notes                                                   |
-| ---------------------- | -------------- | ------------------------------------------------------- |
-| Pass 0: Normalization  | ✅ Complete    | `$ref` resolution, cycle detection, draft normalization |
-| Pass 1: Composition    | ✅ Complete    | `allOf` merge with property/required union              |
-| Pass 2: Polymorphism   | ✅ Complete    | `oneOf` → `anyOf` rewrite                               |
-| Pass 3: Dictionary     | ✅ Complete    | Map → Array transpilation with codec                    |
-| Pass 4: Opaque Types   | ✅ Complete    | Stringification with codec                              |
-| Pass 5: Recursion      | ✅ Complete    | Dynamic cycle detection, configurable depth limit       |
-| Pass 6: Strict Mode    | ✅ Complete    | `additionalProperties: false`, nullable optionals       |
-| Pass 7: Constraints    | ✅ Complete    | Constraint pruning, enum sorting, const→enum            |
-| Rehydrator             | ✅ Complete    | Full reverse transforms with advisory warnings          |
-| Pipeline (`convert()`) | ✅ Complete    | Wires all 8 passes with codec accumulation              |
-| CLI                    | ✅ Complete    | `convert` and `rehydrate` subcommands via `clap`        |
-| Bindings               | 🔲 Not started | TypeScript (WASM), Python (PyO3), Java (JNI)            |
+The 8-pass compiler pipeline, rehydrator, codec, and CLI are all implemented and green.
 
-The algorithm has been validated against:
+| Component              | Status      | Notes                                                   |
+| ---------------------- | ----------- | ------------------------------------------------------- |
+| Pass 0: Normalization  | ✅ Complete | `$ref` resolution, cycle detection, draft normalization |
+| Pass 1: Composition    | ✅ Complete | `allOf` merge with property/required union              |
+| Pass 2: Polymorphism   | ✅ Complete | `oneOf` → `anyOf` rewrite                               |
+| Pass 3: Dictionary     | ✅ Complete | Map → Array transpilation with codec                    |
+| Pass 4: Opaque Types   | ✅ Complete | Stringification with codec                              |
+| Pass 5: Recursion      | ✅ Complete | Dynamic cycle detection, configurable depth limit       |
+| Pass 6: Strict Mode    | ✅ Complete | `additionalProperties: false`, nullable optionals       |
+| Pass 7: Constraints    | ✅ Complete | Constraint pruning, enum sorting, const→enum            |
+| Rehydrator             | ✅ Complete | Full reverse transforms with advisory warnings          |
+| Pipeline (`convert()`) | ✅ Complete | Wires all 8 passes with codec accumulation              |
+| CLI                    | ✅ Complete | `convert` and `rehydrate` subcommands via `clap`        |
 
-- A comprehensive test schema (2.5KB) with maps, discriminated unions, opaque types
-- The OpenAPI 3.1 Specification Schema and other production-grade schemas
+Validated against production-grade schemas including the OpenAPI 3.1 Specification Schema. All accepted by OpenAI Strict Mode with full round-trip rehydration.
 
-All were accepted by OpenAI Strict Mode and passed full round-trip rehydration tests.
+### v0.2 — Roadmap
+
+| Epic                                                                                | Status         | Effort | Description                                                                                       |
+| ----------------------------------------------------------------------------------- | -------------- | ------ | ------------------------------------------------------------------------------------------------- |
+| [Core Improvements](https://github.com/dotslashderek/jsonschema-llm/issues/36)      | 🔲 Not started | M–L    | Walker unification, rehydrator decomposition, test hardening, docs cleanup                        |
+| [FFI Facade](https://github.com/dotslashderek/jsonschema-llm/issues/37)             | 🔲 Not started | L      | JSON-string bridge API, stable error codes, serde-ready types — **prerequisite for all bindings** |
+| [TypeScript / JS (WASM)](https://github.com/dotslashderek/jsonschema-llm/issues/38) | 🔲 Not started | M–L    | `wasm-pack` + `serde-wasm-bindgen`, npm package                                                   |
+| [Python (PyO3)](https://github.com/dotslashderek/jsonschema-llm/issues/39)          | 🔲 Not started | M      | `maturin` + `pythonize`, PyPI package                                                             |
+| [Java (JNI)](https://github.com/dotslashderek/jsonschema-llm/issues/40)             | 🔲 Not started | XL     | `jni-rs` + JSON string bridge, Maven Central                                                      |
+
+```
+FFI Facade (#37)  ──▶  TS/WASM (#38)
+                  ──▶  Python  (#39)
+                  ──▶  Java    (#40)
+```
 
 ---
 
