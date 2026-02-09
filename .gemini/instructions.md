@@ -16,7 +16,7 @@ The converter runs 8 ordered passes (see `docs/algorithm.md` for the formal spec
 1. **Composition** — Merge `allOf` into flat objects
 2. **Polymorphism** — Rewrite `oneOf` → `anyOf` (NOT flatten — flattening causes hallucination)
 3. **Dictionary** — `Map<K,V>` → `Array<{key, value}>`
-4. **Opaque Types** — `{type: object}` (no props) → `{type: string, description: "JSON-encoded..."}`
+4. **Opaque Types** — `{type: object}` (no props) and untyped schemas (`{}`, `{description: "..."}`) → `{type: string, description: "JSON-encoded..."}`
 5. **Recursion** — Break cycles at depth limit
 6. **Strict Mode** — `additionalProperties: false`, all props `required`, optionals → `anyOf [T, null]`
 7. **Constraints** — Drop unsupported constraints, sort enums default-first
