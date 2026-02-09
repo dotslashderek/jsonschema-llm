@@ -153,7 +153,7 @@ fn main() -> Result<()> {
             };
 
             let result = convert(&schema, &options)
-                .map_err(|e| anyhow::anyhow!("Conversion failed: {e}"))?;
+                .map_err(|e| anyhow::Error::from(e).context("Conversion failed"))?;
 
             // Warn if no codec file specified
             if codec_path.is_none() {
@@ -194,7 +194,7 @@ fn main() -> Result<()> {
             };
 
             let result = rehydrate(&data, &codec_obj)
-                .map_err(|e| anyhow::anyhow!("Rehydration failed: {e}"))?;
+                .map_err(|e| anyhow::Error::from(e).context("Rehydration failed"))?;
 
             for warning in &result.warnings {
                 eprintln!("Warning: {}", warning.message);
