@@ -2,7 +2,6 @@
 //! via the public API only, never calling individual passes directly.
 
 use jsonschema_llm_core::codec::Transform;
-use jsonschema_llm_core::config::PolymorphismStrategy;
 use jsonschema_llm_core::{convert, rehydrate, ConvertOptions, Target};
 use serde_json::json;
 
@@ -96,7 +95,7 @@ fn test_convert_with_opaque() {
     let result = convert(&schema, &openai_options()).expect("convert should succeed");
 
     // Opaque `metadata` should become string
-    let metadata = &result.schema["properties"]["metadata"];
+    let _metadata = &result.schema["properties"]["metadata"];
     // After strict wrapping, the type should ultimately be string (or anyOf wrapping string)
     // The key thing is that a JsonStringParse transform exists
     assert!(

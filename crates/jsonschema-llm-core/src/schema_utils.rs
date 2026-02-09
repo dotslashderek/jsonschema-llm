@@ -39,8 +39,8 @@ pub fn escape_pointer_segment(segment: &str) -> Cow<'_, str> {
 /// Each segment is escaped per RFC 6901 before joining.
 ///
 /// # Example
-/// ```ignore
-/// use jsonschema_llm_core::schema_utils::build_path;
+/// ```
+/// use jsonschema_llm_core::build_path;
 /// assert_eq!(build_path("#", &["properties", "a/b"]), "#/properties/a~1b");
 /// ```
 pub fn build_path(parent: &str, segments: &[&str]) -> String {
@@ -73,8 +73,8 @@ pub fn unescape_pointer_segment(segment: &str) -> Cow<'_, str> {
 /// and unescapes each segment per RFC 6901.
 ///
 /// # Example
-/// ```ignore
-/// use jsonschema_llm_core::schema_utils::split_path;
+/// ```
+/// use jsonschema_llm_core::split_path;
 /// assert_eq!(split_path("#/properties/a~1b/items"), vec!["properties", "a/b", "items"]);
 /// assert_eq!(split_path("#"), Vec::<String>::new());
 /// ```

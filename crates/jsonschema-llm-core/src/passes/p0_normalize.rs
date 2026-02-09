@@ -39,6 +39,7 @@ pub struct NormalizePassResult {
     pub schema: Value,
     /// JSON Pointer paths where recursive $ref cycles were detected.
     /// These are left as `$ref` for Pass 5 to break.
+    #[allow(dead_code)] // Read by pass-internal tests, not by the pipeline orchestrator
     pub recursive_refs: Vec<String>,
 }
 
