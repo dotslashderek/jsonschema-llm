@@ -139,6 +139,7 @@ fn test_e2e_fixture_codec_roundtrip() {
 #[test]
 fn test_e2e_fixture_codec_entry_counts() {
     use jsonschema_llm_core::codec::Transform;
+    use std::collections::HashMap;
 
     let cases: Vec<(&str, usize)> = vec![
         ("simple", 2),
@@ -150,6 +151,8 @@ fn test_e2e_fixture_codec_entry_counts() {
         ("kitchen_sink", 21),
     ];
 
+    // Cache results to avoid duplicate convert calls
+    let mut results = HashMap::new();
     for (name, expected_count) in &cases {
         let schema = load_fixture(name);
         let result = convert(&schema, &openai_options()).unwrap();
@@ -159,10 +162,11 @@ fn test_e2e_fixture_codec_entry_counts() {
             "Fixture '{name}' expected {expected_count} transforms, got {}",
             result.codec.transforms.len()
         );
+        results.insert(*name, result);
     }
 
     // maps.json must contain exactly 4 MapToArray transforms
-    let maps_result = convert(&load_fixture("maps"), &openai_options()).unwrap();
+    let maps_result = results.get("maps").unwrap();
     let map_count = maps_result
         .codec
         .transforms
@@ -175,7 +179,7 @@ fn test_e2e_fixture_codec_entry_counts() {
     );
 
     // opaque.json must contain exactly 3 JsonStringParse transforms
-    let opaque_result = convert(&load_fixture("opaque"), &openai_options()).unwrap();
+    let opaque_result = results.get("opaque").unwrap();
     let jsp_count = opaque_result
         .codec
         .transforms

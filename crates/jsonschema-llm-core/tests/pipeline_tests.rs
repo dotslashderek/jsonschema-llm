@@ -362,7 +362,7 @@ fn test_golden_snapshot_kitchen_sink_openai() {
     )
     .unwrap();
 
-    let result = convert(&schema, &ConvertOptions::default()).unwrap();
+    let result = convert(&schema, &openai_options()).unwrap();
 
     // Compare schema output
     let expected_schema: serde_json::Value = serde_json::from_str(

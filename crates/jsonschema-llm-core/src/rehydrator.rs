@@ -105,8 +105,17 @@ fn build_pattern_properties_cache(codec: &Codec) -> HashMap<String, Regex> {
         if dc.constraint == "pattern" {
             if let Some(pat) = dc.value.as_str() {
                 if !cache.contains_key(pat) {
-                    if let Ok(re) = Regex::new(pat) {
-                        cache.insert(pat.to_string(), re);
+                    match Regex::new(pat) {
+                        Ok(re) => {
+                            cache.insert(pat.to_string(), re);
+                        }
+                        Err(e) => {
+                            tracing::warn!(
+                                pattern = %pat,
+                                error = %e,
+                                "invalid regex in dropped constraint pattern — will emit ConstraintUnevaluable warning"
+                            );
+                        }
                     }
                 }
             }
@@ -192,7 +201,7 @@ fn apply_transform(
                     }
                 } else {
                     // Cache miss means invalid regex — already warned during cache build
-                    tracing::warn!(
+                    tracing::debug!(
                         pattern = %pattern,
                         "patternProperties regex not in cache (invalid?), skipping transform"
                     );
@@ -385,6 +394,11 @@ fn validate_constraints(
             if let Some(pat) = dc.value.as_str() {
                 if !regex_cache.contains_key(pat) {
                     // Pattern was not cached — means it was invalid during cache build
+                    // Re-compile to get error detail for the warning message
+                    let error_detail = match Regex::new(pat) {
+                        Ok(_) => "unknown error".to_string(),
+                        Err(e) => e.to_string(),
+                    };
                     warnings.push(Warning {
                         data_path: "/".to_string(),
                         schema_path: dc.path.clone(),
@@ -392,8 +406,8 @@ fn validate_constraints(
                             constraint: "pattern".to_string(),
                         },
                         message: format!(
-                            "constraint 'pattern' ({}) has invalid regex and cannot be validated",
-                            pat
+                            "constraint 'pattern' ({}) has invalid regex and cannot be validated: {}",
+                            pat, error_detail
                         ),
                     });
                 }
