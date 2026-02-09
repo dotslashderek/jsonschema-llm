@@ -1,8 +1,8 @@
 //! WASM bindings for jsonschema-llm.
 //!
 //! Exposes `convert` and `rehydrate` via `wasm-bindgen` for use from
-//! JavaScript / TypeScript. Uses `serde-wasm-bindgen` for zero-copy
-//! JS ↔ serde_json::Value marshalling.
+//! JavaScript / TypeScript. Uses `serde-wasm-bindgen` for JS ↔
+//! serde_json::Value marshalling.
 
 use wasm_bindgen::prelude::*;
 
