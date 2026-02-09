@@ -185,11 +185,16 @@ fn is_opaque(obj: &Map<String, Value>) -> bool {
 /// Examples: `{}`, `{"description": "..."}`, `{"title": "...", "description": "..."}`.
 ///
 /// Returns false for schemas that imply a type via validation keywords:
-/// - String indicators: `minLength`, `maxLength`, `pattern`, `format`
+/// - String indicators: `minLength`, `maxLength`, `pattern`, `format`,
+///   `contentEncoding`, `contentMediaType`, `contentSchema`
 /// - Numeric indicators: `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`
-/// - Array indicators: `items`, `prefixItems`, `contains`, `minItems`, `maxItems`, `uniqueItems`
-/// - Object indicators: `properties`, `patternProperties`, `additionalProperties` (structural),
-///   and `required`, `minProperties`, `maxProperties`, `dependentRequired`, etc. (validation)
+/// - Array indicators: `items`, `prefixItems`, `contains`, `minItems`, `maxItems`, `uniqueItems`,
+///   `minContains`, `maxContains`
+/// - Object indicators: `properties`, `patternProperties`, and `additionalProperties` when set to
+///   `false` or a non-empty schema object (structural); `required`, `minProperties`,
+///   `maxProperties`, `dependentRequired`, `dependentSchemas`, `propertyNames`,
+///   `unevaluatedProperties` (validation). Note: `additionalProperties: true` and
+///   `additionalProperties: {}` are tolerated as non-constraining.
 fn is_untyped_opaque(obj: &Map<String, Value>) -> bool {
     // Must NOT have a type keyword (typed objects are handled by is_opaque).
     if obj.contains_key("type") {
