@@ -5,11 +5,12 @@
 //!
 //! Emits `DroppedConstraint` codec entries for every pruned keyword.
 
-use serde_json::Value;
+use serde_json::{json, Map, Value};
 
 use crate::codec::DroppedConstraint;
-use crate::config::ConvertOptions;
+use crate::config::{ConvertOptions, Target};
 use crate::error::ConvertError;
+use crate::schema_utils::recurse_into_children;
 
 /// Result of running the constraint pruning pass.
 #[derive(Debug)]
@@ -27,10 +28,223 @@ pub struct ConstraintPassResult {
 /// 2. Sorts `enum` to place `default` value first (before `default` is dropped)
 /// 3. Drops unsupported constraints per target, emitting `DroppedConstraint` entries
 pub fn prune_constraints(
-    _schema: &Value,
-    _config: &ConvertOptions,
+    schema: &Value,
+    config: &ConvertOptions,
 ) -> Result<ConstraintPassResult, ConvertError> {
-    todo!()
+    let mut dropped = Vec::new();
+    let result = walk(schema, "#", 0, config, &mut dropped)?;
+    Ok(ConstraintPassResult {
+        schema: result,
+        dropped_constraints: dropped,
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Recursive walker
+// ---------------------------------------------------------------------------
+
+/// Recursively descend through the schema tree, pruning constraints at each
+/// node and collecting dropped constraint records.
+fn walk(
+    node: &Value,
+    path: &str,
+    depth: usize,
+    config: &ConvertOptions,
+    dropped: &mut Vec<DroppedConstraint>,
+) -> Result<Value, ConvertError> {
+    if depth > config.max_depth {
+        return Err(ConvertError::RecursionDepthExceeded {
+            path: path.to_string(),
+            max_depth: config.max_depth,
+        });
+    }
+
+    let obj = match node.as_object() {
+        Some(o) => o,
+        None => return Ok(node.clone()),
+    };
+
+    let mut result = obj.clone();
+
+    // 1. const → enum normalization (before sorting or pruning)
+    normalize_const_to_enum(&mut result, config.target);
+
+    // 2. Enum default-first sorting (before default is dropped)
+    sort_enum_default_first(&mut result);
+
+    // 3. Prune unsupported constraints
+    prune_node_constraints(&mut result, path, config.target, dropped);
+
+    // Recurse into all structural children
+    recurse_into_children(&mut result, path, depth, &mut |val, child_path, d| {
+        walk(val, child_path, d, config, dropped)
+    })?;
+
+    Ok(Value::Object(result))
+}
+
+// ---------------------------------------------------------------------------
+// Step 1: const → enum normalization
+// ---------------------------------------------------------------------------
+
+/// Normalize `const` to `enum: [value]` for providers that don't support `const`.
+///
+/// Gemini supports `const` natively — skip normalization for that target.
+/// If both `const` and `enum` exist, `const` wins (intersection semantics).
+fn normalize_const_to_enum(obj: &mut Map<String, Value>, target: Target) {
+    if target == Target::Gemini {
+        return;
+    }
+
+    if let Some(const_val) = obj.remove("const") {
+        obj.insert("enum".to_string(), json!([const_val]));
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Step 2: Enum default-first sorting
+// ---------------------------------------------------------------------------
+
+/// If both `default` and `enum` exist, move the default value to `enum[0]`.
+///
+/// Uses `serde_json::Value::PartialEq` for deep comparison (handles complex
+/// enum values like objects/arrays). If default is not found in enum, skips
+/// silently (no panic, no duplicate).
+fn sort_enum_default_first(obj: &mut Map<String, Value>) {
+    let default_val = match obj.get("default") {
+        Some(v) => v.clone(),
+        None => return,
+    };
+
+    let enum_arr = match obj.get_mut("enum").and_then(Value::as_array_mut) {
+        Some(arr) => arr,
+        None => return,
+    };
+
+    if let Some(pos) = enum_arr.iter().position(|v| v == &default_val) {
+        let val = enum_arr.remove(pos);
+        enum_arr.insert(0, val);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Step 3: Constraint pruning
+// ---------------------------------------------------------------------------
+
+/// Remove unsupported constraints from a single node, emitting `DroppedConstraint`
+/// codec entries for each one.
+fn prune_node_constraints(
+    obj: &mut Map<String, Value>,
+    path: &str,
+    target: Target,
+    dropped: &mut Vec<DroppedConstraint>,
+) {
+    for keyword in unsupported_constraints(target) {
+        if let Some(value) = obj.remove(*keyword) {
+            dropped.push(DroppedConstraint {
+                path: path.to_string(),
+                constraint: keyword.to_string(),
+                value,
+            });
+        }
+    }
+}
+
+/// Return the list of constraint keywords to prune for a given target.
+///
+/// Data-driven approach — each target has an explicit list of keywords to remove.
+/// This avoids nested conditionals and makes the provider matrix easy to audit.
+fn unsupported_constraints(target: Target) -> &'static [&'static str] {
+    // Keywords unsupported by ALL providers
+    const UNIVERSAL_DROP: &[&str] = &[
+        "uniqueItems",
+        "default",
+        "not",
+        "if",
+        "then",
+        "else",
+        // Extended keywords (Gemini review feedback)
+        "multipleOf",
+        "exclusiveMinimum",
+        "exclusiveMaximum",
+        "minProperties",
+        "maxProperties",
+        "propertyNames",
+        "dependencies",
+        "dependentRequired",
+        "dependentSchemas",
+        "contains",
+        "minContains",
+        "maxContains",
+        "format",
+    ];
+
+    // OpenAI: drops validation constraints that aren't enum/pattern
+    const OPENAI_DROP: &[&str] = &[
+        "minimum",
+        "maximum",
+        "minLength",
+        "maxLength",
+        "minItems",
+        "maxItems",
+        // Universal drops
+        "uniqueItems",
+        "default",
+        "not",
+        "if",
+        "then",
+        "else",
+        "multipleOf",
+        "exclusiveMinimum",
+        "exclusiveMaximum",
+        "minProperties",
+        "maxProperties",
+        "propertyNames",
+        "dependencies",
+        "dependentRequired",
+        "dependentSchemas",
+        "contains",
+        "minContains",
+        "maxContains",
+        "format",
+    ];
+
+    // Claude: drops most constraints including pattern
+    const CLAUDE_DROP: &[&str] = &[
+        "minimum",
+        "maximum",
+        "minLength",
+        "maxLength",
+        "minItems",
+        "maxItems",
+        "pattern",
+        // Universal drops
+        "uniqueItems",
+        "default",
+        "not",
+        "if",
+        "then",
+        "else",
+        "multipleOf",
+        "exclusiveMinimum",
+        "exclusiveMaximum",
+        "minProperties",
+        "maxProperties",
+        "propertyNames",
+        "dependencies",
+        "dependentRequired",
+        "dependentSchemas",
+        "contains",
+        "minContains",
+        "maxContains",
+        "format",
+    ];
+
+    match target {
+        Target::OpenaiStrict => OPENAI_DROP,
+        Target::Gemini => UNIVERSAL_DROP,
+        Target::Claude => CLAUDE_DROP,
+    }
 }
 
 // ===========================================================================
@@ -71,14 +285,28 @@ mod tests {
 
         // OpenAI: both dropped
         let (openai_out, openai_dropped) = run(input.clone(), Target::OpenaiStrict);
-        assert!(openai_out.get("minimum").is_none(), "minimum should be dropped for OpenAI");
-        assert!(openai_out.get("maximum").is_none(), "maximum should be dropped for OpenAI");
+        assert!(
+            openai_out.get("minimum").is_none(),
+            "minimum should be dropped for OpenAI"
+        );
+        assert!(
+            openai_out.get("maximum").is_none(),
+            "maximum should be dropped for OpenAI"
+        );
         assert_eq!(openai_dropped.len(), 2);
 
         // Gemini: both preserved
         let (gemini_out, gemini_dropped) = run(input, Target::Gemini);
-        assert_eq!(gemini_out["minimum"], json!(0), "minimum should be preserved for Gemini");
-        assert_eq!(gemini_out["maximum"], json!(100), "maximum should be preserved for Gemini");
+        assert_eq!(
+            gemini_out["minimum"],
+            json!(0),
+            "minimum should be preserved for Gemini"
+        );
+        assert_eq!(
+            gemini_out["maximum"],
+            json!(100),
+            "maximum should be preserved for Gemini"
+        );
         assert_eq!(gemini_dropped.len(), 0);
     }
 
@@ -128,7 +356,10 @@ mod tests {
 
         // default should appear in dropped_constraints
         let default_dropped = dropped.iter().find(|d| d.constraint == "default");
-        assert!(default_dropped.is_some(), "default must be in dropped_constraints");
+        assert!(
+            default_dropped.is_some(),
+            "default must be in dropped_constraints"
+        );
         assert_eq!(default_dropped.unwrap().value, json!("beta"));
     }
 
