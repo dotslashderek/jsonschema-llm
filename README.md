@@ -200,7 +200,7 @@ The converted schema was accepted by **OpenAI Strict Mode**. The LLM generated a
     ├──────────────────────────────┤
     │ Pass 4: Opaque Types         │  ✅ {type: object} → {type: string}
     ├──────────────────────────────┤
-    │ Pass 5: Recursion            │  🔲 Break cycles at depth limit
+    │ Pass 5: Recursion            │  ✅ Inline all $ref, break cycles
     ├──────────────────────────────┤
     │ Pass 6: Strict Enforcement   │  ✅ additionalProperties: false, all required
     ├──────────────────────────────┤
@@ -376,9 +376,71 @@ When a `discriminator` is present, the discriminator field guides the model to t
 
 ### Pass 5: Recursion Breaking
 
-**What it does:** Breaks recursive `$ref` cycles detected in Pass 0 by replacing recursive references at a depth limit with opaque string types.
+**What it does:** Inlines all remaining `$ref` pointers and breaks recursive cycles at a configurable depth limit (`recursion_limit`, default 3) by replacing them with opaque JSON-string placeholders. Uses **dynamic cycle detection** — a per-branch counter tracks how many times each `$ref` target has been expanded. When the counter reaches the limit, the ref is replaced instead of expanded.
 
-**Why:** OpenAI does not support recursive schemas. Infinite nesting would also cause infinite token generation.
+**Why:** OpenAI does not support `$ref` at all. Even providers that do can't handle infinite recursion. After this pass, the schema is fully self-contained — no `$ref` nodes, no `$defs` section.
+
+**How it works:**
+
+- Non-recursive (DAG) refs are inlined normally — this is the common case
+- Recursive refs expand `recursion_limit` times, then the deepest occurrence becomes an opaque string
+- `$defs` are stripped from the root after all refs are resolved or broken
+- A safety check ensures no dangling `$ref` nodes exist before cleanup
+
+```diff
+ // Before: self-referencing TreeNode
+ {
+   "$ref": "#/$defs/TreeNode",
+   "$defs": {
+     "TreeNode": {
+       "type": "object",
+       "properties": {
+-        "value": { "type": "string" },
+-        "children": {
+-          "type": "array",
+-          "items": { "$ref": "#/$defs/TreeNode" }
+-        }
+       }
+     }
+   }
+ }
+
+ // After (recursion_limit=2): TreeNode inlined twice, third level is opaque
++{
++  "type": "object",
++  "properties": {
++    "value": { "type": "string" },
++    "children": {
++      "type": "array",
++      "items": {
++        "type": "object",
++        "properties": {
++          "value": { "type": "string" },
++          "children": {
++            "type": "array",
++            "items": {
++              "type": "string",
++              "description": "JSON-encoded TreeNode. Parse as JSON after generation."
++            }
++          }
++        }
++      }
++    }
++  }
++}
+```
+
+**Codec entry:**
+
+```json
+{
+  "path": "#/properties/children/items/properties/children/items",
+  "type": "recursive_inflate",
+  "original_ref": "#/$defs/TreeNode"
+}
+```
+
+**Lossy:** Data preserved (deep levels are double-encoded), but structural depth is capped.
 
 **Provider override:** Gemini supports recursive schemas natively — skip this pass entirely for `--target gemini`.
 
@@ -463,6 +525,7 @@ The codec sidecar file contains enough information to reconstruct the original d
 | -------------------- | ---------------------------------------------- | ----------------------------------- |
 | `map_to_array`       | `{a: 1, b: 2}` → `[{key: "a", value: 1}, ...]` | `[{key: "a", value: 1}]` → `{a: 1}` |
 | `json_string_parse`  | `{config: {...}}` → `{config: "{...}"}`        | `"{...}"` → `{...}`                 |
+| `recursive_inflate`  | Recursive ref → `"{...}"` at depth limit       | `"{...}"` → `{...}` (same as above) |
 | `nullable_optional`  | Required field, optional → nullable            | If `null`, remove key entirely      |
 | `dropped_constraint` | `minLength: 1` → removed                       | Post-generation validation          |
 
@@ -540,7 +603,7 @@ The core library is written in **Rust** using `serde_json::Value` for schema man
 | Pass 2: Polymorphism   | ✅ Complete    | `oneOf` → `anyOf` rewrite                               |
 | Pass 3: Dictionary     | ✅ Complete    | Map → Array transpilation with codec                    |
 | Pass 4: Opaque Types   | ✅ Complete    | Stringification with codec                              |
-| Pass 5: Recursion      | 🔲 Stub        | Cycle breaking at depth limit                           |
+| Pass 5: Recursion      | ✅ Complete    | Dynamic cycle detection, configurable depth limit       |
 | Pass 6: Strict Mode    | ✅ Complete    | `additionalProperties: false`, nullable optionals       |
 | Pass 7: Constraints    | 🔲 Stub        | Constraint pruning, enum sorting                        |
 | Rehydrator             | ✅ Complete    | Full reverse transforms with advisory warnings          |
