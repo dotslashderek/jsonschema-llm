@@ -165,7 +165,7 @@ This algorithm was validated against the **Gravitee API Management v4 API Defini
 
 - Discriminated unions (`oneOf` + `discriminator` for listeners, selectors, flow steps)
 - Maps everywhere (`Map<String, Plan>`, `Map<String, Map<String, ResponseTemplate>>`)
-- Opaque plugin configurations (`{type: object}` with no properties)
+- Opaque plugin configurations (`{type: object}` with no properties, `{}` catch-all schemas)
 - `allOf` inheritance across multiple definition layers
 - Recursive references
 
@@ -198,7 +198,7 @@ The converted schema was accepted by **OpenAI Strict Mode**. The LLM generated a
     ├──────────────────────────────┤
     │ Pass 3: Dictionary           │  ✅ Map<K,V> → Array<{key, value}>
     ├──────────────────────────────┤
-    │ Pass 4: Opaque Types         │  ✅ {type: object} → {type: string}
+    │ Pass 4: Opaque Types         │  ✅ {type: object} / {} → {type: string}
     ├──────────────────────────────┤
     │ Pass 5: Recursion            │  ✅ Inline all $ref, break cycles
     ├──────────────────────────────┤
@@ -349,7 +349,7 @@ When a `discriminator` is present, the discriminator field guides the model to t
 
 ### Pass 4: Opaque Type Stringification
 
-**What it does:** Converts open-ended object schemas (`{type: object}` with no `properties`) into `{type: string}` with a description instructing the LLM to produce a JSON-encoded string.
+**What it does:** Converts open-ended object schemas (`{type: object}` with no `properties`) and untyped schemas (`{}`, `{description: "..."}`) into `{type: string}` with a description instructing the LLM to produce a JSON-encoded string.
 
 **Why:** These "opaque" objects appear frequently in plugin/configuration systems where the schema is deliberately open-ended. LLM providers can't generate unconstrained objects, but they can generate JSON strings that you parse afterward.
 
