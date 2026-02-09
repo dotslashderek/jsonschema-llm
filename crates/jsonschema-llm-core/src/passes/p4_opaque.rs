@@ -672,4 +672,111 @@ mod tests {
         // Array example → stringified
         assert_eq!(examples[2], json!("[1,2,3]"));
     }
+
+    // -----------------------------------------------------------------------
+    // Test 20: Empty schema {} → stringified (untyped opaque)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_empty_schema_opaque() {
+        let input = json!({});
+
+        let (output, transforms) = run(input);
+
+        assert_eq!(output["type"], "string");
+        assert_eq!(output["description"], DEFAULT_OPAQUE_DESC);
+        assert_eq!(transforms.len(), 1);
+        match &transforms[0] {
+            Transform::JsonStringParse { path } => assert_eq!(path, "#"),
+            other => panic!("expected JsonStringParse, got: {:?}", other),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 21: Description-only schema → stringified (untyped opaque)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_description_only_opaque() {
+        let input = json!({ "description": "Plugin configuration" });
+
+        let (output, transforms) = run(input);
+
+        assert_eq!(output["type"], "string");
+        let desc = output["description"].as_str().unwrap();
+        assert!(desc.starts_with("Plugin configuration"));
+        assert!(desc.contains("JSON-encoded string"));
+        assert_eq!(transforms.len(), 1);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 22: Description + title → stringified, metadata preserved
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_description_title_opaque() {
+        let input = json!({
+            "description": "Dynamic settings",
+            "title": "Config"
+        });
+
+        let (output, transforms) = run(input);
+
+        assert_eq!(output["type"], "string");
+        assert_eq!(output["title"], "Config");
+        let desc = output["description"].as_str().unwrap();
+        assert!(desc.starts_with("Dynamic settings"));
+        assert_eq!(transforms.len(), 1);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 23: Explicit non-object type → unchanged (NOT opaque)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_not_opaque_explicit_string() {
+        let input = json!({ "type": "string" });
+
+        let (output, transforms) = run(input.clone());
+
+        assert_eq!(output, input);
+        assert_eq!(transforms.len(), 0);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 24: Implicit array (has items) → unchanged (NOT opaque)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_not_opaque_implicit_array() {
+        let input = json!({
+            "items": { "type": "string" }
+        });
+
+        let (output, transforms) = run(input.clone());
+
+        assert_eq!(output, input);
+        assert_eq!(transforms.len(), 0);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 25: Implicit string (has minLength) → unchanged (NOT opaque)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_not_opaque_implicit_string() {
+        let input = json!({ "minLength": 1 });
+
+        let (output, transforms) = run(input.clone());
+
+        assert_eq!(output, input);
+        assert_eq!(transforms.len(), 0);
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 26: Implicit number (has minimum) → unchanged (NOT opaque)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_not_opaque_implicit_number() {
+        let input = json!({ "minimum": 0 });
+
+        let (output, transforms) = run(input.clone());
+
+        assert_eq!(output, input);
+        assert_eq!(transforms.len(), 0);
+    }
 }
