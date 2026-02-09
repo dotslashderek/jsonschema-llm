@@ -161,15 +161,15 @@ If your schema uses any of these features — and most real-world schemas do —
 
 ### Real-World Validation
 
-This algorithm was validated against the **Gravitee API Management v4 API Definition** — a 29KB, 1200-line production JSON Schema with:
+This algorithm was validated against production-scale JSON Schema definitions including the **OpenAPI 3.1 Specification Schema** — a complex, real-world schema with:
 
-- Discriminated unions (`oneOf` + `discriminator` for listeners, selectors, flow steps)
-- Maps everywhere (`Map<String, Plan>`, `Map<String, Map<String, ResponseTemplate>>`)
+- Discriminated unions (`oneOf` + `discriminator`)
+- Maps everywhere (`additionalProperties` patterns for dynamic key-value structures)
 - Opaque plugin configurations (`{type: object}` with no properties, `{}` catch-all schemas)
 - `allOf` inheritance across multiple definition layers
 - Recursive references
 
-The converted schema was accepted by **OpenAI Strict Mode**. The LLM generated a valid, realistic API definition. The rehydrator reconstructed the original shape. Full round-trip, zero manual intervention.
+The converted schemas were accepted by **OpenAI Strict Mode**. The LLM generated valid, structured output. The rehydrator reconstructed the original shape. Full round-trip, zero manual intervention.
 
 ---
 
@@ -618,9 +618,9 @@ The core library is written in **Rust** using `serde_json::Value` for schema man
 The algorithm has been validated against:
 
 - A comprehensive test schema (2.5KB) with maps, discriminated unions, opaque types
-- The Gravitee API Management v4 API Definition (29KB, 1216 lines, production schema)
+- The OpenAPI 3.1 Specification Schema and other production-grade schemas
 
-Both were accepted by OpenAI Strict Mode and passed full round-trip rehydration tests.
+All were accepted by OpenAI Strict Mode and passed full round-trip rehydration tests.
 
 ---
 

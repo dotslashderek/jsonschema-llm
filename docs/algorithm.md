@@ -150,7 +150,7 @@ The algorithm targets **OpenAI Strict Mode** as the baseline compilation target 
 - **`serde_json::Value`** — All schema manipulation uses `Value` cloning for simplicity
 - **Context struct** — e.g., `RefContext` in Pass 0 bundles root schema + config + traversal state
 - **Depth Guard** — Configurable limit (default 50). Error on exceeded depth.
-- **WASM-first** — Enable running converter in-browser (e.g., Gravitee Console "AI Ready" preview)
+- **WASM-first** — Enable running converter in-browser (e.g., schema playground, "AI Ready" preview tools)
 
 > [!NOTE]
 > **Considered and deferred: `Cow<Schema>` clone-on-write.** Schema sizes are inherently bounded by LLM context windows — the converted schema must fit in the model's input alongside prompts and context. With practical ceilings around 64KB of schema JSON, clone-on-write would save microseconds on an operation that already runs in milliseconds. The bottleneck is always LLM inference, not the transformer.
@@ -211,14 +211,14 @@ jsonschema-llm/
 
 ## Validation Results (Proof of Concept)
 
-| Test               | Input                            | Result                                                 |
-| ------------------ | -------------------------------- | ------------------------------------------------------ |
-| Test Schema        | 2.5KB, Maps+Discriminator+Opaque | ✅ OpenAI strict, 7/7 round-trip checks                |
-| Gravitee v4 Schema | 29KB, 1216 lines, production     | ✅ OpenAI strict, 169 codec entries, round-trip passed |
+| Test                    | Input                            | Result                                                 |
+| ----------------------- | -------------------------------- | ------------------------------------------------------ |
+| Test Schema             | 2.5KB, Maps+Discriminator+Opaque | ✅ OpenAI strict, 7/7 round-trip checks                |
+| Production-scale Schema | 29KB, 1216 lines, production     | ✅ OpenAI strict, 169 codec entries, round-trip passed |
 
 **Council Session Log:**
 
 - Round 1: T+G independent proposals → T synthesis (8-pass pipeline)
 - Round 2: POC implementations, OpenAI test schema validation ✅
-- Round 3: Full rehydration round-trip on test schema (7/7) + Gravitee v4 ✅
+- Round 3: Full rehydration round-trip on test schema (7/7) + production schema ✅
 - Round 4: Retrospective — `anyOf` > flattening, enum sorting, JSON Pointer paths, WASM-first, v0.1 priority

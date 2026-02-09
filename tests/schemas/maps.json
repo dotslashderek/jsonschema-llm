@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "properties": {
+    "headers": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "HTTP headers as key-value pairs"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": { "type": "string" }
+      },
+      "description": "Nested map structure"
+    },
+    "tags": {
+      "type": "object",
+      "properties": {
+        "environment": { "type": "string" }
+      },
+      "additionalProperties": { "type": "string" },
+      "description": "Mixed map with known and dynamic properties"
+    }
+  },
+  "required": ["headers"]
+}

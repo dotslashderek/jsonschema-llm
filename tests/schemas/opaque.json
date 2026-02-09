@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "pluginConfig": {
+      "type": "object",
+      "description": "Arbitrary plugin configuration"
+    },
+    "metadata": {},
+    "settings": {
+      "description": "Application settings blob"
+    }
+  },
+  "required": ["name"]
+}

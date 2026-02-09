@@ -1,0 +1,91 @@
+{
+  "$defs": {
+    "Address": {
+      "type": "object",
+      "properties": {
+        "street": { "type": "string" },
+        "city": { "type": "string" },
+        "zip": { "type": "string", "pattern": "^[0-9]{5}$" }
+      },
+      "required": ["street", "city"]
+    },
+    "ContactMethod": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "method": { "type": "string", "enum": ["email"] },
+            "address": { "type": "string", "format": "email" }
+          },
+          "required": ["method", "address"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "method": { "type": "string", "enum": ["phone"] },
+            "number": { "type": "string" },
+            "extension": { "type": "string" }
+          },
+          "required": ["method", "number"]
+        }
+      ],
+      "discriminator": {
+        "propertyName": "method"
+      }
+    },
+    "OrgNode": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/OrgNode" }
+        }
+      },
+      "required": ["name"]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "maxLength": 100 },
+    "age": { "type": "integer", "minimum": 0, "maximum": 200 },
+    "address": { "$ref": "#/$defs/Address" },
+    "contacts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ContactMethod" },
+      "minItems": 1
+    },
+    "tags": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Arbitrary tags as key-value pairs"
+    },
+    "preferences": {
+      "type": "object",
+      "description": "Opaque preferences blob"
+    },
+    "extraData": {},
+    "organization": { "$ref": "#/$defs/OrgNode" },
+    "notes": {
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "author": { "type": "string" }
+          },
+          "required": ["author"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "content": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" }
+          },
+          "required": ["content"]
+        }
+      ]
+    }
+  },
+  "required": ["id", "name", "contacts"]
+}
