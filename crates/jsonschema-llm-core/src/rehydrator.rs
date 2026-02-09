@@ -893,7 +893,7 @@ fn check_constraint(
 ///
 /// The `$schema` URI is expected to end with `/v{major}` (e.g.
 /// `https://jsonschema-llm.dev/codec/v1`). Hard-fails on incompatible
-/// major version; tolerates unknown suffixes with a warning.
+/// major version or malformed URI.
 fn validate_codec_version(codec: &Codec) -> Result<(), ConvertError> {
     let uri = &codec.schema;
 
