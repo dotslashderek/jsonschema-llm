@@ -220,6 +220,7 @@ fn is_untyped_opaque(obj: &Map<String, Value>) -> bool {
         || obj.contains_key("maxProperties")
         || obj.contains_key("dependentRequired")
         || obj.contains_key("dependentSchemas")
+        || obj.contains_key("dependencies")
         || obj.contains_key("propertyNames")
         || obj.contains_key("unevaluatedProperties")
     {
@@ -315,6 +316,7 @@ fn stringify_object(
         "maxProperties",
         "dependentRequired",
         "dependentSchemas",
+        "dependencies",
         "propertyNames",
         "unevaluatedProperties",
         // Array keywords (defensive — should be excluded by detection, but strip for coherence)
