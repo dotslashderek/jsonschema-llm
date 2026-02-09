@@ -7,8 +7,11 @@
 //! Two detection paths:
 //! - **Typed opaque**: `{type: object}` with no properties, no patternProperties,
 //!   no composition keywords, and no enum/const.
-//! - **Untyped opaque**: Schemas with no `type` keyword at all AND no structural,
-//!   primitive-validation, or array keywords (e.g., `{}`, `{description: "..."}`).
+//! - **Untyped opaque**: Schemas with no `type` keyword at all AND no
+//!   *constraining* structural, primitive-validation, or array keywords.
+//!   Metadata and non-constraining structural keywords (e.g., `description`,
+//!   `title`, `additionalProperties: true`) are allowed (e.g., `{}`,
+//!   `{description: "..."}`, `{additionalProperties: true}`).
 //!
 //! This is the "escape hatch" for open-ended configuration objects that LLM
 //! providers can't generate structured output for.
@@ -309,6 +312,12 @@ fn stringify_object(
         "prefixItems",
         "additionalItems",
         "contains",
+        "minItems",
+        "maxItems",
+        "uniqueItems",
+        "unevaluatedItems",
+        "minContains",
+        "maxContains",
         // Enum/const were checked in is_opaque, but strip defensively
         "enum",
         "const",
