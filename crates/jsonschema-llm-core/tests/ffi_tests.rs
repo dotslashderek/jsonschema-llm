@@ -261,3 +261,47 @@ fn test_convert_json_malformed_corpus() {
         // Ok is also acceptable for valid-but-unusual JSON schemas
     }
 }
+
+// ---------------------------------------------------------------------------
+// Codex review — Semantic deserialization error coverage
+// ---------------------------------------------------------------------------
+
+/// Valid JSON but missing required fields → error must still be structured JSON
+#[test]
+fn test_convert_json_missing_options_fields() {
+    let schema = r#"{"type": "object"}"#;
+    // Valid JSON object, but missing required fields for ConvertOptions
+    let result = convert_json(schema, "{}");
+    assert!(result.is_err());
+
+    let err_json: serde_json::Value =
+        serde_json::from_str(&result.unwrap_err()).expect("Error string must be valid JSON");
+    assert_eq!(err_json["code"].as_str().unwrap(), "json_parse_error");
+    assert!(err_json.get("message").is_some());
+}
+
+/// Valid JSON but invalid enum value → error must still be structured JSON
+#[test]
+fn test_convert_json_invalid_target_enum() {
+    let schema = r#"{"type": "object"}"#;
+    let options = r#"{"target": "nonexistent-provider", "max-depth": 50, "recursion-limit": 3, "polymorphism": "any-of"}"#;
+    let result = convert_json(schema, options);
+    assert!(result.is_err());
+
+    let err_json: serde_json::Value =
+        serde_json::from_str(&result.unwrap_err()).expect("Error string must be valid JSON");
+    assert_eq!(err_json["code"].as_str().unwrap(), "json_parse_error");
+}
+
+/// Valid JSON but invalid codec shape → error must still be structured JSON
+#[test]
+fn test_rehydrate_json_wrong_codec_shape() {
+    let data = r#"{"name": "Alice"}"#;
+    // Valid JSON object but not a valid Codec structure
+    let result = rehydrate_json(data, "{}");
+    assert!(result.is_err());
+
+    let err_json: serde_json::Value =
+        serde_json::from_str(&result.unwrap_err()).expect("Error string must be valid JSON");
+    assert_eq!(err_json["code"].as_str().unwrap(), "json_parse_error");
+}
