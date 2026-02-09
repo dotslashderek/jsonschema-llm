@@ -57,8 +57,47 @@ pub struct ConvertResult {
 ///
 /// A `ConvertResult` containing the converted schema and codec.
 pub fn convert(schema: &Value, options: &ConvertOptions) -> Result<ConvertResult, ConvertError> {
-    let _ = (schema, options);
-    todo!("Implementation coming soon")
+    let mut codec = Codec::new();
+
+    // Pass 0: Normalize ($ref resolution, draft migration)
+    let p0 = passes::p0_normalize::normalize(schema, options)?;
+    let mut schema = p0.schema;
+
+    // Pass 1: Composition (allOf merge)
+    let (s, dropped) = passes::p1_composition::compile_composition(&schema, options)?;
+    schema = s;
+    codec.dropped_constraints.extend(dropped);
+
+    // Pass 2: Polymorphism (oneOf → anyOf)
+    let p2 = passes::p2_polymorphism::simplify_polymorphism(&schema, options)?;
+    schema = p2.schema;
+
+    // Pass 3: Dictionary (Map → Array)
+    let p3 = passes::p3_dictionary::transpile_dictionaries(&schema, options)?;
+    schema = p3.schema;
+    codec.transforms.extend(p3.transforms);
+
+    // Pass 4: Opaque (open objects → string)
+    let p4 = passes::p4_opaque::stringify_opaque(&schema, options)?;
+    schema = p4.schema;
+    codec.transforms.extend(p4.transforms);
+
+    // Pass 5: Recursion Breaking
+    let p5 = passes::p5_recursion::break_recursion(&schema, options)?;
+    schema = p5.schema;
+    codec.transforms.extend(p5.transforms);
+
+    // Pass 6: Strict enforcement
+    let p6 = passes::p6_strict::enforce_strict(&schema, options)?;
+    schema = p6.schema;
+    codec.transforms.extend(p6.transforms);
+
+    // Pass 7: Constraint pruning
+    let p7 = passes::p7_constraints::prune_constraints(&schema, options)?;
+    schema = p7.schema;
+    codec.dropped_constraints.extend(p7.dropped_constraints);
+
+    Ok(ConvertResult { schema, codec })
 }
 
 /// Rehydrate LLM output back to the original schema shape using the codec.

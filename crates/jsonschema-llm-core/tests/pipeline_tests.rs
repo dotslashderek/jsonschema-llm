@@ -184,15 +184,20 @@ fn test_convert_with_refs() {
 #[test]
 fn test_convert_with_recursion() {
     let schema = json!({
-        "type": "object",
-        "properties": {
-            "name": { "type": "string" },
-            "children": {
-                "type": "array",
-                "items": { "$ref": "#" }
+        "$ref": "#/$defs/TreeNode",
+        "$defs": {
+            "TreeNode": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "children": {
+                        "type": "array",
+                        "items": { "$ref": "#/$defs/TreeNode" }
+                    }
+                },
+                "required": ["name"]
             }
-        },
-        "required": ["name"]
+        }
     });
 
     let options = ConvertOptions {
@@ -205,6 +210,13 @@ fn test_convert_with_recursion() {
     // ref should be broken with a string placeholder
     // Just verify it doesn't panic and produces a valid result
     assert!(result.schema["properties"].as_object().is_some());
+
+    // There should be RecursiveInflate transforms in the codec
+    let serialized = serde_json::to_string(&result.schema).unwrap();
+    assert!(
+        !serialized.contains("\"$ref\""),
+        "all $ref nodes should be resolved or broken"
+    );
 }
 
 // ── Full Roundtrip ──────────────────────────────────────────────────────────
