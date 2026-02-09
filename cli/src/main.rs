@@ -155,7 +155,7 @@ fn main() -> Result<()> {
                 .map_err(|e| anyhow::anyhow!("Conversion failed: {e}"))?;
 
             // Warn if no codec file specified
-            if output.is_none() && codec_path.is_none() {
+            if codec_path.is_none() {
                 eprintln!(
                     "Warning: No codec file specified. You will not be able to rehydrate LLM outputs."
                 );

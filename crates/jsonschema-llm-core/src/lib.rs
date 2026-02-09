@@ -26,9 +26,9 @@ pub mod codec;
 pub mod codec_warning;
 pub mod config;
 pub mod error;
-pub mod passes;
+pub(crate) mod passes;
 pub mod rehydrator;
-pub mod schema_utils;
+pub(crate) mod schema_utils;
 
 use serde_json::Value;
 
