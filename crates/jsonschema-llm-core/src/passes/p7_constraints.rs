@@ -59,28 +59,27 @@ fn walk(
         });
     }
 
-    let obj = match node.as_object() {
-        Some(o) => o,
-        None => return Ok(node.clone()),
+    // Clone the node once, then mutate its object map in-place if present.
+    let mut result = node.clone();
+    let Some(obj) = result.as_object_mut() else {
+        return Ok(result);
     };
 
-    let mut result = obj.clone();
-
     // 1. const → enum normalization (before sorting or pruning)
-    normalize_const_to_enum(&mut result, config.target);
+    normalize_const_to_enum(obj, config.target);
 
     // 2. Enum default-first sorting (before default is dropped)
-    sort_enum_default_first(&mut result);
+    sort_enum_default_first(obj);
 
     // 3. Prune unsupported constraints
-    prune_node_constraints(&mut result, path, config.target, dropped);
+    prune_node_constraints(obj, path, config.target, dropped);
 
     // Recurse into all structural children
-    recurse_into_children(&mut result, path, depth, &mut |val, child_path, d| {
+    recurse_into_children(obj, path, depth, &mut |val, child_path, d| {
         walk(val, child_path, d, config, dropped)
     })?;
 
-    Ok(Value::Object(result))
+    Ok(result)
 }
 
 // ---------------------------------------------------------------------------
@@ -139,7 +138,8 @@ fn prune_node_constraints(
     target: Target,
     dropped: &mut Vec<DroppedConstraint>,
 ) {
-    for keyword in unsupported_constraints(target) {
+    let (universal, extra) = unsupported_constraints(target);
+    for keyword in universal.iter().chain(extra.iter()) {
         if let Some(value) = obj.remove(*keyword) {
             dropped.push(DroppedConstraint {
                 path: path.to_string(),
@@ -150,20 +150,20 @@ fn prune_node_constraints(
     }
 }
 
-/// Return the list of constraint keywords to prune for a given target.
+/// Return constraint keywords to prune for a given target.
 ///
-/// Data-driven approach — each target has an explicit list of keywords to remove.
-/// This avoids nested conditionals and makes the provider matrix easy to audit.
-fn unsupported_constraints(target: Target) -> &'static [&'static str] {
+/// Returns `(universal, target_extra)` — universal keywords are dropped for ALL
+/// providers, target-specific extras are layered on top. This prevents the lists
+/// from drifting when universal keywords are added or removed.
+fn unsupported_constraints(target: Target) -> (&'static [&'static str], &'static [&'static str]) {
     // Keywords unsupported by ALL providers
-    const UNIVERSAL_DROP: &[&str] = &[
+    const UNIVERSAL: &[&str] = &[
         "uniqueItems",
         "default",
         "not",
         "if",
         "then",
         "else",
-        // Extended keywords (Gemini review feedback)
         "multipleOf",
         "minProperties",
         "maxProperties",
@@ -177,71 +177,38 @@ fn unsupported_constraints(target: Target) -> &'static [&'static str] {
         "format",
     ];
 
-    // OpenAI: drops validation constraints that aren't enum/pattern
-    const OPENAI_DROP: &[&str] = &[
+    // OpenAI extras: drops validation constraints that aren't enum/pattern
+    const OPENAI_EXTRA: &[&str] = &[
         "minimum",
         "maximum",
+        "exclusiveMinimum",
+        "exclusiveMaximum",
         "minLength",
         "maxLength",
         "minItems",
         "maxItems",
-        // Universal drops
-        "uniqueItems",
-        "default",
-        "not",
-        "if",
-        "then",
-        "else",
-        "multipleOf",
-        "exclusiveMinimum",
-        "exclusiveMaximum",
-        "minProperties",
-        "maxProperties",
-        "propertyNames",
-        "dependencies",
-        "dependentRequired",
-        "dependentSchemas",
-        "contains",
-        "minContains",
-        "maxContains",
-        "format",
     ];
 
-    // Claude: drops most constraints including pattern
-    const CLAUDE_DROP: &[&str] = &[
+    // Claude extras: drops most constraints including pattern
+    const CLAUDE_EXTRA: &[&str] = &[
         "minimum",
         "maximum",
+        "exclusiveMinimum",
+        "exclusiveMaximum",
         "minLength",
         "maxLength",
         "minItems",
         "maxItems",
         "pattern",
-        // Universal drops
-        "uniqueItems",
-        "default",
-        "not",
-        "if",
-        "then",
-        "else",
-        "multipleOf",
-        "exclusiveMinimum",
-        "exclusiveMaximum",
-        "minProperties",
-        "maxProperties",
-        "propertyNames",
-        "dependencies",
-        "dependentRequired",
-        "dependentSchemas",
-        "contains",
-        "minContains",
-        "maxContains",
-        "format",
     ];
 
+    // Gemini has no extras — only universal drops apply
+    const EMPTY: &[&str] = &[];
+
     match target {
-        Target::OpenaiStrict => OPENAI_DROP,
-        Target::Gemini => UNIVERSAL_DROP,
-        Target::Claude => CLAUDE_DROP,
+        Target::OpenaiStrict => (UNIVERSAL, OPENAI_EXTRA),
+        Target::Gemini => (UNIVERSAL, EMPTY),
+        Target::Claude => (UNIVERSAL, CLAUDE_EXTRA),
     }
 }
 
