@@ -1,0 +1,145 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "map_to_array",
+      "path": "#/properties/tags",
+      "key_field": "key"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/extraData"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/preferences"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/properties/organization/properties/children/items/properties/children/items/properties/children/items/properties/children/items/properties/children/items/properties/children/items/properties/children/items",
+      "original_ref": "#/$defs/OrgNode"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/address",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/age",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/extraData",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/notes",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/organization",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/preferences",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/tags",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/address/anyOf/0/properties/zip",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/contacts/items/anyOf/1/properties/extension",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/notes/anyOf/0/properties/timestamp",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/organization/anyOf/0/properties/children",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/organization/anyOf/0/properties/children/anyOf/0/items/properties/children",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/organization/anyOf/0/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/organization/anyOf/0/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/organization/anyOf/0/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/organization/anyOf/0/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children",
+      "original_required": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/organization/anyOf/0/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children/anyOf/0/items/properties/children",
+      "original_required": false
+    }
+  ],
+  "dropped_constraints": [
+    {
+      "path": "#/properties/age/anyOf/0",
+      "constraint": "minimum",
+      "value": 0
+    },
+    {
+      "path": "#/properties/age/anyOf/0",
+      "constraint": "maximum",
+      "value": 200
+    },
+    {
+      "path": "#/properties/contacts",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/properties/contacts/items/anyOf/0/properties/address",
+      "constraint": "format",
+      "value": "email"
+    },
+    {
+      "path": "#/properties/id",
+      "constraint": "minLength",
+      "value": 1
+    },
+    {
+      "path": "#/properties/name",
+      "constraint": "maxLength",
+      "value": 100
+    },
+    {
+      "path": "#/properties/notes/anyOf/0/properties/timestamp/anyOf/0",
+      "constraint": "format",
+      "value": "date-time"
+    }
+  ]
+}

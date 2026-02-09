@@ -1,0 +1,383 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "address": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "city": {
+              "type": "string"
+            },
+            "street": {
+              "type": "string"
+            },
+            "zip": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9]{5}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "city",
+            "street",
+            "zip"
+          ],
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "age": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "contacts": {
+      "items": {
+        "anyOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "method": {
+                "enum": [
+                  "email"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "address",
+              "method"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "extension": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "method": {
+                "enum": [
+                  "phone"
+                ],
+                "type": "string"
+              },
+              "number": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "extension",
+              "method",
+              "number"
+            ],
+            "type": "object"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "method"
+        }
+      },
+      "type": "array"
+    },
+    "extraData": {
+      "anyOf": [
+        {
+          "description": "A JSON-encoded string representing the object. Parse with JSON.parse() after generation.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "notes": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "author": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "timestamp": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "author",
+            "content",
+            "timestamp"
+          ],
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "organization": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "children": {
+              "anyOf": [
+                {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "children": {
+                        "anyOf": [
+                          {
+                            "items": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "children": {
+                                  "anyOf": [
+                                    {
+                                      "items": {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                          "children": {
+                                            "anyOf": [
+                                              {
+                                                "items": {
+                                                  "additionalProperties": false,
+                                                  "properties": {
+                                                    "children": {
+                                                      "anyOf": [
+                                                        {
+                                                          "items": {
+                                                            "additionalProperties": false,
+                                                            "properties": {
+                                                              "children": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "items": {
+                                                                      "additionalProperties": false,
+                                                                      "properties": {
+                                                                        "children": {
+                                                                          "anyOf": [
+                                                                            {
+                                                                              "items": {
+                                                                                "description": "JSON-encoded OrgNode. Parse as JSON after generation.",
+                                                                                "type": "string"
+                                                                              },
+                                                                              "type": "array"
+                                                                            },
+                                                                            {
+                                                                              "type": "null"
+                                                                            }
+                                                                          ]
+                                                                        },
+                                                                        "name": {
+                                                                          "type": "string"
+                                                                        }
+                                                                      },
+                                                                      "required": [
+                                                                        "children",
+                                                                        "name"
+                                                                      ],
+                                                                      "type": "object"
+                                                                    },
+                                                                    "type": "array"
+                                                                  },
+                                                                  {
+                                                                    "type": "null"
+                                                                  }
+                                                                ]
+                                                              },
+                                                              "name": {
+                                                                "type": "string"
+                                                              }
+                                                            },
+                                                            "required": [
+                                                              "children",
+                                                              "name"
+                                                            ],
+                                                            "type": "object"
+                                                          },
+                                                          "type": "array"
+                                                        },
+                                                        {
+                                                          "type": "null"
+                                                        }
+                                                      ]
+                                                    },
+                                                    "name": {
+                                                      "type": "string"
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "children",
+                                                    "name"
+                                                  ],
+                                                  "type": "object"
+                                                },
+                                                "type": "array"
+                                              },
+                                              {
+                                                "type": "null"
+                                              }
+                                            ]
+                                          },
+                                          "name": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [
+                                          "children",
+                                          "name"
+                                        ],
+                                        "type": "object"
+                                      },
+                                      "type": "array"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "name": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "children",
+                                "name"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "children",
+                      "name"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "children",
+            "name"
+          ],
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "preferences": {
+      "anyOf": [
+        {
+          "description": "Opaque preferences blob\n\n(Note: This field represents an opaque object. The value should be a JSON-encoded string. Parse with JSON.parse() after generation.)",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tags": {
+      "anyOf": [
+        {
+          "description": "Arbitrary tags as key-value pairs",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "address",
+    "age",
+    "contacts",
+    "extraData",
+    "id",
+    "name",
+    "notes",
+    "organization",
+    "preferences",
+    "tags"
+  ],
+  "type": "object"
+}

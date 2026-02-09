@@ -346,3 +346,44 @@ fn test_gemini_skips_passes() {
         "Gemini should have no MapToArray transforms"
     );
 }
+
+// ── Golden Snapshot ─────────────────────────────────────────────────────────
+
+#[test]
+fn test_golden_snapshot_kitchen_sink_openai() {
+    use std::fs;
+    use std::path::Path;
+
+    let fixtures_dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tests/schemas");
+    let snapshots_dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tests/snapshots");
+
+    let schema: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(Path::new(fixtures_dir).join("kitchen_sink.json")).unwrap(),
+    )
+    .unwrap();
+
+    let result = convert(&schema, &ConvertOptions::default()).unwrap();
+
+    // Compare schema output
+    let expected_schema: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(Path::new(snapshots_dir).join("kitchen_sink_openai.expected.json"))
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        result.schema, expected_schema,
+        "kitchen_sink schema output diverged from golden snapshot — if this is intentional, regenerate with: cargo run -- convert tests/schemas/kitchen_sink.json -o tests/snapshots/kitchen_sink_openai.expected.json --target openai-strict"
+    );
+
+    // Compare codec output
+    let expected_codec: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(Path::new(snapshots_dir).join("kitchen_sink_codec.expected.json"))
+            .unwrap(),
+    )
+    .unwrap();
+    let actual_codec = serde_json::to_value(&result.codec).unwrap();
+    assert_eq!(
+        actual_codec, expected_codec,
+        "kitchen_sink codec output diverged from golden snapshot — if this is intentional, regenerate with: cargo run -- convert tests/schemas/kitchen_sink.json --codec tests/snapshots/kitchen_sink_codec.expected.json --target openai-strict"
+    );
+}

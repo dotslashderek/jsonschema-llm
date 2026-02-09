@@ -135,32 +135,51 @@ fn test_e2e_fixture_codec_roundtrip() {
     assert_eq!(data["age"], json!(30));
 }
 
-// 4. Codec transform counts — verify fixtures generate expected transforms
+// 4. Codec transform counts — pinned golden values per fixture
 #[test]
 fn test_e2e_fixture_codec_entry_counts() {
-    // maps.json should produce map_to_array transforms
-    let maps_schema = load_fixture("maps");
-    let result = convert(&maps_schema, &openai_options()).unwrap();
-    assert!(
-        !result.codec.transforms.is_empty(),
-        "Maps fixture should produce transforms"
-    );
+    use jsonschema_llm_core::codec::Transform;
 
-    // opaque.json should produce json_string_parse transforms
-    let opaque_schema = load_fixture("opaque");
-    let result = convert(&opaque_schema, &openai_options()).unwrap();
-    assert!(
-        !result.codec.transforms.is_empty(),
-        "Opaque fixture should produce transforms"
-    );
+    let cases: Vec<(&str, usize)> = vec![
+        ("simple", 2),
+        ("maps", 9),
+        ("discriminator", 1),
+        ("opaque", 6),
+        ("allof", 3),
+        ("recursive", 5),
+        ("kitchen_sink", 21),
+    ];
 
-    // simple.json should produce nullable_optional transforms (for email, active)
-    let simple_schema = load_fixture("simple");
-    let result = convert(&simple_schema, &openai_options()).unwrap();
-    assert!(
-        !result.codec.transforms.is_empty(),
-        "Simple fixture should produce nullable_optional transforms"
-    );
+    for (name, expected_count) in &cases {
+        let schema = load_fixture(name);
+        let result = convert(&schema, &openai_options()).unwrap();
+        assert_eq!(
+            result.codec.transforms.len(),
+            *expected_count,
+            "Fixture '{name}' expected {expected_count} transforms, got {}",
+            result.codec.transforms.len()
+        );
+    }
+
+    // maps.json must contain exactly 4 MapToArray transforms
+    let maps_result = convert(&load_fixture("maps"), &openai_options()).unwrap();
+    let map_count = maps_result
+        .codec
+        .transforms
+        .iter()
+        .filter(|t| matches!(t, Transform::MapToArray { .. }))
+        .count();
+    assert_eq!(map_count, 4, "maps fixture should have exactly 4 MapToArray transforms");
+
+    // opaque.json must contain exactly 3 JsonStringParse transforms
+    let opaque_result = convert(&load_fixture("opaque"), &openai_options()).unwrap();
+    let jsp_count = opaque_result
+        .codec
+        .transforms
+        .iter()
+        .filter(|t| matches!(t, Transform::JsonStringParse { .. }))
+        .count();
+    assert_eq!(jsp_count, 3, "opaque fixture should have exactly 3 JsonStringParse transforms");
 }
 
 // 5. Kitchen sink full roundtrip
@@ -219,14 +238,24 @@ fn test_e2e_idempotent() {
     }
 }
 
-// 8. Malformed JSON input produces a clear error
+// 8. Malformed JSON input — pipeline handles gracefully without panicking
 #[test]
 fn test_e2e_error_malformed_json() {
     let not_a_schema = json!("this is just a string");
     let result = convert(&not_a_schema, &openai_options());
-    // Non-object input should still produce some output (pipeline handles gracefully)
-    // or return an error — either way, it should not panic
-    let _ = result;
+    // Non-object input is handled gracefully: either an error or a
+    // best-effort result. The key contract is no panic.
+    match result {
+        Ok(r) => {
+            // If pipeline returns Ok, the output should still be valid JSON
+            assert!(r.schema.is_string() || r.schema.is_object());
+        }
+        Err(e) => {
+            // Error message should be descriptive
+            let msg = format!("{e}");
+            assert!(!msg.is_empty(), "Error should have a descriptive message");
+        }
+    }
 }
 
 // 9. Depth exceeded produces an error
