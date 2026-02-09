@@ -218,7 +218,7 @@ fn write_json<T: serde::Serialize>(
             .with_context(|| format!("Failed to create output file: {}", p.display()))?;
         Box::new(BufWriter::new(file))
     } else {
-        Box::new(BufWriter::new(io::stdout().lock()))
+        Box::new(BufWriter::new(io::stdout()))
     };
 
     match format {
