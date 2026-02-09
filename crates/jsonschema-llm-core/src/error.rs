@@ -12,7 +12,7 @@ use thiserror::Error;
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum ErrorCode {
-    /// JSON parse or deserialization error (malformed input or invalid structure).
+    /// JSON (de)serialization error (malformed input, invalid structure, or encoding failure).
     JsonParseError,
     /// Schema structure error (invalid or unsupported schema construct).
     SchemaError,
@@ -28,7 +28,7 @@ pub enum ErrorCode {
 
 #[derive(Debug, Error)]
 pub enum ConvertError {
-    #[error("JSON error: {0}")]
+    #[error("JSON (de)serialization error: {0}")]
     JsonError(#[from] serde_json::Error),
 
     #[error("Schema error at {path}: {message}")]
