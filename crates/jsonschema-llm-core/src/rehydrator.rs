@@ -31,6 +31,9 @@ pub struct RehydrateResult {
 pub fn rehydrate(data: &Value, codec: &Codec) -> Result<RehydrateResult, ConvertError> {
     let mut result = data.clone();
 
+    // Pre-compile all patternProperties regexes from transform and constraint paths
+    let regex_cache = build_pattern_properties_cache(codec);
+
     for transform in codec.transforms.iter().rev() {
         let path_str = match transform {
             Transform::MapToArray { path, .. } => path,
@@ -45,15 +48,72 @@ pub fn rehydrate(data: &Value, codec: &Codec) -> Result<RehydrateResult, Convert
         let seg_refs: Vec<&str> = segments.iter().map(|s| s.as_str()).collect();
 
         tracing::debug!(path = %path_str, "applying transform");
-        apply_transform(&mut result, &seg_refs, transform)?;
+        apply_transform(&mut result, &seg_refs, transform, &regex_cache)?;
     }
 
-    let warnings = validate_constraints(&result, codec);
+    let warnings = validate_constraints(&result, codec, &regex_cache);
 
     Ok(RehydrateResult {
         data: result,
         warnings,
     })
+}
+
+/// Pre-scan transform and constraint paths for patternProperties segments
+/// and compile their regex patterns into a reusable cache.
+fn build_pattern_properties_cache(codec: &Codec) -> HashMap<String, Regex> {
+    let mut cache = HashMap::new();
+
+    // Scan transform paths
+    let transform_paths = codec.transforms.iter().map(|t| match t {
+        Transform::MapToArray { path, .. } => path.as_str(),
+        Transform::JsonStringParse { path } => path.as_str(),
+        Transform::NullableOptional { path, .. } => path.as_str(),
+        Transform::DiscriminatorAnyOf { path, .. } => path.as_str(),
+        Transform::ExtractAdditionalProperties { path, .. } => path.as_str(),
+        Transform::RecursiveInflate { path, .. } => path.as_str(),
+    });
+
+    // Scan constraint paths
+    let constraint_paths = codec.dropped_constraints.iter().map(|dc| dc.path.as_str());
+
+    for path in transform_paths.chain(constraint_paths) {
+        let segments = split_path(path);
+        for window in segments.windows(2) {
+            if window[0] == "patternProperties" {
+                let pattern = &window[1];
+                if !cache.contains_key(pattern.as_str()) {
+                    match Regex::new(pattern) {
+                        Ok(re) => {
+                            cache.insert(pattern.clone(), re);
+                        }
+                        Err(e) => {
+                            tracing::warn!(
+                                pattern = %pattern,
+                                error = %e,
+                                "invalid patternProperties regex, will skip at usage sites"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Also pre-compile constraint `pattern` values (existing behavior from validate_constraints)
+    for dc in &codec.dropped_constraints {
+        if dc.constraint == "pattern" {
+            if let Some(pat) = dc.value.as_str() {
+                if !cache.contains_key(pat) {
+                    if let Ok(re) = Regex::new(pat) {
+                        cache.insert(pat.to_string(), re);
+                    }
+                }
+            }
+        }
+    }
+
+    cache
 }
 
 // ---------------------------------------------------------------------------
@@ -89,6 +149,7 @@ fn apply_transform(
     data: &mut Value,
     path_parts: &[&str],
     transform: &Transform,
+    regex_cache: &HashMap<String, Regex>,
 ) -> Result<(), ConvertError> {
     // End of path — execute the transform
     if path_parts.is_empty() {
@@ -102,7 +163,7 @@ fn apply_transform(
     // 1. Schema-structural: skip keyword only
     if SKIP_SINGLE.contains(&segment) {
         tracing::trace!(segment, "skipping schema-structural keyword");
-        return apply_transform(data, rest, transform);
+        return apply_transform(data, rest, transform, regex_cache);
     }
 
     // 2. Schema-structural: skip keyword + next segment (index/name)
@@ -121,37 +182,33 @@ fn apply_transform(
         // Special case: patternProperties iterates matching object values
         if segment == "patternProperties" {
             if let Some(pattern) = rest.first() {
-                match regex::Regex::new(pattern) {
-                    Ok(re) => {
-                        if let Some(obj) = data.as_object_mut() {
-                            for (key, val) in obj.iter_mut() {
-                                if re.is_match(key) {
-                                    apply_transform(val, skip_to, transform)?;
-                                }
+                if let Some(re) = regex_cache.get(*pattern) {
+                    if let Some(obj) = data.as_object_mut() {
+                        for (key, val) in obj.iter_mut() {
+                            if re.is_match(key) {
+                                apply_transform(val, skip_to, transform, regex_cache)?;
                             }
                         }
                     }
-                    Err(e) => {
-                        // Invalid regex — skip transform to avoid unintended mutations
-                        tracing::warn!(
-                            pattern = %pattern,
-                            error = %e,
-                            "invalid patternProperties regex, skipping transform"
-                        );
-                    }
+                } else {
+                    // Cache miss means invalid regex — already warned during cache build
+                    tracing::warn!(
+                        pattern = %pattern,
+                        "patternProperties regex not in cache (invalid?), skipping transform"
+                    );
                 }
             }
             return Ok(());
         }
 
-        return apply_transform(data, skip_to, transform);
+        return apply_transform(data, skip_to, transform, regex_cache);
     }
 
     // 3. Array iteration: "items"
     if segment == "items" {
         if let Some(arr) = data.as_array_mut() {
             for item in arr {
-                apply_transform(item, rest, transform)?;
+                apply_transform(item, rest, transform, regex_cache)?;
             }
         }
         return Ok(());
@@ -161,7 +218,7 @@ fn apply_transform(
     if let Ok(index) = segment.parse::<usize>() {
         if let Some(arr) = data.as_array_mut() {
             if let Some(item) = arr.get_mut(index) {
-                return apply_transform(item, rest, transform);
+                return apply_transform(item, rest, transform, regex_cache);
             }
         }
         return Ok(());
@@ -194,7 +251,7 @@ fn apply_transform(
             // Normal navigation into property
             if let Some(obj) = data.as_object_mut() {
                 if let Some(child) = obj.get_mut(*key) {
-                    return apply_transform(child, remaining, transform);
+                    return apply_transform(child, remaining, transform, regex_cache);
                 }
             }
             return Ok(());
@@ -309,68 +366,48 @@ const ADVISORY_CONSTRAINTS: &[&str] = &["if", "then", "else"];
 
 /// Validate dropped constraints against the rehydrated data.
 ///
-/// Pre-compiles regex patterns once, then walks each constraint path
-/// to locate data nodes and check violations.
-fn validate_constraints(data: &Value, codec: &Codec) -> Vec<Warning> {
+/// Uses the pre-compiled regex cache for pattern matching. Walks each
+/// constraint path to locate data nodes and check violations.
+fn validate_constraints(data: &Value, codec: &Codec, regex_cache: &HashMap<String, Regex>) -> Vec<Warning> {
     if codec.dropped_constraints.is_empty() {
         return Vec::new();
     }
 
-    // Pre-compile regex patterns
-    let mut regex_cache: HashMap<String, Regex> = HashMap::new();
-    let mut invalid_patterns: Vec<(String, String, String, bool)> = Vec::new();
+    let mut warnings = Vec::new();
+
+    // Emit warnings for invalid/non-string pattern constraints (cache miss = invalid)
     for dc in &codec.dropped_constraints {
         if dc.constraint == "pattern" {
             if let Some(pat) = dc.value.as_str() {
-                match Regex::new(pat) {
-                    Ok(re) => {
-                        regex_cache.insert(pat.to_string(), re);
-                    }
-                    Err(e) => {
-                        tracing::warn!(pattern = %pat, error = %e, "invalid regex in dropped constraint");
-                        invalid_patterns.push((
-                            dc.path.clone(),
-                            pat.to_string(),
-                            e.to_string(),
-                            false,
-                        ));
-                    }
+                if !regex_cache.contains_key(pat) {
+                    // Pattern was not cached — means it was invalid during cache build
+                    warnings.push(Warning {
+                        data_path: "/".to_string(),
+                        schema_path: dc.path.clone(),
+                        kind: WarningKind::ConstraintUnevaluable {
+                            constraint: "pattern".to_string(),
+                        },
+                        message: format!(
+                            "constraint 'pattern' ({}) has invalid regex and cannot be validated",
+                            pat
+                        ),
+                    });
                 }
             } else {
                 // Non-string pattern value — cannot evaluate
-                invalid_patterns.push((
-                    dc.path.clone(),
-                    dc.value.to_string(),
-                    "expected string value".to_string(),
-                    true,
-                ));
+                warnings.push(Warning {
+                    data_path: "/".to_string(),
+                    schema_path: dc.path.clone(),
+                    kind: WarningKind::ConstraintUnevaluable {
+                        constraint: "pattern".to_string(),
+                    },
+                    message: format!(
+                        "constraint 'pattern' value ({}) is not a string and cannot be validated",
+                        dc.value
+                    ),
+                });
             }
         }
-    }
-
-    let mut warnings = Vec::new();
-
-    // Emit warnings for invalid regex patterns
-    for (path, pat, err, is_non_string) in &invalid_patterns {
-        let message = if *is_non_string {
-            format!(
-                "constraint 'pattern' value ({}) is not a string and cannot be validated",
-                pat
-            )
-        } else {
-            format!(
-                "constraint 'pattern' ({}) has invalid regex and cannot be validated: {}",
-                pat, err
-            )
-        };
-        warnings.push(Warning {
-            data_path: "/".to_string(),
-            schema_path: path.clone(),
-            kind: WarningKind::ConstraintUnevaluable {
-                constraint: "pattern".to_string(),
-            },
-            message,
-        });
     }
 
     for dc in &codec.dropped_constraints {
@@ -409,6 +446,7 @@ fn validate_constraints(data: &Value, codec: &Codec) -> Vec<Warning> {
             &mut nodes,
             &mut warnings,
             &dc.path,
+            regex_cache,
         );
 
         if nodes.is_empty() {
@@ -417,7 +455,7 @@ fn validate_constraints(data: &Value, codec: &Codec) -> Vec<Warning> {
         }
 
         for (data_path, value) in &nodes {
-            if let Some(warning) = check_constraint(value, &dc.constraint, &dc.value, &regex_cache)
+            if let Some(warning) = check_constraint(value, &dc.constraint, &dc.value, regex_cache)
             {
                 warnings.push(Warning {
                     data_path: if data_path.is_empty() {
@@ -451,6 +489,7 @@ fn locate_data_nodes<'a>(
     out: &mut Vec<(String, &'a Value)>,
     warnings: &mut Vec<Warning>,
     schema_path: &str,
+    regex_cache: &HashMap<String, Regex>,
 ) {
     if pos >= segments.len() {
         out.push((current_data_path, data));
@@ -469,6 +508,7 @@ fn locate_data_nodes<'a>(
             out,
             warnings,
             schema_path,
+            regex_cache,
         );
         return;
     }
@@ -498,49 +538,47 @@ fn locate_data_nodes<'a>(
                 };
                 let pattern = pattern_segment.as_str();
 
-                match regex::Regex::new(pattern) {
-                    Ok(re) => {
-                        for (key, val) in obj {
-                            if re.is_match(key) {
-                                let child_path = format!(
-                                    "{}/{}",
-                                    current_data_path,
-                                    escape_pointer_segment(key)
-                                );
-                                locate_data_nodes(
-                                    val,
-                                    segments,
-                                    pos + 2, // patternProperties + pattern consumed
-                                    child_path,
-                                    out,
-                                    warnings,
-                                    schema_path,
-                                );
-                            }
+                if let Some(re) = regex_cache.get(pattern) {
+                    for (key, val) in obj {
+                        if re.is_match(key) {
+                            let child_path = format!(
+                                "{}/{}",
+                                current_data_path,
+                                escape_pointer_segment(key)
+                            );
+                            locate_data_nodes(
+                                val,
+                                segments,
+                                pos + 2, // patternProperties + pattern consumed
+                                child_path,
+                                out,
+                                warnings,
+                                schema_path,
+                                regex_cache,
+                            );
                         }
                     }
-                    Err(e) => {
-                        tracing::warn!(
-                            pattern,
-                            error = %e,
-                            "invalid patternProperties regex in constraint path, skipping"
-                        );
-                        warnings.push(Warning {
-                            data_path: if current_data_path.is_empty() {
-                                "/".to_string()
-                            } else {
-                                current_data_path.clone()
-                            },
-                            schema_path: schema_path.to_string(),
-                            kind: WarningKind::ConstraintUnevaluable {
-                                constraint: "patternProperties".to_string(),
-                            },
-                            message: format!(
-                                "patternProperties regex '{}' is invalid and cannot be evaluated: {}",
-                                pattern, e
-                            ),
-                        });
-                    }
+                } else {
+                    // Cache miss = invalid regex, already warned during cache build
+                    tracing::warn!(
+                        pattern,
+                        "patternProperties regex not in cache (invalid?), skipping constraint path"
+                    );
+                    warnings.push(Warning {
+                        data_path: if current_data_path.is_empty() {
+                            "/".to_string()
+                        } else {
+                            current_data_path.clone()
+                        },
+                        schema_path: schema_path.to_string(),
+                        kind: WarningKind::ConstraintUnevaluable {
+                            constraint: "patternProperties".to_string(),
+                        },
+                        message: format!(
+                            "patternProperties regex '{}' is invalid and cannot be evaluated",
+                            pattern
+                        ),
+                    });
                 }
             }
             return;
@@ -560,6 +598,7 @@ fn locate_data_nodes<'a>(
             out,
             warnings,
             schema_path,
+            regex_cache,
         );
         return;
     }
@@ -577,6 +616,7 @@ fn locate_data_nodes<'a>(
                     out,
                     warnings,
                     schema_path,
+                    regex_cache,
                 );
             }
         }
@@ -596,6 +636,7 @@ fn locate_data_nodes<'a>(
                     out,
                     warnings,
                     schema_path,
+                    regex_cache,
                 );
             }
         }
@@ -617,6 +658,7 @@ fn locate_data_nodes<'a>(
                         out,
                         warnings,
                         schema_path,
+                        regex_cache,
                     );
                 }
             }
