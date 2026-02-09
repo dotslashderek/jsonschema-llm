@@ -204,7 +204,7 @@ The converted schema was accepted by **OpenAI Strict Mode**. The LLM generated a
     ├──────────────────────────────┤
     │ Pass 6: Strict Enforcement   │  ✅ additionalProperties: false, all required
     ├──────────────────────────────┤
-    │ Pass 7: Constraint Pruning   │  🔲 Drop unsupported constraints
+    │ Pass 7: Constraint Pruning   │  ✅ Drop unsupported constraints
     └────────┬─────────────────────┘
              │
     ┌────────▼────────┐   ┌───────────┐
@@ -492,15 +492,19 @@ When a `discriminator` is present, the discriminator field guides the model to t
 
 ### Pass 7: Constraint Pruning & Enum Sorting
 
-**What it does:** Removes constraints that the target provider doesn't support (e.g., `minLength`, `minimum`, `maximum`, `default`, `uniqueItems`). Before dropping `default`, sorts `enum` arrays to place the default value first.
+**What it does:** Three-phase recursive transformation:
+
+1. **`const` → `enum` normalization** — converts `{"const": X}` to `{"enum": [X]}` for OpenAI/Claude (Gemini preserves `const` natively)
+2. **Enum default-first sorting** — moves the `default` value to `enum[0]` before `default` is dropped
+3. **Constraint pruning** — removes unsupported keywords per target, emitting `DroppedConstraint` codec entries
 
 **Why:** These constraints are validation-only — LLMs ignore them during generation. Removing them reduces schema size (and therefore token cost). The `default`-first enum sorting leverages LLM bias toward earlier options.
 
 **Provider-specific:**
 
-- **OpenAI:** Drop `minimum`/`maximum`/`minLength`/`maxLength`/`minItems`/`maxItems`/`default`/`not`/`if-then-else`. Keep `enum`, `pattern`.
-- **Gemini:** Preserve `minimum`/`maximum`. Drop `not`/`if-then-else`.
-- **Claude:** Drop most constraints. Keep `enum`.
+- **OpenAI:** Drop `minimum`/`maximum`/`exclusiveMinimum`/`exclusiveMaximum`/`minLength`/`maxLength`/`minItems`/`maxItems`/`multipleOf`/`format`/`default`/`not`/`if-then-else` + object/array structural constraints. Keep `enum`, `pattern`.
+- **Gemini:** Preserve `minimum`/`maximum`/`exclusiveMinimum`/`exclusiveMaximum`/`minLength`/`maxLength`/`minItems`/`maxItems`. Drop `not`/`if-then-else`/`multipleOf`/`format` + universal drops.
+- **Claude:** Drop most constraints including `pattern`. Keep `enum`.
 
 **Codec entry:**
 
@@ -605,7 +609,7 @@ The core library is written in **Rust** using `serde_json::Value` for schema man
 | Pass 4: Opaque Types   | ✅ Complete    | Stringification with codec                              |
 | Pass 5: Recursion      | ✅ Complete    | Dynamic cycle detection, configurable depth limit       |
 | Pass 6: Strict Mode    | ✅ Complete    | `additionalProperties: false`, nullable optionals       |
-| Pass 7: Constraints    | 🔲 Stub        | Constraint pruning, enum sorting                        |
+| Pass 7: Constraints    | ✅ Complete    | Constraint pruning, enum sorting, const→enum            |
 | Rehydrator             | ✅ Complete    | Full reverse transforms with advisory warnings          |
 | Pipeline (`convert()`) | 🔲 Stub        | Wires passes together                                   |
 | CLI                    | 🔲 Stub        | `clap`-based binary shell                               |
