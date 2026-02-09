@@ -7,6 +7,7 @@
 use std::collections::HashMap;
 
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::codec::{Codec, Transform};
@@ -15,7 +16,7 @@ use crate::error::ConvertError;
 use crate::schema_utils::{escape_pointer_segment, split_path};
 
 /// Result of rehydration, including the restored data and any warnings.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RehydrateResult {
     /// The rehydrated data in the original schema shape.
     pub data: Value,

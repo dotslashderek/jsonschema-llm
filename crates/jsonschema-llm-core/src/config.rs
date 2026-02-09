@@ -15,7 +15,8 @@ pub enum Target {
 }
 
 /// Options for schema conversion.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct ConvertOptions {
     /// Target provider. Default: OpenAI Strict.
     pub target: Target,
@@ -30,7 +31,8 @@ pub struct ConvertOptions {
 }
 
 /// Strategy for handling oneOf/anyOf polymorphism.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum PolymorphismStrategy {
     /// Rewrite oneOf → anyOf (default, recommended).
     AnyOf,

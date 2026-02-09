@@ -30,16 +30,18 @@ pub(crate) mod passes;
 pub mod rehydrator;
 pub(crate) mod schema_utils;
 
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 pub use codec::Codec;
 pub use codec_warning::Warning;
-pub use config::{ConvertOptions, Target};
+pub use config::{ConvertOptions, PolymorphismStrategy, Target};
 pub use error::ConvertError;
 pub use rehydrator::RehydrateResult;
 pub use schema_utils::{build_path, escape_pointer_segment, split_path, unescape_pointer_segment};
 
 /// Result of a schema conversion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConvertResult {
     /// The converted LLM-compatible schema.
     pub schema: Value,
