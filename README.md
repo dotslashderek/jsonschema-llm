@@ -611,8 +611,8 @@ The core library is written in **Rust** using `serde_json::Value` for schema man
 | Pass 6: Strict Mode    | ✅ Complete    | `additionalProperties: false`, nullable optionals       |
 | Pass 7: Constraints    | ✅ Complete    | Constraint pruning, enum sorting, const→enum            |
 | Rehydrator             | ✅ Complete    | Full reverse transforms with advisory warnings          |
-| Pipeline (`convert()`) | 🔲 Stub        | Wires passes together                                   |
-| CLI                    | 🔲 Stub        | `clap`-based binary shell                               |
+| Pipeline (`convert()`) | ✅ Complete    | Wires all 8 passes with codec accumulation              |
+| CLI                    | ✅ Complete    | `convert` and `rehydrate` subcommands via `clap`        |
 | Bindings               | 🔲 Not started | TypeScript (WASM), Python (PyO3), Java (JNI)            |
 
 The algorithm has been validated against:

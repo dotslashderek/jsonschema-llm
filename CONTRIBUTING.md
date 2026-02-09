@@ -49,7 +49,7 @@ jsonschema-llm/
 │           ├── codec.rs        # Codec builder
 │           ├── rehydrator.rs   # Reverse transforms
 │           └── schema_utils.rs # Shared path/traversal utilities
-├── cli/                       # CLI binary (stub)
+├── cli/                       # CLI binary
 ├── bindings/                  # Language bindings (not yet implemented)
 │   ├── typescript/            # WASM (planned)
 │   ├── java/                  # JNI (planned)
