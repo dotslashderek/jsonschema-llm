@@ -636,14 +636,16 @@ fn test_error_json_all_variants_shape() {
     for err in &errors {
         let json = err.to_json();
         assert!(
-            json.get("code").unwrap().is_string(),
-            "Error {:?} missing string 'code' field",
-            err.error_code()
+            matches!(json.get("code"), Some(v) if v.is_string()),
+            "Error {:?} missing string 'code' field, got: {:?}",
+            err.error_code(),
+            json.get("code")
         );
         assert!(
-            json.get("message").unwrap().is_string(),
-            "Error {:?} missing string 'message' field",
-            err.error_code()
+            matches!(json.get("message"), Some(v) if v.is_string()),
+            "Error {:?} missing string 'message' field, got: {:?}",
+            err.error_code(),
+            json.get("message")
         );
         assert!(
             json.get("path").is_some(),
