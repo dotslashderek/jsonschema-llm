@@ -86,9 +86,16 @@ impl From<WasmConvertOptions> for ConvertOptions {
 /// Map a `ConvertError` to a structured JS object `{ code, message, path }`.
 fn to_structured_js_error(e: &ConvertError) -> JsValue {
     let serializer = Serializer::json_compatible();
-    e.to_json()
-        .serialize(&serializer)
-        .unwrap_or_else(|_| JsValue::from_str(&e.to_string()))
+    e.to_json().serialize(&serializer).unwrap_or_else(|_| {
+        let fallback = serde_json::json!({
+            "code": "serialization_error",
+            "message": e.to_string(),
+            "path": serde_json::Value::Null,
+        });
+        fallback
+            .serialize(&serializer)
+            .unwrap_or_else(|_| JsValue::from_str(&e.to_string()))
+    })
 }
 
 /// Map a `serde_wasm_bindgen` deserialization error to `{ code: "json_parse_error", ... }`.
@@ -99,9 +106,16 @@ fn to_serde_js_error(e: serde_wasm_bindgen::Error) -> JsValue {
         "path": serde_json::Value::Null,
     });
     let serializer = Serializer::json_compatible();
-    error_obj
-        .serialize(&serializer)
-        .unwrap_or_else(|_| JsValue::from_str(&e.to_string()))
+    error_obj.serialize(&serializer).unwrap_or_else(|_| {
+        let fallback = serde_json::json!({
+            "code": "serialization_error",
+            "message": e.to_string(),
+            "path": serde_json::Value::Null,
+        });
+        fallback
+            .serialize(&serializer)
+            .unwrap_or_else(|_| JsValue::from_str(&e.to_string()))
+    })
 }
 
 // ---------------------------------------------------------------------------

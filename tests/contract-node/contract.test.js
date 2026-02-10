@@ -157,10 +157,10 @@ describe("rehydrate", () => {
     });
 
     // kitchen_sink should have dropped constraints (e.g. minLength, pattern, etc.)
-    expect(codec.droppedConstraints.length).toBeGreaterThan(
-      0,
+    expect(
+      codec.droppedConstraints.length,
       "kitchen_sink should have dropped constraints for openai-strict",
-    );
+    ).toBeGreaterThan(0);
 
     // Rehydrate with data — should succeed and produce warnings array
     const result = wasm.rehydrate({}, codec);
