@@ -49,6 +49,7 @@ bindings/java/target/
 *.llm.json
 *.codec.json
 test-output/
+stress_results/
 
 # Environment
 .env
