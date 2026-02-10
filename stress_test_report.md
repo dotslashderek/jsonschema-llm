@@ -10,7 +10,7 @@
 | **API Mode**     | OpenAI (Live API)                    |
 | **Seed**         | `42`                                 |
 | **Date**         | 2025-02-09                           |
-| **Schema Count** | 100 (stress + real-world)            |
+| **Schema Count** | 51 stress + 15 real-world = 66 total |
 | **CLI Binary**   | `target/release/jsonschema-llm`      |
 | **Commit**       | `c86374f` (stress-test/chaos-monkey) |
 

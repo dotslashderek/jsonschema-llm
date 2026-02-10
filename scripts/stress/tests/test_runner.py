@@ -8,7 +8,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 
-
 def _make_runner_module():
     """Import the runner module for testing."""
     import importlib.util
@@ -58,7 +57,7 @@ class TestNoneResponseHandling:
             )
 
     def test_none_response_classified_as_openai_error(self):
-        """When call_openai returns None, runner must classify as openai_error stage."""
+        """When call_openai returns None, the runner's main loop must classify it as null_content."""
         import importlib.util
 
         spec = importlib.util.spec_from_file_location(
@@ -71,18 +70,26 @@ class TestNoneResponseHandling:
         with patch.dict("sys.modules", {"openai": mock_openai}):
             spec.loader.exec_module(mod)
 
-            # The runner should guard against None before calling .startswith()
-            # This test verifies the guard exists
-            result = mod.call_openai(MagicMock(), "test", {"type": "object"})
+            # Set up mock client where content is None
+            client = MagicMock()
+            response = MagicMock()
+            response.choices = [MagicMock()]
+            response.choices[0].message.content = None
+            client.chat.completions.create.return_value = response
 
-            # If result is None, the main loop should NOT call .startswith() on it
-            # We test this by checking the function handles it without crash
-            if result is None:
-                # The main loop should check for None before string ops
-                # This will fail until we add the guard
-                assert hasattr(mod, "classify_result") or True, (
-                    "Runner needs a None guard before .startswith()"
-                )
+            result = mod.call_openai(client, "test", {"type": "object"})
+
+            # call_openai should return None for null content
+            assert result is None, (
+                f"Expected None for null content, got {type(result).__name__}: {result}"
+            )
+
+            # Verify main loop's guard: the result should NOT be passed to .startswith()
+            # The main loop checks `if llm_response_str is None` before string ops
+            source = (Path(__file__).parent.parent / "run_cli_test.py").read_text()
+            assert "if llm_response_str is None" in source, (
+                "Runner must have an explicit None guard before string operations"
+            )
 
 
 class TestTimeoutBehavior:

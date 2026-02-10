@@ -133,7 +133,20 @@ async function main() {
     const seed = seedIdx >= 0 ? parseInt(args[seedIdx + 1], 10) : undefined;
     const model = modelIdx >= 0 ? args[modelIdx + 1] : 'gpt-4o-mini';
 
+    if (!Number.isInteger(count) || count < 1) {
+        console.error(`Error: --count must be a positive integer, got '${args[countIdx + 1]}'`);
+        process.exit(1);
+    }
+    if (seed !== undefined && !Number.isInteger(seed)) {
+        console.error(`Error: --seed must be an integer, got '${args[seedIdx + 1]}'`);
+        process.exit(1);
+    }
+
     const allFiles = fs.readdirSync(SCHEMA_DIR).filter(f => f.endsWith('.json'));
+    if (allFiles.length === 0) {
+        console.error(`Error: no .json files found in ${SCHEMA_DIR}`);
+        process.exit(1);
+    }
     const shuffled = fisherYatesShuffle(allFiles, seed);
     const testFiles = shuffled.slice(0, Math.min(count, shuffled.length));
 

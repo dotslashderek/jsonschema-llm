@@ -157,6 +157,13 @@ def main():
     schemas = [f for f in os.listdir(args.schemas) if f.endswith(".json")]
     schemas.sort()
 
+    # Apply seed for deterministic schema ordering
+    if args.seed is not None:
+        import random as _rng
+
+        _rng.seed(args.seed)
+        _rng.shuffle(schemas)
+
     # Run metadata (X review: persist for reproducibility)
     run_metadata = {
         "model": args.model,
