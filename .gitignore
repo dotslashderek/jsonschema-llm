@@ -26,6 +26,7 @@ bindings/typescript/pkg/
 
 # WASM build output
 crates/jsonschema-llm-wasm/pkg/
+tests/contract-node/pkg/
 
 # Python bindings
 __pycache__/

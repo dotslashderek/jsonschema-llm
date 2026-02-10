@@ -76,11 +76,32 @@ jobs:
       - name: Cache cargo registry & build
         uses: Swatinem/rust-cache@v2
 
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Verify core compiles for wasm32
         run: cargo check -p jsonschema-llm-core --target wasm32-unknown-unknown
 
+      - name: Run WASM smoke tests
+        run: wasm-pack test --node crates/jsonschema-llm-wasm
+
       - name: Build WASM (nodejs)
-        run: wasm-pack build crates/jsonschema-llm-wasm --target nodejs
+        run: wasm-pack build crates/jsonschema-llm-wasm --target nodejs --out-dir ../../tests/contract-node/pkg
 
       - name: Build WASM (web)
         run: wasm-pack build crates/jsonschema-llm-wasm --target web
+
+      - name: Install contract test dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: tests/contract-node
+
+      - name: Run Node.js contract tests
+        run: pnpm test
+        working-directory: tests/contract-node
