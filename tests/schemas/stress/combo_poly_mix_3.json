@@ -1,0 +1,35 @@
+{
+  "allOf": [
+    {
+      "type": "object",
+      "properties": {
+        "common": {
+          "const": "val_3"
+        }
+      },
+      "required": [
+        "common"
+      ]
+    },
+    {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "a": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "properties": {
+            "b": {
+              "type": "integer"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

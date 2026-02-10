@@ -1,0 +1,1156 @@
+{
+  "type": "object",
+  "properties": {
+    "level_0": {
+      "type": "object",
+      "properties": {
+        "item_0": {
+          "type": "string"
+        },
+        "item_1": {
+          "type": "string"
+        },
+        "item_2": {
+          "type": "string"
+        },
+        "item_3": {
+          "type": "string"
+        },
+        "item_4": {
+          "type": "string"
+        },
+        "level_1": {
+          "type": "object",
+          "properties": {
+            "item_0": {
+              "type": "string"
+            },
+            "item_1": {
+              "type": "string"
+            },
+            "item_2": {
+              "type": "string"
+            },
+            "item_3": {
+              "type": "string"
+            },
+            "item_4": {
+              "type": "string"
+            },
+            "level_2": {
+              "type": "object",
+              "properties": {
+                "item_0": {
+                  "type": "string"
+                },
+                "item_1": {
+                  "type": "string"
+                },
+                "item_2": {
+                  "type": "string"
+                },
+                "item_3": {
+                  "type": "string"
+                },
+                "item_4": {
+                  "type": "string"
+                },
+                "level_3": {
+                  "type": "object",
+                  "properties": {
+                    "item_0": {
+                      "type": "string"
+                    },
+                    "item_1": {
+                      "type": "string"
+                    },
+                    "item_2": {
+                      "type": "string"
+                    },
+                    "item_3": {
+                      "type": "string"
+                    },
+                    "item_4": {
+                      "type": "string"
+                    },
+                    "level_4": {
+                      "type": "object",
+                      "properties": {
+                        "item_0": {
+                          "type": "string"
+                        },
+                        "item_1": {
+                          "type": "string"
+                        },
+                        "item_2": {
+                          "type": "string"
+                        },
+                        "item_3": {
+                          "type": "string"
+                        },
+                        "item_4": {
+                          "type": "string"
+                        },
+                        "level_5": {
+                          "type": "object",
+                          "properties": {
+                            "item_0": {
+                              "type": "string"
+                            },
+                            "item_1": {
+                              "type": "string"
+                            },
+                            "item_2": {
+                              "type": "string"
+                            },
+                            "item_3": {
+                              "type": "string"
+                            },
+                            "item_4": {
+                              "type": "string"
+                            },
+                            "level_6": {
+                              "type": "object",
+                              "properties": {
+                                "item_0": {
+                                  "type": "string"
+                                },
+                                "item_1": {
+                                  "type": "string"
+                                },
+                                "item_2": {
+                                  "type": "string"
+                                },
+                                "item_3": {
+                                  "type": "string"
+                                },
+                                "item_4": {
+                                  "type": "string"
+                                },
+                                "level_7": {
+                                  "type": "object",
+                                  "properties": {
+                                    "item_0": {
+                                      "type": "string"
+                                    },
+                                    "item_1": {
+                                      "type": "string"
+                                    },
+                                    "item_2": {
+                                      "type": "string"
+                                    },
+                                    "item_3": {
+                                      "type": "string"
+                                    },
+                                    "item_4": {
+                                      "type": "string"
+                                    },
+                                    "level_8": {
+                                      "type": "object",
+                                      "properties": {
+                                        "item_0": {
+                                          "type": "string"
+                                        },
+                                        "item_1": {
+                                          "type": "string"
+                                        },
+                                        "item_2": {
+                                          "type": "string"
+                                        },
+                                        "item_3": {
+                                          "type": "string"
+                                        },
+                                        "item_4": {
+                                          "type": "string"
+                                        },
+                                        "level_9": {
+                                          "type": "object",
+                                          "properties": {
+                                            "item_0": {
+                                              "type": "string"
+                                            },
+                                            "item_1": {
+                                              "type": "string"
+                                            },
+                                            "item_2": {
+                                              "type": "string"
+                                            },
+                                            "item_3": {
+                                              "type": "string"
+                                            },
+                                            "item_4": {
+                                              "type": "string"
+                                            },
+                                            "level_10": {
+                                              "type": "object",
+                                              "properties": {
+                                                "item_0": {
+                                                  "type": "string"
+                                                },
+                                                "item_1": {
+                                                  "type": "string"
+                                                },
+                                                "item_2": {
+                                                  "type": "string"
+                                                },
+                                                "item_3": {
+                                                  "type": "string"
+                                                },
+                                                "item_4": {
+                                                  "type": "string"
+                                                },
+                                                "level_11": {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "item_0": {
+                                                      "type": "string"
+                                                    },
+                                                    "item_1": {
+                                                      "type": "string"
+                                                    },
+                                                    "item_2": {
+                                                      "type": "string"
+                                                    },
+                                                    "item_3": {
+                                                      "type": "string"
+                                                    },
+                                                    "item_4": {
+                                                      "type": "string"
+                                                    },
+                                                    "level_12": {
+                                                      "type": "object",
+                                                      "properties": {
+                                                        "item_0": {
+                                                          "type": "string"
+                                                        },
+                                                        "item_1": {
+                                                          "type": "string"
+                                                        },
+                                                        "item_2": {
+                                                          "type": "string"
+                                                        },
+                                                        "item_3": {
+                                                          "type": "string"
+                                                        },
+                                                        "item_4": {
+                                                          "type": "string"
+                                                        },
+                                                        "level_13": {
+                                                          "type": "object",
+                                                          "properties": {
+                                                            "item_0": {
+                                                              "type": "string"
+                                                            },
+                                                            "item_1": {
+                                                              "type": "string"
+                                                            },
+                                                            "item_2": {
+                                                              "type": "string"
+                                                            },
+                                                            "item_3": {
+                                                              "type": "string"
+                                                            },
+                                                            "item_4": {
+                                                              "type": "string"
+                                                            },
+                                                            "level_14": {
+                                                              "type": "object",
+                                                              "properties": {
+                                                                "item_0": {
+                                                                  "type": "string"
+                                                                },
+                                                                "item_1": {
+                                                                  "type": "string"
+                                                                },
+                                                                "item_2": {
+                                                                  "type": "string"
+                                                                },
+                                                                "item_3": {
+                                                                  "type": "string"
+                                                                },
+                                                                "item_4": {
+                                                                  "type": "string"
+                                                                },
+                                                                "level_15": {
+                                                                  "type": "object",
+                                                                  "properties": {
+                                                                    "item_0": {
+                                                                      "type": "string"
+                                                                    },
+                                                                    "item_1": {
+                                                                      "type": "string"
+                                                                    },
+                                                                    "item_2": {
+                                                                      "type": "string"
+                                                                    },
+                                                                    "item_3": {
+                                                                      "type": "string"
+                                                                    },
+                                                                    "item_4": {
+                                                                      "type": "string"
+                                                                    },
+                                                                    "level_16": {
+                                                                      "type": "object",
+                                                                      "properties": {
+                                                                        "item_0": {
+                                                                          "type": "string"
+                                                                        },
+                                                                        "item_1": {
+                                                                          "type": "string"
+                                                                        },
+                                                                        "item_2": {
+                                                                          "type": "string"
+                                                                        },
+                                                                        "item_3": {
+                                                                          "type": "string"
+                                                                        },
+                                                                        "item_4": {
+                                                                          "type": "string"
+                                                                        },
+                                                                        "level_17": {
+                                                                          "type": "object",
+                                                                          "properties": {
+                                                                            "item_0": {
+                                                                              "type": "string"
+                                                                            },
+                                                                            "item_1": {
+                                                                              "type": "string"
+                                                                            },
+                                                                            "item_2": {
+                                                                              "type": "string"
+                                                                            },
+                                                                            "item_3": {
+                                                                              "type": "string"
+                                                                            },
+                                                                            "item_4": {
+                                                                              "type": "string"
+                                                                            },
+                                                                            "level_18": {
+                                                                              "type": "object",
+                                                                              "properties": {
+                                                                                "item_0": {
+                                                                                  "type": "string"
+                                                                                },
+                                                                                "item_1": {
+                                                                                  "type": "string"
+                                                                                },
+                                                                                "item_2": {
+                                                                                  "type": "string"
+                                                                                },
+                                                                                "item_3": {
+                                                                                  "type": "string"
+                                                                                },
+                                                                                "item_4": {
+                                                                                  "type": "string"
+                                                                                },
+                                                                                "level_19": {
+                                                                                  "type": "object",
+                                                                                  "properties": {
+                                                                                    "item_0": {
+                                                                                      "type": "string"
+                                                                                    },
+                                                                                    "item_1": {
+                                                                                      "type": "string"
+                                                                                    },
+                                                                                    "item_2": {
+                                                                                      "type": "string"
+                                                                                    },
+                                                                                    "item_3": {
+                                                                                      "type": "string"
+                                                                                    },
+                                                                                    "item_4": {
+                                                                                      "type": "string"
+                                                                                    },
+                                                                                    "level_20": {
+                                                                                      "type": "object",
+                                                                                      "properties": {
+                                                                                        "item_0": {
+                                                                                          "type": "string"
+                                                                                        },
+                                                                                        "item_1": {
+                                                                                          "type": "string"
+                                                                                        },
+                                                                                        "item_2": {
+                                                                                          "type": "string"
+                                                                                        },
+                                                                                        "item_3": {
+                                                                                          "type": "string"
+                                                                                        },
+                                                                                        "item_4": {
+                                                                                          "type": "string"
+                                                                                        },
+                                                                                        "level_21": {
+                                                                                          "type": "object",
+                                                                                          "properties": {
+                                                                                            "item_0": {
+                                                                                              "type": "string"
+                                                                                            },
+                                                                                            "item_1": {
+                                                                                              "type": "string"
+                                                                                            },
+                                                                                            "item_2": {
+                                                                                              "type": "string"
+                                                                                            },
+                                                                                            "item_3": {
+                                                                                              "type": "string"
+                                                                                            },
+                                                                                            "item_4": {
+                                                                                              "type": "string"
+                                                                                            },
+                                                                                            "level_22": {
+                                                                                              "type": "object",
+                                                                                              "properties": {
+                                                                                                "item_0": {
+                                                                                                  "type": "string"
+                                                                                                },
+                                                                                                "item_1": {
+                                                                                                  "type": "string"
+                                                                                                },
+                                                                                                "item_2": {
+                                                                                                  "type": "string"
+                                                                                                },
+                                                                                                "item_3": {
+                                                                                                  "type": "string"
+                                                                                                },
+                                                                                                "item_4": {
+                                                                                                  "type": "string"
+                                                                                                },
+                                                                                                "level_23": {
+                                                                                                  "type": "object",
+                                                                                                  "properties": {
+                                                                                                    "item_0": {
+                                                                                                      "type": "string"
+                                                                                                    },
+                                                                                                    "item_1": {
+                                                                                                      "type": "string"
+                                                                                                    },
+                                                                                                    "item_2": {
+                                                                                                      "type": "string"
+                                                                                                    },
+                                                                                                    "item_3": {
+                                                                                                      "type": "string"
+                                                                                                    },
+                                                                                                    "item_4": {
+                                                                                                      "type": "string"
+                                                                                                    },
+                                                                                                    "level_24": {
+                                                                                                      "type": "object",
+                                                                                                      "properties": {
+                                                                                                        "item_0": {
+                                                                                                          "type": "string"
+                                                                                                        },
+                                                                                                        "item_1": {
+                                                                                                          "type": "string"
+                                                                                                        },
+                                                                                                        "item_2": {
+                                                                                                          "type": "string"
+                                                                                                        },
+                                                                                                        "item_3": {
+                                                                                                          "type": "string"
+                                                                                                        },
+                                                                                                        "item_4": {
+                                                                                                          "type": "string"
+                                                                                                        },
+                                                                                                        "level_25": {
+                                                                                                          "type": "object",
+                                                                                                          "properties": {
+                                                                                                            "item_0": {
+                                                                                                              "type": "string"
+                                                                                                            },
+                                                                                                            "item_1": {
+                                                                                                              "type": "string"
+                                                                                                            },
+                                                                                                            "item_2": {
+                                                                                                              "type": "string"
+                                                                                                            },
+                                                                                                            "item_3": {
+                                                                                                              "type": "string"
+                                                                                                            },
+                                                                                                            "item_4": {
+                                                                                                              "type": "string"
+                                                                                                            },
+                                                                                                            "level_26": {
+                                                                                                              "type": "object",
+                                                                                                              "properties": {
+                                                                                                                "item_0": {
+                                                                                                                  "type": "string"
+                                                                                                                },
+                                                                                                                "item_1": {
+                                                                                                                  "type": "string"
+                                                                                                                },
+                                                                                                                "item_2": {
+                                                                                                                  "type": "string"
+                                                                                                                },
+                                                                                                                "item_3": {
+                                                                                                                  "type": "string"
+                                                                                                                },
+                                                                                                                "item_4": {
+                                                                                                                  "type": "string"
+                                                                                                                },
+                                                                                                                "level_27": {
+                                                                                                                  "type": "object",
+                                                                                                                  "properties": {
+                                                                                                                    "item_0": {
+                                                                                                                      "type": "string"
+                                                                                                                    },
+                                                                                                                    "item_1": {
+                                                                                                                      "type": "string"
+                                                                                                                    },
+                                                                                                                    "item_2": {
+                                                                                                                      "type": "string"
+                                                                                                                    },
+                                                                                                                    "item_3": {
+                                                                                                                      "type": "string"
+                                                                                                                    },
+                                                                                                                    "item_4": {
+                                                                                                                      "type": "string"
+                                                                                                                    },
+                                                                                                                    "level_28": {
+                                                                                                                      "type": "object",
+                                                                                                                      "properties": {
+                                                                                                                        "item_0": {
+                                                                                                                          "type": "string"
+                                                                                                                        },
+                                                                                                                        "item_1": {
+                                                                                                                          "type": "string"
+                                                                                                                        },
+                                                                                                                        "item_2": {
+                                                                                                                          "type": "string"
+                                                                                                                        },
+                                                                                                                        "item_3": {
+                                                                                                                          "type": "string"
+                                                                                                                        },
+                                                                                                                        "item_4": {
+                                                                                                                          "type": "string"
+                                                                                                                        },
+                                                                                                                        "level_29": {
+                                                                                                                          "type": "object",
+                                                                                                                          "properties": {
+                                                                                                                            "item_0": {
+                                                                                                                              "type": "string"
+                                                                                                                            },
+                                                                                                                            "item_1": {
+                                                                                                                              "type": "string"
+                                                                                                                            },
+                                                                                                                            "item_2": {
+                                                                                                                              "type": "string"
+                                                                                                                            },
+                                                                                                                            "item_3": {
+                                                                                                                              "type": "string"
+                                                                                                                            },
+                                                                                                                            "item_4": {
+                                                                                                                              "type": "string"
+                                                                                                                            },
+                                                                                                                            "level_30": {
+                                                                                                                              "type": "object",
+                                                                                                                              "properties": {
+                                                                                                                                "item_0": {
+                                                                                                                                  "type": "string"
+                                                                                                                                },
+                                                                                                                                "item_1": {
+                                                                                                                                  "type": "string"
+                                                                                                                                },
+                                                                                                                                "item_2": {
+                                                                                                                                  "type": "string"
+                                                                                                                                },
+                                                                                                                                "item_3": {
+                                                                                                                                  "type": "string"
+                                                                                                                                },
+                                                                                                                                "item_4": {
+                                                                                                                                  "type": "string"
+                                                                                                                                },
+                                                                                                                                "level_31": {
+                                                                                                                                  "type": "object",
+                                                                                                                                  "properties": {
+                                                                                                                                    "item_0": {
+                                                                                                                                      "type": "string"
+                                                                                                                                    },
+                                                                                                                                    "item_1": {
+                                                                                                                                      "type": "string"
+                                                                                                                                    },
+                                                                                                                                    "item_2": {
+                                                                                                                                      "type": "string"
+                                                                                                                                    },
+                                                                                                                                    "item_3": {
+                                                                                                                                      "type": "string"
+                                                                                                                                    },
+                                                                                                                                    "item_4": {
+                                                                                                                                      "type": "string"
+                                                                                                                                    },
+                                                                                                                                    "level_32": {
+                                                                                                                                      "type": "object",
+                                                                                                                                      "properties": {
+                                                                                                                                        "item_0": {
+                                                                                                                                          "type": "string"
+                                                                                                                                        },
+                                                                                                                                        "item_1": {
+                                                                                                                                          "type": "string"
+                                                                                                                                        },
+                                                                                                                                        "item_2": {
+                                                                                                                                          "type": "string"
+                                                                                                                                        },
+                                                                                                                                        "item_3": {
+                                                                                                                                          "type": "string"
+                                                                                                                                        },
+                                                                                                                                        "item_4": {
+                                                                                                                                          "type": "string"
+                                                                                                                                        },
+                                                                                                                                        "level_33": {
+                                                                                                                                          "type": "object",
+                                                                                                                                          "properties": {
+                                                                                                                                            "item_0": {
+                                                                                                                                              "type": "string"
+                                                                                                                                            },
+                                                                                                                                            "item_1": {
+                                                                                                                                              "type": "string"
+                                                                                                                                            },
+                                                                                                                                            "item_2": {
+                                                                                                                                              "type": "string"
+                                                                                                                                            },
+                                                                                                                                            "item_3": {
+                                                                                                                                              "type": "string"
+                                                                                                                                            },
+                                                                                                                                            "item_4": {
+                                                                                                                                              "type": "string"
+                                                                                                                                            },
+                                                                                                                                            "level_34": {
+                                                                                                                                              "type": "object",
+                                                                                                                                              "properties": {
+                                                                                                                                                "item_0": {
+                                                                                                                                                  "type": "string"
+                                                                                                                                                },
+                                                                                                                                                "item_1": {
+                                                                                                                                                  "type": "string"
+                                                                                                                                                },
+                                                                                                                                                "item_2": {
+                                                                                                                                                  "type": "string"
+                                                                                                                                                },
+                                                                                                                                                "item_3": {
+                                                                                                                                                  "type": "string"
+                                                                                                                                                },
+                                                                                                                                                "item_4": {
+                                                                                                                                                  "type": "string"
+                                                                                                                                                },
+                                                                                                                                                "level_35": {
+                                                                                                                                                  "type": "object",
+                                                                                                                                                  "properties": {
+                                                                                                                                                    "item_0": {
+                                                                                                                                                      "type": "string"
+                                                                                                                                                    },
+                                                                                                                                                    "item_1": {
+                                                                                                                                                      "type": "string"
+                                                                                                                                                    },
+                                                                                                                                                    "item_2": {
+                                                                                                                                                      "type": "string"
+                                                                                                                                                    },
+                                                                                                                                                    "item_3": {
+                                                                                                                                                      "type": "string"
+                                                                                                                                                    },
+                                                                                                                                                    "item_4": {
+                                                                                                                                                      "type": "string"
+                                                                                                                                                    },
+                                                                                                                                                    "level_36": {
+                                                                                                                                                      "type": "object",
+                                                                                                                                                      "properties": {
+                                                                                                                                                        "item_0": {
+                                                                                                                                                          "type": "string"
+                                                                                                                                                        },
+                                                                                                                                                        "item_1": {
+                                                                                                                                                          "type": "string"
+                                                                                                                                                        },
+                                                                                                                                                        "item_2": {
+                                                                                                                                                          "type": "string"
+                                                                                                                                                        },
+                                                                                                                                                        "item_3": {
+                                                                                                                                                          "type": "string"
+                                                                                                                                                        },
+                                                                                                                                                        "item_4": {
+                                                                                                                                                          "type": "string"
+                                                                                                                                                        },
+                                                                                                                                                        "level_37": {
+                                                                                                                                                          "type": "object",
+                                                                                                                                                          "properties": {
+                                                                                                                                                            "item_0": {
+                                                                                                                                                              "type": "string"
+                                                                                                                                                            },
+                                                                                                                                                            "item_1": {
+                                                                                                                                                              "type": "string"
+                                                                                                                                                            },
+                                                                                                                                                            "item_2": {
+                                                                                                                                                              "type": "string"
+                                                                                                                                                            },
+                                                                                                                                                            "item_3": {
+                                                                                                                                                              "type": "string"
+                                                                                                                                                            },
+                                                                                                                                                            "item_4": {
+                                                                                                                                                              "type": "string"
+                                                                                                                                                            },
+                                                                                                                                                            "level_38": {
+                                                                                                                                                              "type": "object",
+                                                                                                                                                              "properties": {
+                                                                                                                                                                "item_0": {
+                                                                                                                                                                  "type": "string"
+                                                                                                                                                                },
+                                                                                                                                                                "item_1": {
+                                                                                                                                                                  "type": "string"
+                                                                                                                                                                },
+                                                                                                                                                                "item_2": {
+                                                                                                                                                                  "type": "string"
+                                                                                                                                                                },
+                                                                                                                                                                "item_3": {
+                                                                                                                                                                  "type": "string"
+                                                                                                                                                                },
+                                                                                                                                                                "item_4": {
+                                                                                                                                                                  "type": "string"
+                                                                                                                                                                },
+                                                                                                                                                                "level_39": {
+                                                                                                                                                                  "type": "object",
+                                                                                                                                                                  "properties": {
+                                                                                                                                                                    "item_0": {
+                                                                                                                                                                      "type": "string"
+                                                                                                                                                                    },
+                                                                                                                                                                    "item_1": {
+                                                                                                                                                                      "type": "string"
+                                                                                                                                                                    },
+                                                                                                                                                                    "item_2": {
+                                                                                                                                                                      "type": "string"
+                                                                                                                                                                    },
+                                                                                                                                                                    "item_3": {
+                                                                                                                                                                      "type": "string"
+                                                                                                                                                                    },
+                                                                                                                                                                    "item_4": {
+                                                                                                                                                                      "type": "string"
+                                                                                                                                                                    },
+                                                                                                                                                                    "level_40": {
+                                                                                                                                                                      "type": "object",
+                                                                                                                                                                      "properties": {
+                                                                                                                                                                        "item_0": {
+                                                                                                                                                                          "type": "string"
+                                                                                                                                                                        },
+                                                                                                                                                                        "item_1": {
+                                                                                                                                                                          "type": "string"
+                                                                                                                                                                        },
+                                                                                                                                                                        "item_2": {
+                                                                                                                                                                          "type": "string"
+                                                                                                                                                                        },
+                                                                                                                                                                        "item_3": {
+                                                                                                                                                                          "type": "string"
+                                                                                                                                                                        },
+                                                                                                                                                                        "item_4": {
+                                                                                                                                                                          "type": "string"
+                                                                                                                                                                        },
+                                                                                                                                                                        "level_41": {
+                                                                                                                                                                          "type": "object",
+                                                                                                                                                                          "properties": {
+                                                                                                                                                                            "item_0": {
+                                                                                                                                                                              "type": "string"
+                                                                                                                                                                            },
+                                                                                                                                                                            "item_1": {
+                                                                                                                                                                              "type": "string"
+                                                                                                                                                                            },
+                                                                                                                                                                            "item_2": {
+                                                                                                                                                                              "type": "string"
+                                                                                                                                                                            },
+                                                                                                                                                                            "item_3": {
+                                                                                                                                                                              "type": "string"
+                                                                                                                                                                            },
+                                                                                                                                                                            "item_4": {
+                                                                                                                                                                              "type": "string"
+                                                                                                                                                                            },
+                                                                                                                                                                            "level_42": {
+                                                                                                                                                                              "type": "object",
+                                                                                                                                                                              "properties": {
+                                                                                                                                                                                "item_0": {
+                                                                                                                                                                                  "type": "string"
+                                                                                                                                                                                },
+                                                                                                                                                                                "item_1": {
+                                                                                                                                                                                  "type": "string"
+                                                                                                                                                                                },
+                                                                                                                                                                                "item_2": {
+                                                                                                                                                                                  "type": "string"
+                                                                                                                                                                                },
+                                                                                                                                                                                "item_3": {
+                                                                                                                                                                                  "type": "string"
+                                                                                                                                                                                },
+                                                                                                                                                                                "item_4": {
+                                                                                                                                                                                  "type": "string"
+                                                                                                                                                                                },
+                                                                                                                                                                                "level_43": {
+                                                                                                                                                                                  "type": "object",
+                                                                                                                                                                                  "properties": {
+                                                                                                                                                                                    "item_0": {
+                                                                                                                                                                                      "type": "string"
+                                                                                                                                                                                    },
+                                                                                                                                                                                    "item_1": {
+                                                                                                                                                                                      "type": "string"
+                                                                                                                                                                                    },
+                                                                                                                                                                                    "item_2": {
+                                                                                                                                                                                      "type": "string"
+                                                                                                                                                                                    },
+                                                                                                                                                                                    "item_3": {
+                                                                                                                                                                                      "type": "string"
+                                                                                                                                                                                    },
+                                                                                                                                                                                    "item_4": {
+                                                                                                                                                                                      "type": "string"
+                                                                                                                                                                                    },
+                                                                                                                                                                                    "level_44": {
+                                                                                                                                                                                      "type": "object",
+                                                                                                                                                                                      "properties": {
+                                                                                                                                                                                        "item_0": {
+                                                                                                                                                                                          "type": "string"
+                                                                                                                                                                                        },
+                                                                                                                                                                                        "item_1": {
+                                                                                                                                                                                          "type": "string"
+                                                                                                                                                                                        },
+                                                                                                                                                                                        "item_2": {
+                                                                                                                                                                                          "type": "string"
+                                                                                                                                                                                        },
+                                                                                                                                                                                        "item_3": {
+                                                                                                                                                                                          "type": "string"
+                                                                                                                                                                                        },
+                                                                                                                                                                                        "item_4": {
+                                                                                                                                                                                          "type": "string"
+                                                                                                                                                                                        },
+                                                                                                                                                                                        "level_45": {
+                                                                                                                                                                                          "type": "object",
+                                                                                                                                                                                          "properties": {
+                                                                                                                                                                                            "item_0": {
+                                                                                                                                                                                              "type": "string"
+                                                                                                                                                                                            },
+                                                                                                                                                                                            "item_1": {
+                                                                                                                                                                                              "type": "string"
+                                                                                                                                                                                            },
+                                                                                                                                                                                            "item_2": {
+                                                                                                                                                                                              "type": "string"
+                                                                                                                                                                                            },
+                                                                                                                                                                                            "item_3": {
+                                                                                                                                                                                              "type": "string"
+                                                                                                                                                                                            },
+                                                                                                                                                                                            "item_4": {
+                                                                                                                                                                                              "type": "string"
+                                                                                                                                                                                            },
+                                                                                                                                                                                            "level_46": {
+                                                                                                                                                                                              "type": "object",
+                                                                                                                                                                                              "properties": {
+                                                                                                                                                                                                "item_0": {
+                                                                                                                                                                                                  "type": "string"
+                                                                                                                                                                                                },
+                                                                                                                                                                                                "item_1": {
+                                                                                                                                                                                                  "type": "string"
+                                                                                                                                                                                                },
+                                                                                                                                                                                                "item_2": {
+                                                                                                                                                                                                  "type": "string"
+                                                                                                                                                                                                },
+                                                                                                                                                                                                "item_3": {
+                                                                                                                                                                                                  "type": "string"
+                                                                                                                                                                                                },
+                                                                                                                                                                                                "item_4": {
+                                                                                                                                                                                                  "type": "string"
+                                                                                                                                                                                                },
+                                                                                                                                                                                                "level_47": {
+                                                                                                                                                                                                  "type": "object",
+                                                                                                                                                                                                  "properties": {
+                                                                                                                                                                                                    "item_0": {
+                                                                                                                                                                                                      "type": "string"
+                                                                                                                                                                                                    },
+                                                                                                                                                                                                    "item_1": {
+                                                                                                                                                                                                      "type": "string"
+                                                                                                                                                                                                    },
+                                                                                                                                                                                                    "item_2": {
+                                                                                                                                                                                                      "type": "string"
+                                                                                                                                                                                                    },
+                                                                                                                                                                                                    "item_3": {
+                                                                                                                                                                                                      "type": "string"
+                                                                                                                                                                                                    },
+                                                                                                                                                                                                    "item_4": {
+                                                                                                                                                                                                      "type": "string"
+                                                                                                                                                                                                    },
+                                                                                                                                                                                                    "level_48": {
+                                                                                                                                                                                                      "type": "object",
+                                                                                                                                                                                                      "properties": {
+                                                                                                                                                                                                        "item_0": {
+                                                                                                                                                                                                          "type": "string"
+                                                                                                                                                                                                        },
+                                                                                                                                                                                                        "item_1": {
+                                                                                                                                                                                                          "type": "string"
+                                                                                                                                                                                                        },
+                                                                                                                                                                                                        "item_2": {
+                                                                                                                                                                                                          "type": "string"
+                                                                                                                                                                                                        },
+                                                                                                                                                                                                        "item_3": {
+                                                                                                                                                                                                          "type": "string"
+                                                                                                                                                                                                        },
+                                                                                                                                                                                                        "item_4": {
+                                                                                                                                                                                                          "type": "string"
+                                                                                                                                                                                                        },
+                                                                                                                                                                                                        "level_49": {
+                                                                                                                                                                                                          "type": "object",
+                                                                                                                                                                                                          "properties": {
+                                                                                                                                                                                                            "item_0": {
+                                                                                                                                                                                                              "type": "string"
+                                                                                                                                                                                                            },
+                                                                                                                                                                                                            "item_1": {
+                                                                                                                                                                                                              "type": "string"
+                                                                                                                                                                                                            },
+                                                                                                                                                                                                            "item_2": {
+                                                                                                                                                                                                              "type": "string"
+                                                                                                                                                                                                            },
+                                                                                                                                                                                                            "item_3": {
+                                                                                                                                                                                                              "type": "string"
+                                                                                                                                                                                                            },
+                                                                                                                                                                                                            "item_4": {
+                                                                                                                                                                                                              "type": "string"
+                                                                                                                                                                                                            }
+                                                                                                                                                                                                          },
+                                                                                                                                                                                                          "required": []
+                                                                                                                                                                                                        }
+                                                                                                                                                                                                      },
+                                                                                                                                                                                                      "required": [
+                                                                                                                                                                                                        "level_49"
+                                                                                                                                                                                                      ]
+                                                                                                                                                                                                    }
+                                                                                                                                                                                                  },
+                                                                                                                                                                                                  "required": [
+                                                                                                                                                                                                    "level_48"
+                                                                                                                                                                                                  ]
+                                                                                                                                                                                                }
+                                                                                                                                                                                              },
+                                                                                                                                                                                              "required": [
+                                                                                                                                                                                                "level_47"
+                                                                                                                                                                                              ]
+                                                                                                                                                                                            }
+                                                                                                                                                                                          },
+                                                                                                                                                                                          "required": [
+                                                                                                                                                                                            "level_46"
+                                                                                                                                                                                          ]
+                                                                                                                                                                                        }
+                                                                                                                                                                                      },
+                                                                                                                                                                                      "required": [
+                                                                                                                                                                                        "level_45"
+                                                                                                                                                                                      ]
+                                                                                                                                                                                    }
+                                                                                                                                                                                  },
+                                                                                                                                                                                  "required": [
+                                                                                                                                                                                    "level_44"
+                                                                                                                                                                                  ]
+                                                                                                                                                                                }
+                                                                                                                                                                              },
+                                                                                                                                                                              "required": [
+                                                                                                                                                                                "level_43"
+                                                                                                                                                                              ]
+                                                                                                                                                                            }
+                                                                                                                                                                          },
+                                                                                                                                                                          "required": [
+                                                                                                                                                                            "level_42"
+                                                                                                                                                                          ]
+                                                                                                                                                                        }
+                                                                                                                                                                      },
+                                                                                                                                                                      "required": [
+                                                                                                                                                                        "level_41"
+                                                                                                                                                                      ]
+                                                                                                                                                                    }
+                                                                                                                                                                  },
+                                                                                                                                                                  "required": [
+                                                                                                                                                                    "level_40"
+                                                                                                                                                                  ]
+                                                                                                                                                                }
+                                                                                                                                                              },
+                                                                                                                                                              "required": [
+                                                                                                                                                                "level_39"
+                                                                                                                                                              ]
+                                                                                                                                                            }
+                                                                                                                                                          },
+                                                                                                                                                          "required": [
+                                                                                                                                                            "level_38"
+                                                                                                                                                          ]
+                                                                                                                                                        }
+                                                                                                                                                      },
+                                                                                                                                                      "required": [
+                                                                                                                                                        "level_37"
+                                                                                                                                                      ]
+                                                                                                                                                    }
+                                                                                                                                                  },
+                                                                                                                                                  "required": [
+                                                                                                                                                    "level_36"
+                                                                                                                                                  ]
+                                                                                                                                                }
+                                                                                                                                              },
+                                                                                                                                              "required": [
+                                                                                                                                                "level_35"
+                                                                                                                                              ]
+                                                                                                                                            }
+                                                                                                                                          },
+                                                                                                                                          "required": [
+                                                                                                                                            "level_34"
+                                                                                                                                          ]
+                                                                                                                                        }
+                                                                                                                                      },
+                                                                                                                                      "required": [
+                                                                                                                                        "level_33"
+                                                                                                                                      ]
+                                                                                                                                    }
+                                                                                                                                  },
+                                                                                                                                  "required": [
+                                                                                                                                    "level_32"
+                                                                                                                                  ]
+                                                                                                                                }
+                                                                                                                              },
+                                                                                                                              "required": [
+                                                                                                                                "level_31"
+                                                                                                                              ]
+                                                                                                                            }
+                                                                                                                          },
+                                                                                                                          "required": [
+                                                                                                                            "level_30"
+                                                                                                                          ]
+                                                                                                                        }
+                                                                                                                      },
+                                                                                                                      "required": [
+                                                                                                                        "level_29"
+                                                                                                                      ]
+                                                                                                                    }
+                                                                                                                  },
+                                                                                                                  "required": [
+                                                                                                                    "level_28"
+                                                                                                                  ]
+                                                                                                                }
+                                                                                                              },
+                                                                                                              "required": [
+                                                                                                                "level_27"
+                                                                                                              ]
+                                                                                                            }
+                                                                                                          },
+                                                                                                          "required": [
+                                                                                                            "level_26"
+                                                                                                          ]
+                                                                                                        }
+                                                                                                      },
+                                                                                                      "required": [
+                                                                                                        "level_25"
+                                                                                                      ]
+                                                                                                    }
+                                                                                                  },
+                                                                                                  "required": [
+                                                                                                    "level_24"
+                                                                                                  ]
+                                                                                                }
+                                                                                              },
+                                                                                              "required": [
+                                                                                                "level_23"
+                                                                                              ]
+                                                                                            }
+                                                                                          },
+                                                                                          "required": [
+                                                                                            "level_22"
+                                                                                          ]
+                                                                                        }
+                                                                                      },
+                                                                                      "required": [
+                                                                                        "level_21"
+                                                                                      ]
+                                                                                    }
+                                                                                  },
+                                                                                  "required": [
+                                                                                    "level_20"
+                                                                                  ]
+                                                                                }
+                                                                              },
+                                                                              "required": [
+                                                                                "level_19"
+                                                                              ]
+                                                                            }
+                                                                          },
+                                                                          "required": [
+                                                                            "level_18"
+                                                                          ]
+                                                                        }
+                                                                      },
+                                                                      "required": [
+                                                                        "level_17"
+                                                                      ]
+                                                                    }
+                                                                  },
+                                                                  "required": [
+                                                                    "level_16"
+                                                                  ]
+                                                                }
+                                                              },
+                                                              "required": [
+                                                                "level_15"
+                                                              ]
+                                                            }
+                                                          },
+                                                          "required": [
+                                                            "level_14"
+                                                          ]
+                                                        }
+                                                      },
+                                                      "required": [
+                                                        "level_13"
+                                                      ]
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "level_12"
+                                                  ]
+                                                }
+                                              },
+                                              "required": [
+                                                "level_11"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "level_10"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "level_9"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "level_8"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "level_7"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "level_6"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "level_5"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "level_4"
+                  ]
+                }
+              },
+              "required": [
+                "level_3"
+              ]
+            }
+          },
+          "required": [
+            "level_2"
+          ]
+        }
+      },
+      "required": [
+        "level_1"
+      ]
+    }
+  },
+  "required": [
+    "level_0"
+  ]
+}

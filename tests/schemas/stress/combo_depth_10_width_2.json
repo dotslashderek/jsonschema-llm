@@ -1,0 +1,146 @@
+{
+  "type": "object",
+  "properties": {
+    "level_0": {
+      "type": "object",
+      "properties": {
+        "item_0": {
+          "type": "string"
+        },
+        "item_1": {
+          "type": "string"
+        },
+        "level_1": {
+          "type": "object",
+          "properties": {
+            "item_0": {
+              "type": "string"
+            },
+            "item_1": {
+              "type": "string"
+            },
+            "level_2": {
+              "type": "object",
+              "properties": {
+                "item_0": {
+                  "type": "string"
+                },
+                "item_1": {
+                  "type": "string"
+                },
+                "level_3": {
+                  "type": "object",
+                  "properties": {
+                    "item_0": {
+                      "type": "string"
+                    },
+                    "item_1": {
+                      "type": "string"
+                    },
+                    "level_4": {
+                      "type": "object",
+                      "properties": {
+                        "item_0": {
+                          "type": "string"
+                        },
+                        "item_1": {
+                          "type": "string"
+                        },
+                        "level_5": {
+                          "type": "object",
+                          "properties": {
+                            "item_0": {
+                              "type": "string"
+                            },
+                            "item_1": {
+                              "type": "string"
+                            },
+                            "level_6": {
+                              "type": "object",
+                              "properties": {
+                                "item_0": {
+                                  "type": "string"
+                                },
+                                "item_1": {
+                                  "type": "string"
+                                },
+                                "level_7": {
+                                  "type": "object",
+                                  "properties": {
+                                    "item_0": {
+                                      "type": "string"
+                                    },
+                                    "item_1": {
+                                      "type": "string"
+                                    },
+                                    "level_8": {
+                                      "type": "object",
+                                      "properties": {
+                                        "item_0": {
+                                          "type": "string"
+                                        },
+                                        "item_1": {
+                                          "type": "string"
+                                        },
+                                        "level_9": {
+                                          "type": "object",
+                                          "properties": {
+                                            "item_0": {
+                                              "type": "string"
+                                            },
+                                            "item_1": {
+                                              "type": "string"
+                                            }
+                                          },
+                                          "required": []
+                                        }
+                                      },
+                                      "required": [
+                                        "level_9"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "level_8"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "level_7"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "level_6"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "level_5"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "level_4"
+                  ]
+                }
+              },
+              "required": [
+                "level_3"
+              ]
+            }
+          },
+          "required": [
+            "level_2"
+          ]
+        }
+      },
+      "required": [
+        "level_1"
+      ]
+    }
+  },
+  "required": [
+    "level_0"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "$defs": {
+    "node_40": {
+      "type": "object",
+      "properties": {
+        "val": {
+          "type": "integer"
+        },
+        "next": {
+          "$ref": "#/$defs/node_40"
+        },
+        "sibling": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/node_40"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "$ref": "#/$defs/node_40"
+}

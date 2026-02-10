@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "properties": {
+    "integer_tiny": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "number_precise": {
+      "type": "number",
+      "minimum": 0.0001,
+      "maximum": 0.0002
+    },
+    "multiple_of_pi": {
+      "type": "number",
+      "multipleOf": 3.14
+    },
+    "exclusive_ranges": {
+      "type": "number",
+      "exclusiveMinimum": 10,
+      "exclusiveMaximum": 20
+    }
+  }
+}

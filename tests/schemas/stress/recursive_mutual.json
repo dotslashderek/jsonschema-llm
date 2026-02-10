@@ -1,0 +1,30 @@
+{
+  "$defs": {
+    "user": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "best_friend": {
+          "$ref": "#/$defs/friend"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "friend": {
+      "type": "object",
+      "properties": {
+        "nickname": {
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/$defs/user"
+        }
+      }
+    }
+  },
+  "$ref": "#/$defs/user"
+}

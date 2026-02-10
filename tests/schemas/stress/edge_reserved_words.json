@@ -1,0 +1,47 @@
+{
+  "type": "object",
+  "properties": {
+    "class": {
+      "type": "string"
+    },
+    "int": {
+      "type": "string"
+    },
+    "float": {
+      "type": "string"
+    },
+    "return": {
+      "type": "string"
+    },
+    "function": {
+      "type": "string"
+    },
+    "var": {
+      "type": "string"
+    },
+    "let": {
+      "type": "string"
+    },
+    "const": {
+      "type": "string"
+    },
+    "try": {
+      "type": "string"
+    },
+    "catch": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "class",
+    "int",
+    "float",
+    "return",
+    "function",
+    "var",
+    "let",
+    "const",
+    "try",
+    "catch"
+  ]
+}

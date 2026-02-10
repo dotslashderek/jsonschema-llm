@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "properties": {
+    "builtin": {
+      "type": "string"
+    }
+  },
+  "patternProperties": {
+    "^S_": {
+      "type": "string"
+    },
+    "^I_": {
+      "type": "integer"
+    }
+  },
+  "additionalProperties": {
+    "type": "boolean"
+  }
+}

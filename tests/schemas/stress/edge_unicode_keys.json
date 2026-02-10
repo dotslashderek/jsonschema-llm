@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "properties": {
+    "\ud83d\ude80": {
+      "type": "string"
+    },
+    "\u4f60\u597d": {
+      "type": "string"
+    },
+    "\u2603\ufe0f": {
+      "type": "string"
+    },
+    "a list": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "\ud83d\ude80",
+    "\u4f60\u597d",
+    "\u2603\ufe0f",
+    "a list"
+  ]
+}

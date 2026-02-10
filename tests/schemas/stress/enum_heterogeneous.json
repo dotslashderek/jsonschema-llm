@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "properties": {
+    "mixed_enum": {
+      "enum": [
+        "red",
+        1,
+        true,
+        null,
+        {
+          "x": 1
+        }
+      ]
+    },
+    "const_variant": {
+      "const": "just_this_value"
+    }
+  }
+}

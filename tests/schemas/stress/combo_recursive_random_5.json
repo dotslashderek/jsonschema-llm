@@ -1,0 +1,26 @@
+{
+  "$defs": {
+    "node_5": {
+      "type": "object",
+      "properties": {
+        "val": {
+          "type": "integer"
+        },
+        "next": {
+          "$ref": "#/$defs/node_5"
+        },
+        "sibling": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/node_5"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "$ref": "#/$defs/node_5"
+}

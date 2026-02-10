@@ -1,0 +1,76 @@
+{
+  "type": "object",
+  "properties": {
+    "level_0": {
+      "type": "object",
+      "properties": {
+        "item_0": {
+          "type": "string"
+        },
+        "item_1": {
+          "type": "string"
+        },
+        "level_1": {
+          "type": "object",
+          "properties": {
+            "item_0": {
+              "type": "string"
+            },
+            "item_1": {
+              "type": "string"
+            },
+            "level_2": {
+              "type": "object",
+              "properties": {
+                "item_0": {
+                  "type": "string"
+                },
+                "item_1": {
+                  "type": "string"
+                },
+                "level_3": {
+                  "type": "object",
+                  "properties": {
+                    "item_0": {
+                      "type": "string"
+                    },
+                    "item_1": {
+                      "type": "string"
+                    },
+                    "level_4": {
+                      "type": "object",
+                      "properties": {
+                        "item_0": {
+                          "type": "string"
+                        },
+                        "item_1": {
+                          "type": "string"
+                        }
+                      },
+                      "required": []
+                    }
+                  },
+                  "required": [
+                    "level_4"
+                  ]
+                }
+              },
+              "required": [
+                "level_3"
+              ]
+            }
+          },
+          "required": [
+            "level_2"
+          ]
+        }
+      },
+      "required": [
+        "level_1"
+      ]
+    }
+  },
+  "required": [
+    "level_0"
+  ]
+}

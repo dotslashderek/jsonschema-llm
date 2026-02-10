@@ -1,0 +1,26 @@
+{
+  "$defs": {
+    "node_13": {
+      "type": "object",
+      "properties": {
+        "val": {
+          "type": "integer"
+        },
+        "next": {
+          "$ref": "#/$defs/node_13"
+        },
+        "sibling": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/node_13"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "$ref": "#/$defs/node_13"
+}
