@@ -106,7 +106,7 @@ fn p9_root_string_emits_error_and_wraps() {
 
 #[test]
 fn p9_root_missing_type_emits_error() {
-    // No explicit `type` field — OpenAI strict requires type: object
+    // No explicit `type` field — p9 wraps in object wrapper
     let schema = json!({
         "properties": {
             "x": { "type": "string" }
@@ -114,19 +114,34 @@ fn p9_root_missing_type_emits_error() {
     });
     let result = convert_strict(&schema);
 
-    let _root_errors: Vec<_> = result
+    // Should emit RootTypeIncompatible since root has no type: object
+    let root_errors: Vec<_> = result
         .provider_compat_errors
         .iter()
         .filter(|e| matches!(e, ProviderCompatError::RootTypeIncompatible { .. }))
         .collect();
-    // Note: This may or may not trigger depending on whether the schema gets
-    // a type: object added by earlier passes. If p6_strict adds it, this test
-    // validates that the wrapping is correct. If not, it should emit an error.
-    // We accept either behavior as long as the final schema has type: object.
+    assert_eq!(
+        root_errors.len(),
+        1,
+        "missing type should trigger exactly 1 RootTypeIncompatible"
+    );
+
+    // Final schema must be the wrapper object
     assert_eq!(
         result.schema.get("type").and_then(|v| v.as_str()),
         Some("object"),
-        "final schema must have type: object regardless"
+        "wrapper must have type: object"
+    );
+    assert_eq!(
+        result.schema.get("additionalProperties"),
+        Some(&json!(false)),
+        "wrapper should be sealed"
+    );
+
+    // Original schema lives inside properties.result
+    assert!(
+        result.schema.pointer("/properties/result/properties/x").is_some(),
+        "original property 'x' should be inside properties.result"
     );
 }
 
