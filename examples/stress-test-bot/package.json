@@ -3,18 +3,22 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "start": "ts-node src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Stress test bot for jsonschema-llm JS/TS bindings",
   "dependencies": {
-    "@types/node": "^25.2.3",
+    "ajv": "^8.17.0",
+    "ajv-formats": "^3.0.0",
     "jsonschema-llm": "file:../../dist",
-    "openai": "^6.19.0",
+    "openai": "^6.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3",
-    "zod": "^4.3.6"
+    "typescript": "^5.9.3"
   }
 }
