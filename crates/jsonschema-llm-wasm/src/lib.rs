@@ -25,8 +25,8 @@ use jsonschema_llm_core::{
 // WASM-local DTOs (Anti-Corruption Layer)
 // ---------------------------------------------------------------------------
 
-fn is_empty_slice<T>(slice: &&[T]) -> bool {
-    slice.is_empty()
+fn is_empty_slice<T>(slice_ref: &&[T]) -> bool {
+    slice_ref.is_empty()
 }
 
 /// WASM envelope for `convert` results.
