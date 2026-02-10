@@ -109,3 +109,32 @@ jobs:
       - name: TypeScript type-check
         run: pnpm run typecheck
         working-directory: tests/contract-node
+
+      # --- npm package assembly validation (#90) ---
+      - name: Build WASM (nodejs) for npm assembly
+        run: wasm-pack build crates/jsonschema-llm-wasm --target nodejs --out-dir pkg-nodejs
+
+      - name: Build WASM (web) for npm assembly
+        run: wasm-pack build crates/jsonschema-llm-wasm --target web --out-dir pkg-web
+
+      - name: Assemble npm package
+        run: bash scripts/assemble-npm.sh
+
+      - name: Validate npm package
+        run: |
+          echo "::group::Validate package.json fields"
+          jq -e '.name == "jsonschema-llm"' dist/package.json
+          jq -e '.exports["."].node' dist/package.json
+          jq -e '.exports["."].default' dist/package.json
+          jq -e '.exports["./web"].default' dist/package.json
+          echo "::endgroup::"
+
+          echo "::group::Validate critical files exist"
+          test -f dist/jsonschema_llm_wasm_bg.wasm
+          test -f dist/jsonschema_llm_wasm.js
+          test -f dist/jsonschema_llm_wasm.d.ts
+          test -f dist/web/jsonschema_llm_wasm_bg.wasm
+          test -f dist/web/jsonschema_llm_wasm.js
+          echo "::endgroup::"
+
+          echo "✅ npm package validation passed"
