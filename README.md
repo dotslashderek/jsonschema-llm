@@ -121,7 +121,8 @@ response = client.chat.completions.create(
 
 # Rehydrate — maps restored, nulls stripped, JSON strings parsed
 import json
-original = rehydrate(json.loads(response.choices[0].message.content), result["codec"])
+rehydrated = rehydrate(json.loads(response.choices[0].message.content), result["codec"])
+original = rehydrated["data"]
 ```
 
 </details>

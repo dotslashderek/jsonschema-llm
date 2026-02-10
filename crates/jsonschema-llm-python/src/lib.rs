@@ -1,7 +1,7 @@
 //! Python bindings for jsonschema-llm.
 //!
 //! Exposes `convert` and `rehydrate` via PyO3 for use from Python.
-//! Uses `pythonize` for zero-copy dict ↔ serde_json::Value conversion.
+//! Uses `pythonize` for convenient dict ↔ serde_json::Value conversion.
 //!
 //! ## Python API Contract
 //!
@@ -83,7 +83,7 @@ fn to_py_error(py: Python<'_>, e: &ConvertError) -> PyErr {
 fn to_py_deser_error(py: Python<'_>, e: pythonize::PythonizeError) -> PyErr {
     let message = e.to_string();
     let err = PyErr::new::<JsonSchemaLlmError, _>(message.clone());
-    let _ = err.value(py).setattr("code", "json_parse_error");
+    let _ = err.value(py).setattr("code", "invalid_input");
     let _ = err.value(py).setattr("message", &message);
     let _ = err.value(py).setattr("path", py.None());
     err

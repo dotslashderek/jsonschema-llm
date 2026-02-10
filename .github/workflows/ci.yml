@@ -163,7 +163,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install maturin
-        run: pip install maturin pytest
+        run: python -m pip install maturin pytest
 
       - name: Clippy (Python crate)
         run: cargo clippy -p jsonschema-llm-python -- -D warnings
