@@ -7,6 +7,7 @@ Results include per-stage classification with machine-readable reason codes.
 import argparse
 import json
 import os
+import re
 import subprocess
 import time
 
@@ -37,7 +38,7 @@ def run_cli_conversion(binary_path, input_path, output_path, codec_path, timeout
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
         if result.returncode != 0:
             return False, result.stderr
-        return True, ""
+        return True, result.stderr
     except subprocess.TimeoutExpired:
         return False, f"Timed out after {timeout}s"
 
@@ -63,9 +64,18 @@ def run_cli_rehydration(
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
         if result.returncode != 0:
             return False, result.stderr
-        return True, ""
+        return True, result.stderr
     except subprocess.TimeoutExpired:
         return False, f"Timed out after {timeout}s"
+
+
+def _sanitize_schema_name(name: str) -> str:
+    """Sanitize schema name for OpenAI's json_schema.name requirement.
+
+    OpenAI requires: ^[a-zA-Z0-9_-]+$ and max 64 chars.
+    """
+    sanitized = re.sub(r"[^a-zA-Z0-9_-]", "_", name)
+    return sanitized[:64]
 
 
 def call_openai(client, schema_name, schema_content, model="gpt-4o-mini", timeout=60):
@@ -92,7 +102,7 @@ def call_openai(client, schema_name, schema_content, model="gpt-4o-mini", timeou
             response_format={
                 "type": "json_schema",
                 "json_schema": {
-                    "name": schema_name,
+                    "name": _sanitize_schema_name(schema_name),
                     "schema": schema_content,
                     "strict": True,
                 },

@@ -94,6 +94,8 @@ python scripts/stress/run_cli_test.py \
   --timeout-api 60
 
 # Run chatbot stress test (TS bindings)
+# First, build the JS bindings:
+wasm-pack build crates/jsonschema-llm-wasm --target nodejs --out-dir ../../dist
 cd examples/stress-test-bot
 pnpm install && pnpm start -- --count 20 --seed 42 --model gpt-4o-mini
 ```

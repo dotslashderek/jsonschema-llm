@@ -567,5 +567,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--seed", type=int, default=42, help="Random seed (default: 42)"
     )
+    parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="Remove existing schemas from output directory before generating",
+    )
     args = parser.parse_args()
+    if args.clean and os.path.isdir(OUTPUT_DIR):
+        for f in os.listdir(OUTPUT_DIR):
+            if f.endswith(".json"):
+                os.remove(os.path.join(OUTPUT_DIR, f))
+        print(f"Cleaned {OUTPUT_DIR}")
     main(seed=args.seed)
