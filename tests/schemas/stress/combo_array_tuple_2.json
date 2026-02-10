@@ -1,0 +1,22 @@
+{
+  "type": "array",
+  "prefixItems": [
+    {
+      "type": "null"
+    },
+    {
+      "type": "integer"
+    },
+    {
+      "type": "boolean"
+    },
+    {
+      "type": "string"
+    }
+  ],
+  "items": {
+    "type": "string"
+  },
+  "minItems": 4,
+  "maxItems": 9
+}

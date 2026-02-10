@@ -1,0 +1,26 @@
+{
+  "$defs": {
+    "node_32": {
+      "type": "object",
+      "properties": {
+        "val": {
+          "type": "integer"
+        },
+        "next": {
+          "$ref": "#/$defs/node_32"
+        },
+        "sibling": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/node_32"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "$ref": "#/$defs/node_32"
+}

@@ -1,0 +1,45 @@
+{
+  "type": "object",
+  "properties": {
+    "tuple_fixed": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        }
+      ],
+      "items": false
+    },
+    "tuple_open": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "string"
+        }
+      ],
+      "items": {
+        "type": "integer"
+      }
+    },
+    "unique_list": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "uniqueItems": true
+    },
+    "contains_test": {
+      "type": "array",
+      "contains": {
+        "const": "magic_token"
+      },
+      "minContains": 1
+    }
+  }
+}

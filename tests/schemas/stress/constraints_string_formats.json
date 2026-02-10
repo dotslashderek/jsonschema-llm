@@ -1,0 +1,37 @@
+{
+  "type": "object",
+  "properties": {
+    "pattern_0": {
+      "type": "string",
+      "pattern": "^[a-z]+$"
+    },
+    "pattern_1": {
+      "type": "string",
+      "pattern": "^\\d{3}-\\d{2}-\\d{4}$"
+    },
+    "pattern_2": {
+      "type": "string",
+      "pattern": "^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+    },
+    "pattern_3": {
+      "type": "string",
+      "pattern": "^([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}$"
+    },
+    "email_format": {
+      "type": "string",
+      "format": "email"
+    },
+    "uuid_format": {
+      "type": "string",
+      "format": "uuid"
+    }
+  },
+  "required": [
+    "pattern_0",
+    "pattern_1",
+    "pattern_2",
+    "pattern_3",
+    "email_format",
+    "uuid_format"
+  ]
+}

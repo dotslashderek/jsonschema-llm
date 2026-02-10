@@ -1,0 +1,553 @@
+{
+  "type": "object",
+  "properties": {
+    "level_1": {
+      "type": "object",
+      "properties": {
+        "level_2": {
+          "type": "object",
+          "properties": {
+            "level_3": {
+              "type": "object",
+              "properties": {
+                "level_4": {
+                  "type": "object",
+                  "properties": {
+                    "level_5": {
+                      "type": "object",
+                      "properties": {
+                        "level_6": {
+                          "type": "object",
+                          "properties": {
+                            "level_7": {
+                              "type": "object",
+                              "properties": {
+                                "level_8": {
+                                  "type": "object",
+                                  "properties": {
+                                    "level_9": {
+                                      "type": "object",
+                                      "properties": {
+                                        "level_10": {
+                                          "type": "object",
+                                          "properties": {
+                                            "level_11": {
+                                              "type": "object",
+                                              "properties": {
+                                                "level_12": {
+                                                  "type": "object",
+                                                  "properties": {
+                                                    "level_13": {
+                                                      "type": "object",
+                                                      "properties": {
+                                                        "level_14": {
+                                                          "type": "object",
+                                                          "properties": {
+                                                            "level_15": {
+                                                              "type": "object",
+                                                              "properties": {
+                                                                "level_16": {
+                                                                  "type": "object",
+                                                                  "properties": {
+                                                                    "level_17": {
+                                                                      "type": "object",
+                                                                      "properties": {
+                                                                        "level_18": {
+                                                                          "type": "object",
+                                                                          "properties": {
+                                                                            "level_19": {
+                                                                              "type": "object",
+                                                                              "properties": {
+                                                                                "level_20": {
+                                                                                  "type": "object",
+                                                                                  "properties": {
+                                                                                    "level_21": {
+                                                                                      "type": "object",
+                                                                                      "properties": {
+                                                                                        "level_22": {
+                                                                                          "type": "object",
+                                                                                          "properties": {
+                                                                                            "level_23": {
+                                                                                              "type": "object",
+                                                                                              "properties": {
+                                                                                                "level_24": {
+                                                                                                  "type": "object",
+                                                                                                  "properties": {
+                                                                                                    "level_25": {
+                                                                                                      "type": "object",
+                                                                                                      "properties": {
+                                                                                                        "level_26": {
+                                                                                                          "type": "object",
+                                                                                                          "properties": {
+                                                                                                            "level_27": {
+                                                                                                              "type": "object",
+                                                                                                              "properties": {
+                                                                                                                "level_28": {
+                                                                                                                  "type": "object",
+                                                                                                                  "properties": {
+                                                                                                                    "level_29": {
+                                                                                                                      "type": "object",
+                                                                                                                      "properties": {
+                                                                                                                        "level_30": {
+                                                                                                                          "type": "object",
+                                                                                                                          "properties": {
+                                                                                                                            "level_31": {
+                                                                                                                              "type": "object",
+                                                                                                                              "properties": {
+                                                                                                                                "level_32": {
+                                                                                                                                  "type": "object",
+                                                                                                                                  "properties": {
+                                                                                                                                    "level_33": {
+                                                                                                                                      "type": "object",
+                                                                                                                                      "properties": {
+                                                                                                                                        "level_34": {
+                                                                                                                                          "type": "object",
+                                                                                                                                          "properties": {
+                                                                                                                                            "level_35": {
+                                                                                                                                              "type": "object",
+                                                                                                                                              "properties": {
+                                                                                                                                                "level_36": {
+                                                                                                                                                  "type": "object",
+                                                                                                                                                  "properties": {
+                                                                                                                                                    "level_37": {
+                                                                                                                                                      "type": "object",
+                                                                                                                                                      "properties": {
+                                                                                                                                                        "level_38": {
+                                                                                                                                                          "type": "object",
+                                                                                                                                                          "properties": {
+                                                                                                                                                            "level_39": {
+                                                                                                                                                              "type": "object",
+                                                                                                                                                              "properties": {
+                                                                                                                                                                "level_40": {
+                                                                                                                                                                  "type": "object",
+                                                                                                                                                                  "properties": {
+                                                                                                                                                                    "level_41": {
+                                                                                                                                                                      "type": "object",
+                                                                                                                                                                      "properties": {
+                                                                                                                                                                        "level_42": {
+                                                                                                                                                                          "type": "object",
+                                                                                                                                                                          "properties": {
+                                                                                                                                                                            "level_43": {
+                                                                                                                                                                              "type": "object",
+                                                                                                                                                                              "properties": {
+                                                                                                                                                                                "level_44": {
+                                                                                                                                                                                  "type": "object",
+                                                                                                                                                                                  "properties": {
+                                                                                                                                                                                    "level_45": {
+                                                                                                                                                                                      "type": "object",
+                                                                                                                                                                                      "properties": {
+                                                                                                                                                                                        "level_46": {
+                                                                                                                                                                                          "type": "object",
+                                                                                                                                                                                          "properties": {
+                                                                                                                                                                                            "level_47": {
+                                                                                                                                                                                              "type": "object",
+                                                                                                                                                                                              "properties": {
+                                                                                                                                                                                                "level_48": {
+                                                                                                                                                                                                  "type": "object",
+                                                                                                                                                                                                  "properties": {
+                                                                                                                                                                                                    "level_49": {
+                                                                                                                                                                                                      "type": "object",
+                                                                                                                                                                                                      "properties": {
+                                                                                                                                                                                                        "level_50": {
+                                                                                                                                                                                                          "type": "string"
+                                                                                                                                                                                                        },
+                                                                                                                                                                                                        "meta_50": {
+                                                                                                                                                                                                          "type": "integer"
+                                                                                                                                                                                                        }
+                                                                                                                                                                                                      },
+                                                                                                                                                                                                      "required": [
+                                                                                                                                                                                                        "level_50"
+                                                                                                                                                                                                      ]
+                                                                                                                                                                                                    },
+                                                                                                                                                                                                    "meta_49": {
+                                                                                                                                                                                                      "type": "integer"
+                                                                                                                                                                                                    }
+                                                                                                                                                                                                  },
+                                                                                                                                                                                                  "required": [
+                                                                                                                                                                                                    "level_49"
+                                                                                                                                                                                                  ]
+                                                                                                                                                                                                },
+                                                                                                                                                                                                "meta_48": {
+                                                                                                                                                                                                  "type": "integer"
+                                                                                                                                                                                                }
+                                                                                                                                                                                              },
+                                                                                                                                                                                              "required": [
+                                                                                                                                                                                                "level_48"
+                                                                                                                                                                                              ]
+                                                                                                                                                                                            },
+                                                                                                                                                                                            "meta_47": {
+                                                                                                                                                                                              "type": "integer"
+                                                                                                                                                                                            }
+                                                                                                                                                                                          },
+                                                                                                                                                                                          "required": [
+                                                                                                                                                                                            "level_47"
+                                                                                                                                                                                          ]
+                                                                                                                                                                                        },
+                                                                                                                                                                                        "meta_46": {
+                                                                                                                                                                                          "type": "integer"
+                                                                                                                                                                                        }
+                                                                                                                                                                                      },
+                                                                                                                                                                                      "required": [
+                                                                                                                                                                                        "level_46"
+                                                                                                                                                                                      ]
+                                                                                                                                                                                    },
+                                                                                                                                                                                    "meta_45": {
+                                                                                                                                                                                      "type": "integer"
+                                                                                                                                                                                    }
+                                                                                                                                                                                  },
+                                                                                                                                                                                  "required": [
+                                                                                                                                                                                    "level_45"
+                                                                                                                                                                                  ]
+                                                                                                                                                                                },
+                                                                                                                                                                                "meta_44": {
+                                                                                                                                                                                  "type": "integer"
+                                                                                                                                                                                }
+                                                                                                                                                                              },
+                                                                                                                                                                              "required": [
+                                                                                                                                                                                "level_44"
+                                                                                                                                                                              ]
+                                                                                                                                                                            },
+                                                                                                                                                                            "meta_43": {
+                                                                                                                                                                              "type": "integer"
+                                                                                                                                                                            }
+                                                                                                                                                                          },
+                                                                                                                                                                          "required": [
+                                                                                                                                                                            "level_43"
+                                                                                                                                                                          ]
+                                                                                                                                                                        },
+                                                                                                                                                                        "meta_42": {
+                                                                                                                                                                          "type": "integer"
+                                                                                                                                                                        }
+                                                                                                                                                                      },
+                                                                                                                                                                      "required": [
+                                                                                                                                                                        "level_42"
+                                                                                                                                                                      ]
+                                                                                                                                                                    },
+                                                                                                                                                                    "meta_41": {
+                                                                                                                                                                      "type": "integer"
+                                                                                                                                                                    }
+                                                                                                                                                                  },
+                                                                                                                                                                  "required": [
+                                                                                                                                                                    "level_41"
+                                                                                                                                                                  ]
+                                                                                                                                                                },
+                                                                                                                                                                "meta_40": {
+                                                                                                                                                                  "type": "integer"
+                                                                                                                                                                }
+                                                                                                                                                              },
+                                                                                                                                                              "required": [
+                                                                                                                                                                "level_40"
+                                                                                                                                                              ]
+                                                                                                                                                            },
+                                                                                                                                                            "meta_39": {
+                                                                                                                                                              "type": "integer"
+                                                                                                                                                            }
+                                                                                                                                                          },
+                                                                                                                                                          "required": [
+                                                                                                                                                            "level_39"
+                                                                                                                                                          ]
+                                                                                                                                                        },
+                                                                                                                                                        "meta_38": {
+                                                                                                                                                          "type": "integer"
+                                                                                                                                                        }
+                                                                                                                                                      },
+                                                                                                                                                      "required": [
+                                                                                                                                                        "level_38"
+                                                                                                                                                      ]
+                                                                                                                                                    },
+                                                                                                                                                    "meta_37": {
+                                                                                                                                                      "type": "integer"
+                                                                                                                                                    }
+                                                                                                                                                  },
+                                                                                                                                                  "required": [
+                                                                                                                                                    "level_37"
+                                                                                                                                                  ]
+                                                                                                                                                },
+                                                                                                                                                "meta_36": {
+                                                                                                                                                  "type": "integer"
+                                                                                                                                                }
+                                                                                                                                              },
+                                                                                                                                              "required": [
+                                                                                                                                                "level_36"
+                                                                                                                                              ]
+                                                                                                                                            },
+                                                                                                                                            "meta_35": {
+                                                                                                                                              "type": "integer"
+                                                                                                                                            }
+                                                                                                                                          },
+                                                                                                                                          "required": [
+                                                                                                                                            "level_35"
+                                                                                                                                          ]
+                                                                                                                                        },
+                                                                                                                                        "meta_34": {
+                                                                                                                                          "type": "integer"
+                                                                                                                                        }
+                                                                                                                                      },
+                                                                                                                                      "required": [
+                                                                                                                                        "level_34"
+                                                                                                                                      ]
+                                                                                                                                    },
+                                                                                                                                    "meta_33": {
+                                                                                                                                      "type": "integer"
+                                                                                                                                    }
+                                                                                                                                  },
+                                                                                                                                  "required": [
+                                                                                                                                    "level_33"
+                                                                                                                                  ]
+                                                                                                                                },
+                                                                                                                                "meta_32": {
+                                                                                                                                  "type": "integer"
+                                                                                                                                }
+                                                                                                                              },
+                                                                                                                              "required": [
+                                                                                                                                "level_32"
+                                                                                                                              ]
+                                                                                                                            },
+                                                                                                                            "meta_31": {
+                                                                                                                              "type": "integer"
+                                                                                                                            }
+                                                                                                                          },
+                                                                                                                          "required": [
+                                                                                                                            "level_31"
+                                                                                                                          ]
+                                                                                                                        },
+                                                                                                                        "meta_30": {
+                                                                                                                          "type": "integer"
+                                                                                                                        }
+                                                                                                                      },
+                                                                                                                      "required": [
+                                                                                                                        "level_30"
+                                                                                                                      ]
+                                                                                                                    },
+                                                                                                                    "meta_29": {
+                                                                                                                      "type": "integer"
+                                                                                                                    }
+                                                                                                                  },
+                                                                                                                  "required": [
+                                                                                                                    "level_29"
+                                                                                                                  ]
+                                                                                                                },
+                                                                                                                "meta_28": {
+                                                                                                                  "type": "integer"
+                                                                                                                }
+                                                                                                              },
+                                                                                                              "required": [
+                                                                                                                "level_28"
+                                                                                                              ]
+                                                                                                            },
+                                                                                                            "meta_27": {
+                                                                                                              "type": "integer"
+                                                                                                            }
+                                                                                                          },
+                                                                                                          "required": [
+                                                                                                            "level_27"
+                                                                                                          ]
+                                                                                                        },
+                                                                                                        "meta_26": {
+                                                                                                          "type": "integer"
+                                                                                                        }
+                                                                                                      },
+                                                                                                      "required": [
+                                                                                                        "level_26"
+                                                                                                      ]
+                                                                                                    },
+                                                                                                    "meta_25": {
+                                                                                                      "type": "integer"
+                                                                                                    }
+                                                                                                  },
+                                                                                                  "required": [
+                                                                                                    "level_25"
+                                                                                                  ]
+                                                                                                },
+                                                                                                "meta_24": {
+                                                                                                  "type": "integer"
+                                                                                                }
+                                                                                              },
+                                                                                              "required": [
+                                                                                                "level_24"
+                                                                                              ]
+                                                                                            },
+                                                                                            "meta_23": {
+                                                                                              "type": "integer"
+                                                                                            }
+                                                                                          },
+                                                                                          "required": [
+                                                                                            "level_23"
+                                                                                          ]
+                                                                                        },
+                                                                                        "meta_22": {
+                                                                                          "type": "integer"
+                                                                                        }
+                                                                                      },
+                                                                                      "required": [
+                                                                                        "level_22"
+                                                                                      ]
+                                                                                    },
+                                                                                    "meta_21": {
+                                                                                      "type": "integer"
+                                                                                    }
+                                                                                  },
+                                                                                  "required": [
+                                                                                    "level_21"
+                                                                                  ]
+                                                                                },
+                                                                                "meta_20": {
+                                                                                  "type": "integer"
+                                                                                }
+                                                                              },
+                                                                              "required": [
+                                                                                "level_20"
+                                                                              ]
+                                                                            },
+                                                                            "meta_19": {
+                                                                              "type": "integer"
+                                                                            }
+                                                                          },
+                                                                          "required": [
+                                                                            "level_19"
+                                                                          ]
+                                                                        },
+                                                                        "meta_18": {
+                                                                          "type": "integer"
+                                                                        }
+                                                                      },
+                                                                      "required": [
+                                                                        "level_18"
+                                                                      ]
+                                                                    },
+                                                                    "meta_17": {
+                                                                      "type": "integer"
+                                                                    }
+                                                                  },
+                                                                  "required": [
+                                                                    "level_17"
+                                                                  ]
+                                                                },
+                                                                "meta_16": {
+                                                                  "type": "integer"
+                                                                }
+                                                              },
+                                                              "required": [
+                                                                "level_16"
+                                                              ]
+                                                            },
+                                                            "meta_15": {
+                                                              "type": "integer"
+                                                            }
+                                                          },
+                                                          "required": [
+                                                            "level_15"
+                                                          ]
+                                                        },
+                                                        "meta_14": {
+                                                          "type": "integer"
+                                                        }
+                                                      },
+                                                      "required": [
+                                                        "level_14"
+                                                      ]
+                                                    },
+                                                    "meta_13": {
+                                                      "type": "integer"
+                                                    }
+                                                  },
+                                                  "required": [
+                                                    "level_13"
+                                                  ]
+                                                },
+                                                "meta_12": {
+                                                  "type": "integer"
+                                                }
+                                              },
+                                              "required": [
+                                                "level_12"
+                                              ]
+                                            },
+                                            "meta_11": {
+                                              "type": "integer"
+                                            }
+                                          },
+                                          "required": [
+                                            "level_11"
+                                          ]
+                                        },
+                                        "meta_10": {
+                                          "type": "integer"
+                                        }
+                                      },
+                                      "required": [
+                                        "level_10"
+                                      ]
+                                    },
+                                    "meta_9": {
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "required": [
+                                    "level_9"
+                                  ]
+                                },
+                                "meta_8": {
+                                  "type": "integer"
+                                }
+                              },
+                              "required": [
+                                "level_8"
+                              ]
+                            },
+                            "meta_7": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "level_7"
+                          ]
+                        },
+                        "meta_6": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "level_6"
+                      ]
+                    },
+                    "meta_5": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "level_5"
+                  ]
+                },
+                "meta_4": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "level_4"
+              ]
+            },
+            "meta_3": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "level_3"
+          ]
+        },
+        "meta_2": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "level_2"
+      ]
+    },
+    "meta_1": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "level_1"
+  ]
+}
