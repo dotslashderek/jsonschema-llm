@@ -69,6 +69,9 @@ jsonschema-llm convert schema.json -o schema.llm.json --codec codec.json
 # Convert for Gemini (relaxed — preserves more features)
 jsonschema-llm convert schema.json -o schema.llm.json --target gemini
 
+# Convert in permissive mode (skip strict enforcement)
+jsonschema-llm convert schema.json -o schema.llm.json --mode permissive
+
 # Rehydrate LLM output back to the original shape
 jsonschema-llm rehydrate output.json --codec codec.json
 ```
@@ -179,7 +182,7 @@ The converted schemas were accepted by **OpenAI Strict Mode**. The LLM generated
 
 ## Algorithm: The 8-Pass Compiler Pipeline
 
-`jsonschema-llm` transforms schemas through 8 ordered passes, each handling a specific incompatibility. The passes are **ordered** (each assumes previous output), **deterministic**, **provider-aware** (passes are skipped/relaxed per target), and **metadata-preserving** (every lossy change records how to reverse it).
+`jsonschema-llm` transforms schemas through 9 ordered passes, each handling a specific incompatibility. The passes are **ordered** (each assumes previous output), **deterministic**, **provider-aware** (passes are skipped/relaxed per target), **mode-aware** (strict vs permissive), and **metadata-preserving** (every lossy change records how to reverse it).
 
 > 📖 **Full specification with examples, merge rules, and design decisions:** [docs/algorithm.md](docs/algorithm.md)
 
@@ -204,6 +207,8 @@ The converted schemas were accepted by **OpenAI Strict Mode**. The LLM generated
     │ Pass 6: Strict Enforcement   │  ✅ additionalProperties: false, all required
     ├──────────────────────────────┤
     │ Pass 7: Constraint Pruning   │  ✅ Drop unsupported constraints
+    ├──────────────────────────────┤
+    │ Pass 9: Provider Compat      │  ✅ Pre-flight provider validation
     └────────┬─────────────────────┘
              │
     ┌────────▼────────┐   ┌───────────┐
@@ -224,6 +229,7 @@ The converted schemas were accepted by **OpenAI Strict Mode**. The LLM generated
 | **5** | Recursion          | Inlines all remaining `$ref` pointers and breaks recursive cycles at a configurable depth limit (default 3) using dynamic per-branch cycle detection. Strips `$defs` after resolution. _Skipped for Gemini._     | Depth capped                 |
 | **6** | Strict Enforcement | Sets `additionalProperties: false`, moves all properties to `required`, and wraps originally-optional properties in `anyOf: [T, {type: null}]`. The "gatekeeper" pass for OpenAI Strict.                         | No                           |
 | **7** | Constraint Pruning | Removes unsupported validation keywords per target (e.g. `minimum`, `maxLength`, `format`), normalizes `const` → `enum`, and sorts enum values to put `default` first. Records dropped constraints in the codec. | Validation-only data lost    |
+| **9** | Provider Compat    | Pre-flight checks for target-specific constraints (e.g. root must be object, depth budget, enum homogeneity). Returns soft errors — schema is still produced.                                                    | No (read-only)               |
 
 ---
 
@@ -308,7 +314,7 @@ The core library is written in **Rust** using `serde_json::Value` for schema man
 
 ### v0.1 — Core Pipeline ✅
 
-The 8-pass compiler pipeline, rehydrator, codec, and CLI are all implemented and green.
+The 9-pass compiler pipeline, rehydrator, codec, and CLI are all implemented and green.
 
 | Component              | Status      | Notes                                                   |
 | ---------------------- | ----------- | ------------------------------------------------------- |
@@ -321,7 +327,7 @@ The 8-pass compiler pipeline, rehydrator, codec, and CLI are all implemented and
 | Pass 6: Strict Mode    | ✅ Complete | `additionalProperties: false`, nullable optionals       |
 | Pass 7: Constraints    | ✅ Complete | Constraint pruning, enum sorting, const→enum            |
 | Rehydrator             | ✅ Complete | Full reverse transforms with advisory warnings          |
-| Pipeline (`convert()`) | ✅ Complete | Wires all 8 passes with codec accumulation              |
+| Pipeline (`convert()`) | ✅ Complete | Wires all 9 passes with codec accumulation              |
 | CLI                    | ✅ Complete | `convert` and `rehydrate` subcommands via `clap`        |
 
 Validated against production-grade schemas including the OpenAPI 3.1 Specification Schema. All accepted by OpenAI Strict Mode with full round-trip rehydration.
