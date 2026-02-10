@@ -280,7 +280,7 @@ export interface StructuredError {
 }
 
 export function convert(
-  schema: Record<string, unknown>,
+  schema: Record<string, unknown> | boolean,
   options?: ConvertOptions | null
 ): ConvertResult;
 

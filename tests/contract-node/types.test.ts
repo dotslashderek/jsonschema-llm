@@ -29,6 +29,10 @@ import {
 
 const result: ConvertResult = convert({ type: "object" });
 
+// Boolean schemas are valid JSON Schema
+const _boolTrue: ConvertResult = convert(true);
+const _boolFalse: ConvertResult = convert(false);
+
 // apiVersion is a string
 const _version: string = result.apiVersion;
 
@@ -109,6 +113,11 @@ if (transforms.length > 0) {
     case "recursive_inflate":
       const _oref: string = t.originalRef;
       break;
+    default: {
+      // Exhaustive check — fails at compile time if a new variant is added
+      const _exhaustive: never = t;
+      break;
+    }
   }
 }
 
@@ -141,6 +150,11 @@ if (warnings.length > 0) {
     case "path_not_found":
       // No extra fields
       break;
+    default: {
+      // Exhaustive check — fails at compile time if a new variant is added
+      const _exhaustive: never = kind;
+      break;
+    }
   }
 }
 

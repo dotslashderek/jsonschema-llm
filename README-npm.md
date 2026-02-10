@@ -57,7 +57,7 @@ const result = convert({
 ```typescript
 interface ConvertOptions {
   target?: "openai-strict" | "gemini" | "claude"; // Default: "openai-strict"
-  maxDepth?: number; // Max ref resolution depth (default: 100)
+  maxDepth?: number; // Max ref resolution depth (default: 50)
   recursionLimit?: number; // Max recursive type inlining (default: 3)
   polymorphism?: "any-of" | "flatten"; // Polymorphism strategy (default: "any-of")
 }
