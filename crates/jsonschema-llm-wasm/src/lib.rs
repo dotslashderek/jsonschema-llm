@@ -139,7 +139,7 @@ pub fn init() {
 /// If options is `undefined` or `null`, defaults are used.
 ///
 /// On error, throws a structured JS object `{ code, message, path }`.
-#[wasm_bindgen]
+#[wasm_bindgen(skip_typescript)]
 pub fn convert(schema: JsValue, options: JsValue) -> Result<JsValue, JsValue> {
     let schema: serde_json::Value =
         serde_wasm_bindgen::from_value(schema).map_err(to_serde_js_error)?;
@@ -171,7 +171,7 @@ pub fn convert(schema: JsValue, options: JsValue) -> Result<JsValue, JsValue> {
 /// Returns a JS object: `{ apiVersion: "1.0", data, warnings }`.
 ///
 /// On error, throws a structured JS object `{ code, message, path }`.
-#[wasm_bindgen]
+#[wasm_bindgen(skip_typescript)]
 pub fn rehydrate(data: JsValue, codec: JsValue) -> Result<JsValue, JsValue> {
     let data: serde_json::Value =
         serde_wasm_bindgen::from_value(data).map_err(to_serde_js_error)?;
@@ -190,3 +190,102 @@ pub fn rehydrate(data: JsValue, codec: JsValue) -> Result<JsValue, JsValue> {
     let serializer = Serializer::json_compatible();
     bridge.serialize(&serializer).map_err(to_serde_js_error)
 }
+
+// ⚠️ SYNC WARNING: These TypeScript types are hand-authored to match the
+// serialized JS shapes produced by serde + Serializer::json_compatible().
+// If you modify any of these Rust types, you MUST update the corresponding
+// TypeScript definitions below:
+//
+//   - WasmConvertOptions (this file)      → ConvertOptions
+//   - WasmConvertResult (this file)       → ConvertResult
+//   - WasmRehydrateResult (this file)     → RehydrateResult
+//   - Target (config.rs)                  → Target
+//   - PolymorphismStrategy (config.rs)    → PolymorphismStrategy
+//   - Codec (codec.rs)                    → Codec
+//   - Transform (codec.rs)               → Transform
+//   - DroppedConstraint (codec.rs)        → DroppedConstraint
+//   - Warning (codec_warning.rs)          → Warning
+//   - WarningKind (codec_warning.rs)      → WarningKind
+//   - ErrorCode (error.rs)               → ErrorCode
+//   - ConvertError.to_json (error.rs)     → StructuredError
+#[wasm_bindgen(typescript_custom_section)]
+const TS_TYPES: &str = r#"
+export type Target = "openai-strict" | "gemini" | "claude";
+export type PolymorphismStrategy = "any-of" | "flatten";
+
+export interface ConvertOptions {
+  target?: Target;
+  maxDepth?: number;
+  recursionLimit?: number;
+  polymorphism?: PolymorphismStrategy;
+}
+
+export interface Codec {
+  $schema: string;
+  transforms: Transform[];
+  droppedConstraints: DroppedConstraint[];
+}
+
+export type Transform =
+  | { type: "map_to_array"; path: string; keyField: string }
+  | { type: "json_string_parse"; path: string }
+  | { type: "nullable_optional"; path: string; originalRequired: boolean }
+  | { type: "discriminator_any_of"; path: string; discriminator: string; variants: string[] }
+  | { type: "extract_additional_properties"; path: string; propertyName: string }
+  | { type: "recursive_inflate"; path: string; originalRef: string };
+
+export interface DroppedConstraint {
+  path: string;
+  constraint: string;
+  value: unknown;
+}
+
+export interface ConvertResult {
+  apiVersion: string;
+  schema: Record<string, unknown>;
+  codec: Codec;
+}
+
+export interface RehydrateResult {
+  apiVersion: string;
+  data: unknown;
+  warnings: Warning[];
+}
+
+export type WarningKind =
+  | { type: "constraint_violation"; constraint: string }
+  | { type: "constraint_unevaluable"; constraint: string }
+  | { type: "path_not_found" };
+
+export interface Warning {
+  dataPath: string;
+  schemaPath: string;
+  kind: WarningKind;
+  message: string;
+}
+
+export type ErrorCode =
+  | "json_parse_error"
+  | "schema_error"
+  | "recursion_depth_exceeded"
+  | "unsupported_feature"
+  | "unresolvable_ref"
+  | "rehydration_error"
+  | "codec_version_mismatch";
+
+export interface StructuredError {
+  code: ErrorCode;
+  message: string;
+  path: string | null;
+}
+
+export function convert(
+  schema: Record<string, unknown>,
+  options?: ConvertOptions | null
+): ConvertResult;
+
+export function rehydrate(
+  data: unknown,
+  codec: Codec
+): RehydrateResult;
+"#;

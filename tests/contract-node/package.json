@@ -4,9 +4,11 @@
   "version": "0.0.0",
   "scripts": {
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "typescript": "^5.7.0",
     "vitest": "^3.0.0"
   },
   "dependencies": {
