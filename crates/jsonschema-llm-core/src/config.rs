@@ -15,19 +15,14 @@ pub enum Target {
 }
 
 /// Conversion mode — controls how aggressively the pipeline transforms the schema.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Mode {
     /// Full LLM strict mode — seal objects, enforce all provider constraints.
+    #[default]
     Strict,
     /// Permissive — preserve extensibility (meta-schemas, spec validation).
     Permissive,
-}
-
-impl Default for Mode {
-    fn default() -> Self {
-        Self::Strict
-    }
 }
 
 /// Options for schema conversion.
