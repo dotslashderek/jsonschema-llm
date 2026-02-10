@@ -53,8 +53,9 @@ struct WasmRehydrateResult<'a> {
 /// NOTE: Keep in sync with `jsonschema_llm_core::ConvertOptions`.
 /// If core adds new options, update this struct to match.
 /// Defaults are sourced from `ConvertOptions::default()` (single source of truth).
-#[derive(serde::Deserialize)]
+#[derive(Default, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[serde(default)]
 struct WasmConvertOptions {
     #[serde(alias = "target")]
     target: Option<Target>,
