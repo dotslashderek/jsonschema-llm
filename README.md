@@ -110,17 +110,18 @@ const original = rehydrate(
 from jsonschema_llm import convert, rehydrate
 
 # Convert
-schema, codec = convert(my_schema, target="openai-strict")
+result = convert(my_schema, {"target": "openai-strict"})
 
 # Send to OpenAI
 response = client.chat.completions.create(
     model="gpt-4o",
-    response_format={"type": "json_schema", "json_schema": {"name": "my_schema", "schema": schema, "strict": True}},
+    response_format={"type": "json_schema", "json_schema": {"name": "my_schema", "schema": result["schema"], "strict": True}},
     messages=[{"role": "user", "content": prompt}]
 )
 
-# Rehydrate
-original = rehydrate(json.loads(response.choices[0].message.content), codec)
+# Rehydrate — maps restored, nulls stripped, JSON strings parsed
+import json
+original = rehydrate(json.loads(response.choices[0].message.content), result["codec"])
 ```
 
 </details>
@@ -243,14 +244,14 @@ The codec sidecar file contains enough information to reconstruct the original d
 # Full round-trip example
 from jsonschema_llm import convert, rehydrate
 
-schema, codec = convert(my_api_schema)
-llm_output = call_openai(schema, prompt)
+result = convert(my_api_schema)
+llm_output = call_openai(result["schema"], prompt)
 
 # LLM output has arrays where you had maps, strings where you had objects, nulls everywhere
 # Rehydrate fixes all of it:
-original_shape = rehydrate(llm_output, codec)
+rehydrated = rehydrate(llm_output, result["codec"])
 
-# original_shape now has:
+# rehydrated["data"] now has:
 # - Maps restored: {"X-Rate-Limit": "100"} instead of [{key: "X-Rate-Limit", value: "100"}]
 # - Nulls stripped: optional fields that were null are removed entirely
 # - JSON strings parsed: plugin configs are proper objects again
@@ -298,7 +299,7 @@ original_shape = rehydrate(llm_output, codec)
 └───────┘ └──────────┘ └──────────┘ └─────────┘
 ```
 
-The core library is written in **Rust** using `serde_json::Value` for schema manipulation with recursive descent transformers. Language bindings are tracked as separate epics: [TypeScript via WASM](https://github.com/dotslashderek/jsonschema-llm/issues/38), [Python via PyO3](https://github.com/dotslashderek/jsonschema-llm/issues/39), and [Java via JNI](https://github.com/dotslashderek/jsonschema-llm/issues/40) — all blocked on the [FFI Facade](https://github.com/dotslashderek/jsonschema-llm/issues/37) prerequisite.
+The core library is written in **Rust** using `serde_json::Value` for schema manipulation with recursive descent transformers. Language bindings are shipped as separate crates: [TypeScript via WASM](https://github.com/dotslashderek/jsonschema-llm/issues/38) (✅ shipped), [Python via PyO3](https://github.com/dotslashderek/jsonschema-llm/issues/39) (✅ shipped), and [Java via JNI](https://github.com/dotslashderek/jsonschema-llm/issues/40) (planned).
 
 ---
 
@@ -326,18 +327,18 @@ Validated against production-grade schemas including the OpenAPI 3.1 Specificati
 
 ### v0.2 — Roadmap
 
-| Epic                                                                                | Status         | Effort | Description                                                                                       |
-| ----------------------------------------------------------------------------------- | -------------- | ------ | ------------------------------------------------------------------------------------------------- |
-| [Core Improvements](https://github.com/dotslashderek/jsonschema-llm/issues/36)      | 🔲 Not started | M–L    | Walker unification, rehydrator decomposition, test hardening, docs cleanup                        |
-| [FFI Facade](https://github.com/dotslashderek/jsonschema-llm/issues/37)             | 🔲 Not started | L      | JSON-string bridge API, stable error codes, serde-ready types — **prerequisite for all bindings** |
-| [TypeScript / JS (WASM)](https://github.com/dotslashderek/jsonschema-llm/issues/38) | 🔲 Not started | M–L    | `wasm-pack` + `serde-wasm-bindgen`, npm package                                                   |
-| [Python (PyO3)](https://github.com/dotslashderek/jsonschema-llm/issues/39)          | 🔲 Not started | M      | `maturin` + `pythonize`, PyPI package                                                             |
-| [Java (JNI)](https://github.com/dotslashderek/jsonschema-llm/issues/40)             | 🔲 Not started | XL     | `jni-rs` + JSON string bridge, Maven Central                                                      |
+| Epic                                                                                | Status         | Effort | Description                                                                |
+| ----------------------------------------------------------------------------------- | -------------- | ------ | -------------------------------------------------------------------------- |
+| [Core Improvements](https://github.com/dotslashderek/jsonschema-llm/issues/36)      | 🔲 Not started | M–L    | Walker unification, rehydrator decomposition, test hardening, docs cleanup |
+| [FFI Facade](https://github.com/dotslashderek/jsonschema-llm/issues/37)             | ✅ Complete    | L      | JSON-string bridge API, stable error codes, serde-ready types              |
+| [TypeScript / JS (WASM)](https://github.com/dotslashderek/jsonschema-llm/issues/38) | ✅ Complete    | M–L    | `wasm-pack` + `serde-wasm-bindgen`, npm package                            |
+| [Python (PyO3)](https://github.com/dotslashderek/jsonschema-llm/issues/39)          | ✅ Complete    | M      | `maturin` + `pythonize`, PyPI package                                      |
+| [Java (JNI)](https://github.com/dotslashderek/jsonschema-llm/issues/40)             | 🔲 Not started | XL     | `jni-rs` + JSON string bridge, Maven Central                               |
 
 ```
-FFI Facade (#37)  ──▶  TS/WASM (#38)
-                  ──▶  Python  (#39)
-                  ──▶  Java    (#40)
+FFI Facade (#37) ✅  ──▶  TS/WASM (#38) ✅
+                     ──▶  Python  (#39) ✅
+                     ──▶  Java    (#40) 🔲
 ```
 
 ---

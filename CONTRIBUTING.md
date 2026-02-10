@@ -7,6 +7,8 @@ Thanks for your interest in contributing! This project is in early development a
 ### Prerequisites
 
 - [Rust](https://www.rust-lang.org/tools/install) (stable, latest)
+- [Node.js](https://nodejs.org/) 20+ and [pnpm](https://pnpm.io/) (for WASM contract tests)
+- [Python](https://www.python.org/) 3.9+ and [maturin](https://www.maturin.rs/) (for Python bindings)
 
 ### Building
 
@@ -29,12 +31,22 @@ cargo fmt -- --check
 The project uses a multi-layer testing strategy:
 
 1. **Unit tests** — Rust `#[test]` modules within each pass
-2. **Integration tests** — Full pipeline tests with real schemas (planned)
-3. **Doc tests** — Examples in `lib.rs` and `schema_utils.rs`
+2. **E2E tests** — Full pipeline tests with real schemas in `crates/jsonschema-llm-core/tests/`
+3. **CLI tests** — End-to-end CLI integration tests in `cli/tests/`
+4. **WASM contract tests** — Node.js tests verifying WASM bindings in `tests/contract-node/`
+5. **Python acceptance tests** — pytest suite in `crates/jsonschema-llm-python/tests/`
+6. **Doc tests** — Examples in `lib.rs` and `schema_utils.rs`
 
 ```bash
-# Unit + doc tests
+# Core Rust tests
 cargo test
+
+# Python bindings
+cd crates/jsonschema-llm-python && maturin develop && pytest tests/
+
+# WASM contract tests
+wasm-pack build crates/jsonschema-llm-wasm --target nodejs --out-dir ../../tests/contract-node/pkg
+cd tests/contract-node && pnpm test
 ```
 
 ### Project Structure
@@ -42,20 +54,20 @@ cargo test
 ```
 jsonschema-llm/
 ├── crates/
-│   └── jsonschema-llm-core/   # Core Rust library
-│       └── src/
-│           ├── lib.rs          # Public API
-│           ├── passes/         # One module per pass (p0–p7)
-│           ├── codec.rs        # Codec builder
-│           ├── rehydrator.rs   # Reverse transforms
-│           └── schema_utils.rs # Shared path/traversal utilities
-├── cli/                       # CLI binary
-├── bindings/                  # Language bindings (not yet implemented)
-│   ├── typescript/            # WASM (planned)
-│   ├── java/                  # JNI (planned)
-│   └── python/                # PyO3 (planned)
+│   ├── jsonschema-llm-core/     # Core Rust library
+│   │   └── src/
+│   │       ├── lib.rs            # Public API
+│   │       ├── passes/           # One module per pass (p0–p7)
+│   │       ├── codec.rs          # Codec builder
+│   │       ├── rehydrator.rs     # Reverse transforms
+│   │       └── schema_utils.rs   # Shared path/traversal utilities
+│   ├── jsonschema-llm-wasm/     # TypeScript/JS WASM bindings
+│   └── jsonschema-llm-python/   # Python PyO3 bindings
+├── cli/                         # CLI binary
+├── tests/
+│   └── contract-node/           # WASM contract tests (Node.js)
 └── docs/
-    └── algorithm.md           # Formal algorithm spec
+    └── algorithm.md             # Formal algorithm spec
 ```
 
 ## Pull Request Process
