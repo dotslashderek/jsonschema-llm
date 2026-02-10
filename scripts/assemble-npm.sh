@@ -46,10 +46,14 @@ jq '
   ] |
   .exports = {
     ".": {
+      "types": "./jsonschema_llm_wasm.d.ts",
       "node": "./jsonschema_llm_wasm.js",
       "default": "./web/jsonschema_llm_wasm.js"
     },
-    "./web": "./web/jsonschema_llm_wasm.js"
+    "./web": {
+      "types": "./web/jsonschema_llm_wasm.d.ts",
+      "default": "./web/jsonschema_llm_wasm.js"
+    }
   }
 ' "${DIST}/package.json" > "${TEMP_PKG}"
 mv "${TEMP_PKG}" "${DIST}/package.json"
