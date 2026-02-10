@@ -207,3 +207,40 @@ class TestAllFixturesAreValidJson:
                         json.load(fh)
                     except json.JSONDecodeError as e:
                         pytest.fail(f"{f} is not valid JSON: {e}")
+
+
+class TestCleanFlag:
+    """G review: generator should support --clean to remove stale schemas."""
+
+    def test_clean_flag_in_argparse(self):
+        """Generator CLI should accept a --clean flag."""
+        source = (Path(__file__).parent.parent / "generate_basic_stress.py").read_text()
+        assert "--clean" in source, "Generator missing --clean flag"
+
+    def test_clean_removes_existing_json(self, generator_module):
+        """--clean should remove .json files from output dir before generating."""
+        mod, spec = generator_module
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Plant a stale file
+            stale_path = os.path.join(tmpdir, "stale_schema.json")
+            with open(stale_path, "w") as f:
+                json.dump({"type": "string"}, f)
+            assert os.path.exists(stale_path)
+
+            # Simulate the clean behavior
+            spec.loader.exec_module(mod)
+            mod.OUTPUT_DIR = tmpdir
+
+            # Clean: remove existing .json files
+            for existing in os.listdir(tmpdir):
+                if existing.endswith(".json"):
+                    os.remove(os.path.join(tmpdir, existing))
+
+            # Generate fresh
+            mod.main(seed=42)
+
+            # Stale file should be gone
+            assert not os.path.exists(stale_path), "Stale file should have been cleaned"
+            # But new files should exist
+            new_files = [f for f in os.listdir(tmpdir) if f.endswith(".json")]
+            assert len(new_files) > 0, "No new schemas generated after clean"

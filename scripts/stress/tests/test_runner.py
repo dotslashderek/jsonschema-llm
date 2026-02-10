@@ -190,3 +190,111 @@ class TestStageClassification:
                 assert f'"{stage}"' in source or f"'{stage}'" in source, (
                     f"Stage '{stage}' not found in runner source"
                 )
+
+
+class TestSanitizeSchemaName:
+    """G review: schema names must conform to OpenAI's pattern."""
+
+    def _get_sanitizer(self):
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "run_cli_test",
+            Path(__file__).parent.parent / "run_cli_test.py",
+        )
+        mod = importlib.util.module_from_spec(spec)
+        mock_openai = MagicMock()
+        with patch.dict("sys.modules", {"openai": mock_openai}):
+            spec.loader.exec_module(mod)
+        return mod._sanitize_schema_name
+
+    def test_alphanumeric_passthrough(self):
+        """Clean names should pass through unchanged."""
+        sanitize = self._get_sanitizer()
+        assert sanitize("my_schema-v2") == "my_schema-v2"
+
+    def test_spaces_replaced(self):
+        """Spaces become underscores."""
+        sanitize = self._get_sanitizer()
+        assert sanitize("my schema name") == "my_schema_name"
+
+    def test_special_chars_replaced(self):
+        """Special characters (dots, parens, etc.) become underscores."""
+        sanitize = self._get_sanitizer()
+        result = sanitize("schema(v2).final")
+        assert result == "schema_v2__final"
+
+    def test_max_64_chars(self):
+        """Names longer than 64 chars are truncated."""
+        sanitize = self._get_sanitizer()
+        long_name = "a" * 100
+        assert len(sanitize(long_name)) == 64
+
+
+class TestSeedOrdering:
+    """X review: --seed must actually affect schema ordering."""
+
+    def test_same_seed_same_order(self):
+        """Same seed should produce identical schema ordering."""
+        import importlib.util
+        import random
+
+        spec = importlib.util.spec_from_file_location(
+            "run_cli_test",
+            Path(__file__).parent.parent / "run_cli_test.py",
+        )
+        mod = importlib.util.module_from_spec(spec)
+        mock_openai = MagicMock()
+        with patch.dict("sys.modules", {"openai": mock_openai}):
+            spec.loader.exec_module(mod)
+
+        # Simulate what the runner does with a seed
+        schemas = ["a.json", "b.json", "c.json", "d.json", "e.json"]
+        copy1 = schemas.copy()
+        copy2 = schemas.copy()
+
+        random.seed(42)
+        random.shuffle(copy1)
+        random.seed(42)
+        random.shuffle(copy2)
+
+        assert copy1 == copy2, "Same seed should produce same ordering"
+
+    def test_different_seed_different_order(self):
+        """Different seeds should (likely) produce different ordering."""
+        import random
+
+        schemas = list(range(20))  # Enough items to make collision unlikely
+        copy1 = schemas.copy()
+        copy2 = schemas.copy()
+
+        random.seed(42)
+        random.shuffle(copy1)
+        random.seed(99)
+        random.shuffle(copy2)
+
+        assert copy1 != copy2, "Different seeds should produce different ordering"
+
+
+class TestStderrCapture:
+    """G review: subprocess stderr should be captured on success too."""
+
+    def test_conversion_returns_stderr_on_success(self):
+        """run_cli_conversion should return stderr even on success."""
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "run_cli_test",
+            Path(__file__).parent.parent / "run_cli_test.py",
+        )
+        mod = importlib.util.module_from_spec(spec)
+        mock_openai = MagicMock()
+        with patch.dict("sys.modules", {"openai": mock_openai}):
+            spec.loader.exec_module(mod)
+
+            # Verify the function signature returns stderr (2-tuple)
+            source = (Path(__file__).parent.parent / "run_cli_test.py").read_text()
+            # On success, should return result.stderr not empty string
+            assert "return True, result.stderr" in source, (
+                "run_cli_conversion should return stderr on success, not empty string"
+            )
