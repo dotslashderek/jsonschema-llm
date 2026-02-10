@@ -119,9 +119,22 @@ def call_openai(client, schema_name, schema_content, model="gpt-4o-mini", timeou
 
 
 def validate_original(data, original_schema):
-    """Validate rehydrated data against the original schema."""
+    """Validate rehydrated data against the original schema.
+
+    Uses Draft 2020-12 explicitly so newer keywords (dependentRequired,
+    prefixItems, etc.) are not silently ignored.
+    """
     try:
-        jsonschema.validate(instance=data, schema=original_schema)
+        schema = (
+            dict(original_schema)
+            if isinstance(original_schema, dict)
+            else original_schema
+        )
+        if isinstance(schema, dict) and "$schema" not in schema:
+            schema = dict(schema)
+            schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+        validator = jsonschema.Draft202012Validator(schema)
+        validator.validate(instance=data)
         return True, ""
     except jsonschema.ValidationError as e:
         return False, str(e)

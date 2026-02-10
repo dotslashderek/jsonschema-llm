@@ -8,19 +8,6 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 
-def _make_runner_module():
-    """Import the runner module for testing."""
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location(
-        "run_cli_test",
-        Path(__file__).parent.parent / "run_cli_test.py",
-    )
-    mod = importlib.util.module_from_spec(spec)
-    # Don't exec the module (it has top-level OpenAI import)
-    return mod, spec
-
-
 class TestNoneResponseHandling:
     """Finding #1: call_openai returning None must not crash."""
 
@@ -50,7 +37,7 @@ class TestNoneResponseHandling:
             # call_openai should handle None gracefully
             result = mod.call_openai(client, "test_schema", {"type": "object"})
 
-            # Should NOT return None — should return an error string or raise
+            # call_openai should return None for null content, or a string error
             # The key assertion: no AttributeError crash
             assert result is None or isinstance(result, str), (
                 "call_openai should return None or error string, not crash"
