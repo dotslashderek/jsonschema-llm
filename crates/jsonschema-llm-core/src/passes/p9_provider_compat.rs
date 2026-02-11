@@ -93,6 +93,20 @@ pub fn check_provider_compat(schema: &Value, config: &ConvertOptions) -> Provide
 // Check 1: Root type enforcement (#94)
 // ═══════════════════════════════════════════════════════════════════════════
 
+/// Extract root type(s) from a schema, handling both string and array forms.
+///
+/// Returns a `Vec<String>`:
+/// - `type: "object"` → `["object"]`
+/// - `type: ["object", "null"]` → `["object", "null"]`
+/// - absent or non-string/non-array → `[]`
+fn extract_root_types(schema: &Value) -> Vec<String> {
+    match schema.get("type") {
+        Some(Value::String(s)) => vec![s.clone()],
+        Some(Value::Array(arr)) => arr.iter().filter_map(|v| v.as_str().map(String::from)).collect(),
+        _ => vec![],
+    }
+}
+
 /// Wraps non-object roots in `{ type: object, properties: { result: <original> }, ... }`.
 fn check_root_type(
     schema: &Value,
@@ -100,16 +114,17 @@ fn check_root_type(
     errors: &mut Vec<ProviderCompatError>,
     transforms: &mut Vec<Transform>,
 ) -> Value {
-    let root_type = schema.get("type").and_then(|v| v.as_str()).unwrap_or("");
+    let root_types = extract_root_types(schema);
 
-    if root_type == "object" {
+    // Strict: only skip wrapping if type is exactly "object" (not ["object", "null"])
+    if root_types.len() == 1 && root_types[0] == "object" {
         return schema.clone();
     }
 
-    let actual_type = if root_type.is_empty() {
+    let actual_type = if root_types.is_empty() {
         "unspecified".to_string()
     } else {
-        root_type.to_string()
+        root_types.join(", ")
     };
 
     errors.push(ProviderCompatError::RootTypeIncompatible {
@@ -548,6 +563,63 @@ mod tests {
         // The inner schema should be an opaque string now
         let result_schema = &r.schema["properties"]["result"];
         assert_eq!(result_schema["type"], "string");
+    }
+
+    // ── #112: type arrays ──────────────────────────────────────
+    #[test]
+    fn type_array_object_only_no_wrap() {
+        // type: "object" (string) should NOT trigger wrapping
+        let schema = json!({"type": "object", "properties": {"x": {"type": "string"}}});
+        let r = check_provider_compat(&schema, &opts());
+        assert!(
+            r.transforms.is_empty(),
+            "exact 'object' root should not be wrapped"
+        );
+    }
+
+    #[test]
+    fn type_array_with_object_null_still_wraps() {
+        // type: ["object", "null"] SHOULD trigger wrapping — OpenAI strict requires exactly "object"
+        let schema = json!({"type": ["object", "null"], "properties": {"x": {"type": "string"}}});
+        let r = check_provider_compat(&schema, &opts());
+        assert!(
+            r.transforms
+                .iter()
+                .any(|t| matches!(t, Transform::RootObjectWrapper { .. })),
+            "nullable object root should be wrapped"
+        );
+        // actual_type should mention both types
+        let root_err = r.errors.iter().find(|e| matches!(e, ProviderCompatError::RootTypeIncompatible { .. }));
+        assert!(root_err.is_some(), "should emit RootTypeIncompatible error");
+        match root_err.unwrap() {
+            ProviderCompatError::RootTypeIncompatible { actual_type, .. } => {
+                assert!(actual_type.contains("object"), "actual_type should list 'object'");
+                assert!(actual_type.contains("null"), "actual_type should list 'null'");
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn type_array_without_object_wrapped() {
+        // type: ["string", "null"] should trigger wrapping with actual_type showing both
+        let schema = json!({"type": ["string", "null"]});
+        let r = check_provider_compat(&schema, &opts());
+        assert!(
+            r.transforms
+                .iter()
+                .any(|t| matches!(t, Transform::RootObjectWrapper { .. })),
+            "non-object type array should be wrapped"
+        );
+        let root_err = r.errors.iter().find(|e| matches!(e, ProviderCompatError::RootTypeIncompatible { .. }));
+        assert!(root_err.is_some(), "should emit RootTypeIncompatible error");
+        match root_err.unwrap() {
+            ProviderCompatError::RootTypeIncompatible { actual_type, .. } => {
+                assert!(actual_type.contains("string"), "actual_type should list 'string'");
+                assert!(actual_type.contains("null"), "actual_type should list 'null'");
+            }
+            _ => unreachable!(),
+        }
     }
 
     // ── Depth budget ──────────────────────────────────────────
