@@ -1134,11 +1134,15 @@ fn navigate_to_mut<'a>(data: &'a mut Value, pointer: &str) -> Option<&'a mut Val
     let segments: Vec<&str> = pointer.split('/').filter(|s| !s.is_empty()).collect();
     let mut current = data;
     for seg in segments {
-        if let Ok(idx) = seg.parse::<usize>() {
-            current = current.as_array_mut()?.get_mut(idx)?;
+        // RFC 6901: unescape ~1 -> /, ~0 -> ~
+        let unescaped = seg.replace("~1", "/").replace("~0", "~");
+        if current.is_array() {
+            if let Ok(idx) = seg.parse::<usize>() {
+                current = current.as_array_mut()?.get_mut(idx)?;
+            } else {
+                return None; // non-numeric segment on array
+            }
         } else {
-            // RFC 6901: unescape ~1 -> /, ~0 -> ~
-            let unescaped = seg.replace("~1", "/").replace("~0", "~");
             current = current.as_object_mut()?.get_mut(&unescaped)?;
         }
     }
