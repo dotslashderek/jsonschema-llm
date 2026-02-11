@@ -319,12 +319,33 @@ impl CompatVisitor<'_> {
         // Only truncate schemas that contribute to nesting (objects, arrays).
         // Primitive leaves (string, integer, number, boolean) don't add depth
         // and should pass through untouched.
+        // Also recognises nullable-wrapped primitives from p6:
+        //   anyOf: [{type: "string"}, {type: "null"}]
         if semantic_depth >= OPENAI_MAX_DEPTH && path != "#" {
             let schema_type = schema.get("type").and_then(|v| v.as_str()).unwrap_or("");
             let is_primitive = matches!(
                 schema_type,
                 "string" | "integer" | "number" | "boolean" | "null"
             );
+            // Check for nullable-wrapped primitive from p6 strict pass:
+            // anyOf: [{type: <primitive>}, {type: "null"}]
+            let is_nullable_primitive = !is_primitive
+                && schema
+                    .get("anyOf")
+                    .and_then(|v| v.as_array())
+                    .map(|variants| {
+                        variants.len() == 2
+                            && variants
+                                .iter()
+                                .any(|v| v.get("type").and_then(|t| t.as_str()) == Some("null"))
+                            && variants.iter().any(|v| {
+                                matches!(
+                                    v.get("type").and_then(|t| t.as_str()),
+                                    Some("string" | "integer" | "number" | "boolean")
+                                )
+                            })
+                    })
+                    .unwrap_or(false);
             // Also skip if the schema has no sub-structure (no properties, items, etc.)
             let has_sub_structure = schema.get("properties").is_some()
                 || schema.get("items").is_some()
@@ -334,7 +355,7 @@ impl CompatVisitor<'_> {
                 || schema.get("allOf").is_some()
                 || schema.get("prefixItems").is_some();
 
-            if is_primitive && !has_sub_structure {
+            if (is_primitive && !has_sub_structure) || is_nullable_primitive {
                 // Primitive leaf — no nesting contribution, leave it alone
                 return;
             }
