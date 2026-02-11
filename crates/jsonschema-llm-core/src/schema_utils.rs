@@ -115,7 +115,8 @@ pub fn split_path(path: &str) -> Vec<String> {
 /// |----------------|----------------------------------------------------------------------------------|
 /// | Object         | `properties`, `patternProperties`, `additionalProperties`,                       |
 /// |                | `unevaluatedProperties`, `propertyNames`                                         |
-/// | Array          | `items` (object + array), `prefixItems`, `unevaluatedItems`, `contains`          |
+/// | Array          | `items` (object + array), `prefixItems`, `additionalItems`,                     |
+/// |                | `unevaluatedItems`, `contains`                                                   |
 /// | Composition    | `anyOf`, `oneOf`, `allOf`                                                        |
 /// | Conditional    | `if`, `then`, `else`                                                             |
 /// | Negation       | `not`                                                                            |
@@ -175,6 +176,7 @@ where
         "if",
         "then",
         "else",
+        "additionalItems",
     ] {
         if let Some(val) = obj.remove(keyword) {
             if val.is_object() {

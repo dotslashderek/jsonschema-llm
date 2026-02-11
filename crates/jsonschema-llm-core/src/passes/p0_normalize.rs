@@ -22,7 +22,6 @@ use serde_json::{Map, Value};
 
 use crate::config::ConvertOptions;
 use crate::error::ConvertError;
-use crate::schema_utils::build_path;
 
 /// Shared traversal context for $ref resolution, reducing argument count.
 struct RefContext<'a> {
@@ -333,70 +332,18 @@ fn resolve_pointer(root: &Value, pointer: &str) -> Option<Value> {
 }
 
 /// Recurse into all schema-bearing children of an object.
+///
+/// Delegates to [`crate::schema_utils::recurse_into_children`] for keyword
+/// iteration, threading the `RefContext` via closure.
 fn recurse_children(
     obj: &mut Map<String, Value>,
     path: &str,
     depth: usize,
     ctx: &mut RefContext<'_>,
 ) -> Result<(), ConvertError> {
-    // Map-of-schemas keywords.
-    for key in [
-        "properties",
-        "patternProperties",
-        "$defs",
-        "definitions",
-        "dependentSchemas",
-    ] {
-        if let Some(Value::Object(map)) = obj.remove(key) {
-            let mut new_map = Map::new();
-            for (k, v) in map {
-                let child_path = build_path(path, &[key, &k]);
-                let resolved = resolve_refs(&v, &child_path, depth + 1, ctx)?;
-                new_map.insert(k, resolved);
-            }
-            obj.insert(key.to_string(), Value::Object(new_map));
-        }
-    }
-
-    // Single-schema keywords.
-    for key in [
-        "additionalProperties",
-        "unevaluatedProperties",
-        "propertyNames",
-        "unevaluatedItems",
-        "contains",
-        "not",
-        "if",
-        "then",
-        "else",
-        "items",
-        "additionalItems",
-    ] {
-        if let Some(val) = obj.remove(key) {
-            if val.is_object() {
-                let child_path = build_path(path, &[key]);
-                let resolved = resolve_refs(&val, &child_path, depth + 1, ctx)?;
-                obj.insert(key.to_string(), resolved);
-            } else {
-                obj.insert(key.to_string(), val);
-            }
-        }
-    }
-
-    // Array-of-schemas keywords.
-    for key in ["anyOf", "oneOf", "allOf", "prefixItems"] {
-        if let Some(Value::Array(arr)) = obj.remove(key) {
-            let mut new_arr = Vec::with_capacity(arr.len());
-            for (i, item) in arr.into_iter().enumerate() {
-                let child_path = build_path(path, &[key, &i.to_string()]);
-                let resolved = resolve_refs(&item, &child_path, depth + 1, ctx)?;
-                new_arr.push(resolved);
-            }
-            obj.insert(key.to_string(), Value::Array(new_arr));
-        }
-    }
-
-    Ok(())
+    crate::schema_utils::recurse_into_children(obj, path, depth, &mut |val, child_path, child_depth| {
+        resolve_refs(val, child_path, child_depth, ctx)
+    })
 }
 
 // ---------------------------------------------------------------------------

@@ -67,6 +67,12 @@ pub fn break_recursion(
 }
 
 /// Recursively walk the schema, inlining `$ref` nodes and breaking cycles.
+///
+/// **Why this doesn't delegate to `recurse_into_children`** (#41):
+/// This walker creates *new* `Value` trees (constructor pattern) rather than
+/// mutating in place, and it needs to inline `$ref` nodes before recursing
+/// into their children. The shared walker's `&mut Map` + callback signature
+/// is incompatible with both requirements.
 fn walk(
     node: &Value,
     defs: &Value,
