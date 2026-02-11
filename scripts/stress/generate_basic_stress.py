@@ -513,10 +513,12 @@ def main(seed=42):
                         {
                             "type": "object",
                             "properties": {"a": {"type": "string"}},
+                            "required": ["a"],
                         },
                         {
                             "type": "object",
                             "properties": {"b": {"type": "integer"}},
+                            "required": ["b"],
                         },
                     ]
                 },
