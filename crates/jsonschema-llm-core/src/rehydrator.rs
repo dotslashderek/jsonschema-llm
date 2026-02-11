@@ -315,6 +315,14 @@ fn execute_transform(data: &mut Value, transform: &Transform) -> Result<(), Conv
                 )));
             }
 
+            // Reject unexpected extra keys to avoid silently discarding data.
+            if obj.len() != 1 {
+                return Err(ConvertError::RehydrationError(format!(
+                    "Unexpected extra keys in root wrapper object; expected only `{}`",
+                    wrapper_key
+                )));
+            }
+
             if let Some(inner) = obj.remove(wrapper_key) {
                 *data = inner;
             }

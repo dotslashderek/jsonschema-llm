@@ -223,15 +223,15 @@ impl CompatVisitor<'_> {
         // ── Recurse into children ──────────────────────────────────
 
         // properties
-        if let Some(props) = schema.get("properties").and_then(|v| v.as_object()) {
-            let keys: Vec<String> = props.keys().cloned().collect();
-            let _ = props;
-            for key in &keys {
-                let child_path = build_path(path, &["properties", key]);
-                // Temporarily take the child, visit it, put it back
-                if let Some(child) = schema.get_mut("properties").and_then(|p| p.get_mut(key)) {
-                    self.visit(child, &child_path, depth + 1);
-                }
+        let keys: Vec<String> = schema
+            .get("properties")
+            .and_then(|v| v.as_object())
+            .map(|props| props.keys().cloned().collect())
+            .unwrap_or_default();
+        for key in &keys {
+            let child_path = build_path(path, &["properties", key]);
+            if let Some(child) = schema.get_mut("properties").and_then(|p| p.get_mut(key)) {
+                self.visit(child, &child_path, depth + 1);
             }
         }
 
@@ -416,25 +416,21 @@ fn is_unconstrained(obj: &serde_json::Map<String, Value>) -> bool {
         "contentSchema",
     ];
 
-    // Keywords that are structural in this pipeline and, on their own, do not
-    // imply that the schema adds content constraints. These are commonly added
-    // by `p6_strict` when sealing objects.
-    const STRUCTURAL_KEYWORDS: &[&str] = &["additionalProperties", "required"];
-
-    // If we see any key that is not known-metadata and not a known structural
-    // helper, treat the schema as constrained.
+    // If we see any key that is not known-metadata, treat the schema as
+    // constrained.
     for key in obj.keys() {
         let k = key.as_str();
-        if METADATA_KEYWORDS.contains(&k) || STRUCTURAL_KEYWORDS.contains(&k) {
+        if METADATA_KEYWORDS.contains(&k) {
             continue;
         }
         // Any other keyword (including all typical constraint keywords like
         // `type`, `properties`, `items`, `enum`, `minimum`, `contains`,
-        // `minProperties`, etc.) is treated as constraining.
+        // `minProperties`, `required`, `additionalProperties`, etc.) is treated
+        // as constraining.
         return false;
     }
 
-    // Only metadata / structural keywords were present.
+    // Only metadata keywords were present.
     true
 }
 
@@ -577,5 +573,46 @@ mod tests {
         let r = check_provider_compat(&schema, &o);
         assert!(r.errors.is_empty());
         assert!(r.transforms.is_empty());
+    }
+
+    // ── Boolean false schema ──────────────────────────────────
+    #[test]
+    fn false_schema_becomes_opaque_string() {
+        let schema = json!({"type": "object", "properties": {"deny": false}});
+        let r = check_provider_compat(&schema, &opts());
+        // Should flag as unconstrained
+        let uc_errs: Vec<_> = r
+            .errors
+            .iter()
+            .filter(|e| matches!(e, ProviderCompatError::UnconstrainedSchema { .. }))
+            .collect();
+        assert!(
+            !uc_errs.is_empty(),
+            "false schema should trigger UnconstrainedSchema"
+        );
+        // Should produce a JsonStringParse transform
+        assert!(
+            r.transforms
+                .iter()
+                .any(|t| matches!(t, Transform::JsonStringParse { .. })),
+            "false schema should produce JsonStringParse transform"
+        );
+    }
+
+    // ── Enum collision dedup ──────────────────────────────────
+    #[test]
+    fn enum_collision_deduplicates() {
+        // [1, "1"] should stringify to ["1"] (deduplicated), not ["1", "1"]
+        let schema = json!({"type": "object", "properties": {"v": {"enum": [1, "1"]}}});
+        let r = check_provider_compat(&schema, &opts());
+        let enum_vals = r.schema["properties"]["v"]["enum"]
+            .as_array()
+            .expect("enum should be an array");
+        assert_eq!(
+            enum_vals.len(),
+            1,
+            "colliding values should be deduplicated"
+        );
+        assert_eq!(enum_vals[0], json!("1"));
     }
 }
