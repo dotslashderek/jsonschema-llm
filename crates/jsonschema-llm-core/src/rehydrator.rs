@@ -1137,7 +1137,9 @@ fn navigate_to_mut<'a>(data: &'a mut Value, pointer: &str) -> Option<&'a mut Val
         if let Ok(idx) = seg.parse::<usize>() {
             current = current.as_array_mut()?.get_mut(idx)?;
         } else {
-            current = current.as_object_mut()?.get_mut(seg)?;
+            // RFC 6901: unescape ~1 -> /, ~0 -> ~
+            let unescaped = seg.replace("~1", "/").replace("~0", "~");
+            current = current.as_object_mut()?.get_mut(&unescaped)?;
         }
     }
     Some(current)
@@ -1191,7 +1193,11 @@ fn enforce_single_constraint(
                     actual_f, bound_f
                 );
                 if let Some(bound_i) = expected.as_i64() {
-                    *value = Value::Number(serde_json::Number::from(bound_i - 1));
+                    if let Some(clamped) = bound_i.checked_sub(1) {
+                        *value = Value::Number(serde_json::Number::from(clamped));
+                    } else {
+                        *value = json!(bound_f - f64::EPSILON);
+                    }
                 } else {
                     *value = json!(bound_f - f64::EPSILON);
                 }
@@ -1208,7 +1214,11 @@ fn enforce_single_constraint(
                     actual_f, bound_f
                 );
                 if let Some(bound_i) = expected.as_i64() {
-                    *value = Value::Number(serde_json::Number::from(bound_i + 1));
+                    if let Some(clamped) = bound_i.checked_add(1) {
+                        *value = Value::Number(serde_json::Number::from(clamped));
+                    } else {
+                        *value = json!(bound_f + f64::EPSILON);
+                    }
                 } else {
                     *value = json!(bound_f + f64::EPSILON);
                 }
