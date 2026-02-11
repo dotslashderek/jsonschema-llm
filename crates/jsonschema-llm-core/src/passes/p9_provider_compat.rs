@@ -48,8 +48,7 @@ pub fn check_provider_compat(schema: &Value, config: &ConvertOptions) -> Provide
             let mut transforms = Vec::new();
 
             // ── Check 1: Root type enforcement (#94) ──────────────────
-            let mut schema =
-                check_root_type(schema, config.target, &mut errors, &mut transforms);
+            let mut schema = check_root_type(schema, config.target, &mut errors, &mut transforms);
 
             // ── Checks 2–4: Single-pass mutating visitor (#95, #96, #97)
             let max_depth_observed = {
@@ -101,10 +100,7 @@ fn check_root_type(
     errors: &mut Vec<ProviderCompatError>,
     transforms: &mut Vec<Transform>,
 ) -> Value {
-    let root_type = schema
-        .get("type")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+    let root_type = schema.get("type").and_then(|v| v.as_str()).unwrap_or("");
 
     if root_type == "object" {
         return schema.clone();
@@ -170,10 +166,7 @@ impl CompatVisitor<'_> {
                 path: path.to_string(),
                 schema_kind: format!("boolean({})", b),
                 target: self.target,
-                hint: format!(
-                    "Boolean schema '{}' replaced with opaque string.",
-                    b
-                ),
+                hint: format!("Boolean schema '{}' replaced with opaque string.", b),
             });
 
             // Both `true` and `false` → opaque string.
@@ -191,7 +184,7 @@ impl CompatVisitor<'_> {
         }
 
         match schema.as_object() {
-            Some(_) => {},
+            Some(_) => {}
             None => return,
         };
 
@@ -244,7 +237,10 @@ impl CompatVisitor<'_> {
 
         // items (single schema)
         {
-            let has_items = schema.get("items").map(|v| v.is_object() || v.is_boolean()).unwrap_or(false);
+            let has_items = schema
+                .get("items")
+                .map(|v| v.is_object() || v.is_boolean())
+                .unwrap_or(false);
             if has_items {
                 let child_path = build_path(path, &["items"]);
                 if let Some(child) = schema.get_mut("items") {
@@ -255,7 +251,11 @@ impl CompatVisitor<'_> {
 
         // prefixItems (tuple)
         {
-            let count = schema.get("prefixItems").and_then(|v| v.as_array()).map(|a| a.len()).unwrap_or(0);
+            let count = schema
+                .get("prefixItems")
+                .and_then(|v| v.as_array())
+                .map(|a| a.len())
+                .unwrap_or(0);
             for i in 0..count {
                 let child_path = build_path(path, &["prefixItems", &i.to_string()]);
                 if let Some(child) = schema.get_mut("prefixItems").and_then(|p| p.get_mut(i)) {
@@ -266,7 +266,10 @@ impl CompatVisitor<'_> {
 
         // additionalProperties (if it's a schema object)
         {
-            let has_ap = schema.get("additionalProperties").map(|v| v.is_object()).unwrap_or(false);
+            let has_ap = schema
+                .get("additionalProperties")
+                .map(|v| v.is_object())
+                .unwrap_or(false);
             if has_ap {
                 let child_path = build_path(path, &["additionalProperties"]);
                 if let Some(child) = schema.get_mut("additionalProperties") {
@@ -277,7 +280,11 @@ impl CompatVisitor<'_> {
 
         // anyOf / oneOf / allOf
         for keyword in &["anyOf", "oneOf", "allOf"] {
-            let count = schema.get(*keyword).and_then(|v| v.as_array()).map(|a| a.len()).unwrap_or(0);
+            let count = schema
+                .get(*keyword)
+                .and_then(|v| v.as_array())
+                .map(|a| a.len())
+                .unwrap_or(0);
             for i in 0..count {
                 let child_path = build_path(path, &[keyword, &i.to_string()]);
                 if let Some(child) = schema.get_mut(*keyword).and_then(|v| v.get_mut(i)) {
@@ -377,47 +384,58 @@ fn json_type_name(v: &Value) -> &'static str {
     }
 }
 
-/// Returns true if a schema object is unconstrained (empty or only structural keywords
-/// added by p6_strict like `additionalProperties` and `required`).
+/// Returns true if a schema object is unconstrained:
+///   - it is completely empty, or
+///   - it only contains metadata / documentation keywords and the structural
+///     keywords injected by `p6_strict` (e.g. `additionalProperties`, `required`).
+///
+/// Any other keyword is treated as potentially constraining, so the schema will
+/// not be considered unconstrained even if we do not explicitly recognise it.
 fn is_unconstrained(obj: &serde_json::Map<String, Value>) -> bool {
     // Quick check: truly empty
     if obj.is_empty() {
         return true;
     }
 
-    // Keywords that indicate the schema has actual content constraints
-    const CONTENT_KEYWORDS: &[&str] = &[
-        "type",
-        "properties",
-        "items",
-        "prefixItems",
-        "enum",
-        "const",
-        "anyOf",
-        "oneOf",
-        "allOf",
-        "$ref",
-        "not",
-        "if",
-        "then",
-        "else",
-        "pattern",
-        "minimum",
-        "maximum",
-        "minLength",
-        "maxLength",
-        "minItems",
-        "maxItems",
-        "format",
+    // Keywords that are purely metadata / documentation and do not constrain
+    // the set of acceptable instances.
+    const METADATA_KEYWORDS: &[&str] = &[
+        "title",
+        "description",
+        "$schema",
+        "$id",
+        "$anchor",
+        "$comment",
+        "examples",
+        "default",
+        "deprecated",
+        "readOnly",
+        "writeOnly",
+        "contentMediaType",
+        "contentEncoding",
+        "contentSchema",
     ];
 
-    // Keywords that are structural (added by p6) and don't imply content constraints
-    //   - additionalProperties: sealing
-    //   - required: empty required array on sealed empty object
-    //   - description: metadata only
-    //   - title: metadata only
-    //   - $schema: metadata only
-    !obj.keys().any(|k| CONTENT_KEYWORDS.contains(&k.as_str()))
+    // Keywords that are structural in this pipeline and, on their own, do not
+    // imply that the schema adds content constraints. These are commonly added
+    // by `p6_strict` when sealing objects.
+    const STRUCTURAL_KEYWORDS: &[&str] = &["additionalProperties", "required"];
+
+    // If we see any key that is not known-metadata and not a known structural
+    // helper, treat the schema as constrained.
+    for key in obj.keys() {
+        let k = key.as_str();
+        if METADATA_KEYWORDS.contains(&k) || STRUCTURAL_KEYWORDS.contains(&k) {
+            continue;
+        }
+        // Any other keyword (including all typical constraint keywords like
+        // `type`, `properties`, `items`, `enum`, `minimum`, `contains`,
+        // `minProperties`, etc.) is treated as constraining.
+        return false;
+    }
+
+    // Only metadata / structural keywords were present.
+    true
 }
 
 #[cfg(test)]
@@ -439,7 +457,10 @@ mod tests {
         let schema = json!({"type": "object", "properties": {"x": {"type": "string"}}});
         let r = check_provider_compat(&schema, &opts());
         assert!(r.transforms.is_empty());
-        assert!(r.errors.iter().all(|e| !matches!(e, ProviderCompatError::RootTypeIncompatible { .. })));
+        assert!(r
+            .errors
+            .iter()
+            .all(|e| !matches!(e, ProviderCompatError::RootTypeIncompatible { .. })));
     }
 
     #[test]
@@ -476,7 +497,10 @@ mod tests {
     fn shallow_no_error() {
         let schema = json!({"type": "object", "properties": {"a": {"type": "string"}}});
         let r = check_provider_compat(&schema, &opts());
-        assert!(r.errors.iter().all(|e| !matches!(e, ProviderCompatError::DepthBudgetExceeded { .. })));
+        assert!(r
+            .errors
+            .iter()
+            .all(|e| !matches!(e, ProviderCompatError::DepthBudgetExceeded { .. })));
     }
 
     #[test]
@@ -487,8 +511,15 @@ mod tests {
             inner = json!({"type": "object", "properties": {format!("l{i}"): inner}});
         }
         let r = check_provider_compat(&inner, &opts());
-        let depth_errs: Vec<_> = r.errors.iter().filter(|e| matches!(e, ProviderCompatError::DepthBudgetExceeded { .. })).collect();
-        assert!(!depth_errs.is_empty(), "should have at least one depth error");
+        let depth_errs: Vec<_> = r
+            .errors
+            .iter()
+            .filter(|e| matches!(e, ProviderCompatError::DepthBudgetExceeded { .. }))
+            .collect();
+        assert!(
+            !depth_errs.is_empty(),
+            "should have at least one depth error"
+        );
     }
 
     // ── Enum homogeneity ──────────────────────────────────────
@@ -496,14 +527,21 @@ mod tests {
     fn homo_enum_clean() {
         let schema = json!({"type": "object", "properties": {"c": {"enum": ["a", "b"]}}});
         let r = check_provider_compat(&schema, &opts());
-        assert!(r.errors.iter().all(|e| !matches!(e, ProviderCompatError::MixedEnumTypes { .. })));
+        assert!(r
+            .errors
+            .iter()
+            .all(|e| !matches!(e, ProviderCompatError::MixedEnumTypes { .. })));
     }
 
     #[test]
     fn mixed_enum_error() {
         let schema = json!({"type": "object", "properties": {"c": {"enum": ["a", 1]}}});
         let r = check_provider_compat(&schema, &opts());
-        let enum_errs: Vec<_> = r.errors.iter().filter(|e| matches!(e, ProviderCompatError::MixedEnumTypes { .. })).collect();
+        let enum_errs: Vec<_> = r
+            .errors
+            .iter()
+            .filter(|e| matches!(e, ProviderCompatError::MixedEnumTypes { .. }))
+            .collect();
         assert_eq!(enum_errs.len(), 1);
     }
 
@@ -512,14 +550,21 @@ mod tests {
     fn typed_no_unconstrained() {
         let schema = json!({"type": "object", "properties": {"x": {"type": "string"}}});
         let r = check_provider_compat(&schema, &opts());
-        assert!(r.errors.iter().all(|e| !matches!(e, ProviderCompatError::UnconstrainedSchema { .. })));
+        assert!(r
+            .errors
+            .iter()
+            .all(|e| !matches!(e, ProviderCompatError::UnconstrainedSchema { .. })));
     }
 
     #[test]
     fn empty_sub_schema_flagged() {
         let schema = json!({"type": "object", "properties": {"x": {}}});
         let r = check_provider_compat(&schema, &opts());
-        let uc_errs: Vec<_> = r.errors.iter().filter(|e| matches!(e, ProviderCompatError::UnconstrainedSchema { .. })).collect();
+        let uc_errs: Vec<_> = r
+            .errors
+            .iter()
+            .filter(|e| matches!(e, ProviderCompatError::UnconstrainedSchema { .. }))
+            .collect();
         assert!(!uc_errs.is_empty());
     }
 

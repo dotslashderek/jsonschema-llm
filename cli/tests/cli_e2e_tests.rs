@@ -71,7 +71,9 @@ fn test_cli_e2e_convert_all_fixtures() {
             .args(["--codec", codec.to_str().unwrap()])
             .assert()
             .success()
-            .stderr(predicate::str::contains("Provider compatibility diagnostics"));
+            .stderr(predicate::str::contains(
+                "Provider compatibility diagnostics",
+            ));
 
         validate_outputs(name, &output, &codec);
     }
