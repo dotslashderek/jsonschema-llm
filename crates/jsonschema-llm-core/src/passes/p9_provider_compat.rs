@@ -278,38 +278,28 @@ impl CompatVisitor<'_> {
         // Handle `items: {schema}`, `items: [{schema}, ...]`, and `items: true|false`
         // (cf. schema_utils::recurse_into_children for the canonical list)
         {
-            let items_kind = schema.get("items").map(|v| {
-                if v.is_object() {
-                    1u8 // single schema
-                } else if v.is_array() {
-                    2 // tuple array
-                } else if v.is_boolean() {
-                    3 // boolean schema (true = unconstrained, false = deny)
-                } else {
-                    0
+            // Determine shape without holding a mutable borrow
+            let is_obj = schema.get("items").is_some_and(|v| v.is_object());
+            let is_bool = schema.get("items").is_some_and(|v| v.is_boolean());
+            let tuple_len = schema
+                .get("items")
+                .and_then(|v| v.as_array())
+                .map(|a| a.len());
+
+            if is_obj || is_bool {
+                // Single schema or boolean schema (true = unconstrained, false = deny)
+                let child_path = build_path(path, &["items"]);
+                if let Some(child) = schema.get_mut("items") {
+                    self.visit(child, &child_path, rd, sd_data);
                 }
-            });
-            match items_kind {
-                Some(1) | Some(3) => {
-                    let child_path = build_path(path, &["items"]);
-                    if let Some(child) = schema.get_mut("items") {
+            } else if let Some(count) = tuple_len {
+                // Tuple array — iterate each positional item
+                for i in 0..count {
+                    let child_path = build_path(path, &["items", &i.to_string()]);
+                    if let Some(child) = schema.get_mut("items").and_then(|p| p.get_mut(i)) {
                         self.visit(child, &child_path, rd, sd_data);
                     }
                 }
-                Some(2) => {
-                    let count = schema
-                        .get("items")
-                        .and_then(|v| v.as_array())
-                        .map(|a| a.len())
-                        .unwrap_or(0);
-                    for i in 0..count {
-                        let child_path = build_path(path, &["items", &i.to_string()]);
-                        if let Some(child) = schema.get_mut("items").and_then(|p| p.get_mut(i)) {
-                            self.visit(child, &child_path, rd, sd_data);
-                        }
-                    }
-                }
-                _ => {}
             }
         }
 
@@ -363,14 +353,15 @@ impl CompatVisitor<'_> {
         // ── Non-data-shape: map-of-schemas ────────────────────────
         // $defs, definitions, dependentSchemas
         for keyword in &["$defs", "definitions", "dependentSchemas"] {
-            if let Some(defs) = schema.get(*keyword).and_then(|v| v.as_object()) {
-                let keys: Vec<String> = defs.keys().cloned().collect();
-                let _ = defs;
-                for key in &keys {
-                    let child_path = build_path(path, &[keyword, key]);
-                    if let Some(child) = schema.get_mut(*keyword).and_then(|v| v.get_mut(key)) {
-                        self.visit(child, &child_path, rd, sd_same);
-                    }
+            let keys: Vec<String> = schema
+                .get(*keyword)
+                .and_then(|v| v.as_object())
+                .map(|obj| obj.keys().cloned().collect())
+                .unwrap_or_default();
+            for key in &keys {
+                let child_path = build_path(path, &[keyword, key]);
+                if let Some(child) = schema.get_mut(*keyword).and_then(|v| v.get_mut(key)) {
+                    self.visit(child, &child_path, rd, sd_same);
                 }
             }
         }
