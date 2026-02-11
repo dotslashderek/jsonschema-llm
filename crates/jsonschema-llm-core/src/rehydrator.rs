@@ -1368,7 +1368,7 @@ fn coerce_walk(data: &mut Value, schema: &Value, path: &str, warnings: &mut Vec<
     // --- Recurse into children ---
 
     // Object properties
-    if expected_types.iter().any(|t| *t == "object") || schema_obj.contains_key("properties") {
+    if expected_types.contains(&"object") || schema_obj.contains_key("properties") {
         if let (Some(data_obj), Some(props)) = (
             data.as_object_mut(),
             schema_obj.get("properties").and_then(|v| v.as_object()),
@@ -1386,7 +1386,7 @@ fn coerce_walk(data: &mut Value, schema: &Value, path: &str, warnings: &mut Vec<
     }
 
     // Array items — handle both prefixItems (tuples) and uniform items
-    if expected_types.iter().any(|t| *t == "array")
+    if expected_types.contains(&"array")
         || schema_obj.contains_key("items")
         || schema_obj.contains_key("prefixItems")
     {
