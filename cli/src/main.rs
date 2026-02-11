@@ -192,13 +192,12 @@ fn main() -> Result<()> {
                 write_json(&result.codec, Some(&path), format)?;
             }
 
-            // Report provider compat errors
+            // Report provider compat diagnostics (informational — transforms were applied)
             if !result.provider_compat_errors.is_empty() {
-                eprintln!("Provider compatibility check failed:");
+                eprintln!("Provider compatibility diagnostics:");
                 for err in &result.provider_compat_errors {
                     eprintln!("- {}", err);
                 }
-                std::process::exit(1);
             }
         }
         Commands::Rehydrate {

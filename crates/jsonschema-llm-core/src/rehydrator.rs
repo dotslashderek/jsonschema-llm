@@ -46,6 +46,7 @@ pub fn rehydrate(data: &Value, codec: &Codec) -> Result<RehydrateResult, Convert
             Transform::ExtractAdditionalProperties { path, .. } => path,
             Transform::RecursiveInflate { path, .. } => path,
             Transform::RootObjectWrapper { path, .. } => path,
+            Transform::EnumStringify { path, .. } => path,
         };
 
         let segments = split_path(path_str);
@@ -77,6 +78,7 @@ fn build_pattern_properties_cache(codec: &Codec) -> HashMap<String, Result<Regex
         Transform::ExtractAdditionalProperties { path, .. } => path.as_str(),
         Transform::RecursiveInflate { path, .. } => path.as_str(),
         Transform::RootObjectWrapper { path, .. } => path.as_str(),
+        Transform::EnumStringify { path, .. } => path.as_str(),
     });
     let constraint_paths = codec.dropped_constraints.iter().map(|dc| dc.path.as_str());
 
@@ -300,6 +302,23 @@ fn execute_transform(data: &mut Value, transform: &Transform) -> Result<(), Conv
             if let Some(obj) = data.as_object_mut() {
                 if let Some(inner) = obj.remove(wrapper_key) {
                     *data = inner;
+                }
+            }
+        }
+        Transform::EnumStringify {
+            original_values, ..
+        } => {
+            // Reverse stringify: match the string value back to the original typed value
+            if let Some(s) = data.as_str() {
+                for orig in original_values {
+                    let stringified = match orig {
+                        Value::String(os) => os.clone(),
+                        other => other.to_string(),
+                    };
+                    if s == stringified {
+                        *data = orig.clone();
+                        break;
+                    }
                 }
             }
         }

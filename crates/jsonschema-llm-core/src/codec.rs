@@ -61,6 +61,11 @@ pub enum Transform {
         #[serde(rename = "wrapperKey")]
         wrapper_key: String,
     },
+    EnumStringify {
+        path: String,
+        #[serde(rename = "originalValues")]
+        original_values: Vec<serde_json::Value>,
+    },
 }
 
 /// A constraint that was dropped during conversion.

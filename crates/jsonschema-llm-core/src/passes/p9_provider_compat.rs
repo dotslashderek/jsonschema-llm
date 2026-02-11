@@ -1,8 +1,8 @@
-//! Pass 9 — Provider compatibility checks for OpenAI Strict Mode.
+//! Pass 9 — Provider compatibility transforms for OpenAI Strict Mode.
 //!
 //! Runs **after** all other passes (the schema is already normalized, refs resolved,
-//! strict-sealed, etc.) and emits *advisory* `ProviderCompatError`s for anything
-//! that will be rejected by the target provider.
+//! strict-sealed, etc.) and both transforms and emits advisory `ProviderCompatError`s
+//! for constructs that would be rejected by the target provider.
 //!
 //! Active only when `target == OpenaiStrict && mode == Strict`.
 //!
@@ -12,8 +12,8 @@
 //! | ----- | ---------------------- | ---------- |
 //! | #94   | Root type enforcement  | Transform  |
 //! | #95   | Depth budget           | Diagnostic |
-//! | #96   | Enum homogeneity       | Diagnostic |
-//! | #97   | Boolean / empty schema | Diagnostic |
+//! | #96   | Enum homogeneity       | Transform  |
+//! | #97   | Boolean / empty schema | Transform  |
 
 use crate::codec::Transform;
 use crate::config::{ConvertOptions, Mode, Target};
@@ -48,16 +48,18 @@ pub fn check_provider_compat(schema: &Value, config: &ConvertOptions) -> Provide
             let mut transforms = Vec::new();
 
             // ── Check 1: Root type enforcement (#94) ──────────────────
-            let schema = check_root_type(schema, config.target, &mut errors, &mut transforms);
+            let mut schema =
+                check_root_type(schema, config.target, &mut errors, &mut transforms);
 
-            // ── Checks 2–4: Single-pass visitor (#95, #96, #97) ───────
+            // ── Checks 2–4: Single-pass mutating visitor (#95, #96, #97)
             let max_depth_observed = {
                 let mut visitor = CompatVisitor {
                     errors: &mut errors,
+                    transforms: &mut transforms,
                     target: config.target,
                     max_depth_observed: 0,
                 };
-                visitor.visit(&schema, "#", 0);
+                visitor.visit(&mut schema, "#", 0);
                 visitor.max_depth_observed
             };
 
@@ -145,101 +147,152 @@ fn check_root_type(
 
 struct CompatVisitor<'a> {
     errors: &'a mut Vec<ProviderCompatError>,
+    transforms: &'a mut Vec<Transform>,
     target: Target,
     max_depth_observed: usize,
 }
 
 impl CompatVisitor<'_> {
-    /// Recursively visit a schema node, collecting errors for depth, enums,
-    /// and unconstrained sub-schemas.
-    fn visit(&mut self, schema: &Value, path: &str, depth: usize) {
+    /// Recursively visit and **mutate** a schema node.
+    ///
+    /// - #95 Depth budget: diagnostic only (tracks max depth)
+    /// - #96 Enum homogeneity: **transforms** mixed enums → all strings + codec entry
+    /// - #97 Boolean/empty schemas: **transforms** → opaque string or sealed empty object
+    fn visit(&mut self, schema: &mut Value, path: &str, depth: usize) {
         // Hard recursion guard
         if depth > HARD_RECURSION_LIMIT {
             return;
         }
 
-        let obj = match schema.as_object() {
-            Some(o) => o,
-            None => {
-                // Boolean schema or non-object — already normalized by p0,
-                // but if we somehow see `true`/`false` here, flag it.
-                if schema.is_boolean() {
-                    self.errors.push(ProviderCompatError::UnconstrainedSchema {
-                        path: path.to_string(),
-                        schema_kind: format!("boolean({})", schema),
-                        target: self.target,
-                        hint: "Boolean schemas are not supported by OpenAI Strict Mode.".into(),
-                    });
-                }
-                return;
+        // ── #97: Boolean schema transform ──────────────────────────
+        if let Some(b) = schema.as_bool() {
+            self.errors.push(ProviderCompatError::UnconstrainedSchema {
+                path: path.to_string(),
+                schema_kind: format!("boolean({})", b),
+                target: self.target,
+                hint: format!(
+                    "Boolean schema '{}' replaced with {}.",
+                    b,
+                    if b {
+                        "opaque string (accepts any JSON-encoded value)"
+                    } else {
+                        "sealed empty object (rejects all values)"
+                    }
+                ),
+            });
+
+            if b {
+                // `true` → opaque string (same as p4 stringification)
+                *schema = json!({
+                    "type": "string",
+                    "description": "A JSON-encoded string representing the object. Parse with JSON.parse() after generation."
+                });
+                self.transforms.push(Transform::JsonStringParse {
+                    path: path.to_string(),
+                });
+            } else {
+                // `false` → sealed empty object (unsatisfiable but structurally valid)
+                *schema = json!({
+                    "type": "object",
+                    "properties": {},
+                    "required": [],
+                    "additionalProperties": false
+                });
             }
+            return;
+        }
+
+        match schema.as_object() {
+            Some(_) => {},
+            None => return,
         };
 
-        // ── Check 3: #95 Depth budget ──────────────────────────────
-        // Track the deepest nesting level seen. We emit one error after traversal.
+        // ── #95 Depth budget (diagnostic) ──────────────────────────
         if depth > self.max_depth_observed {
             self.max_depth_observed = depth;
         }
-        if depth > OPENAI_MAX_DEPTH {
-            // Don't return — still check children for enum / boolean issues
-        }
 
-        // ── Check 4: #96 Enum homogeneity ──────────────────────────
-        if let Some(enum_vals) = obj.get("enum").and_then(|v| v.as_array()) {
-            check_enum_homogeneity(enum_vals, path, self.target, self.errors);
-        }
+        // ── #96 Enum homogeneity (transform) ──────────────────────
+        fix_enum_homogeneity(schema, path, self.target, self.errors, self.transforms);
 
-        // ── Check 4: #97 Unconstrained sub-schemas ─────────────────
-        // An empty object `{}` (no type, no properties, no ref, no enum, no const, no anyOf/oneOf/allOf)
-        // in a sub-schema position is unconstrained.
-        if path != "#" && is_unconstrained(obj) {
-            self.errors.push(ProviderCompatError::UnconstrainedSchema {
-                path: path.to_string(),
-                schema_kind: "empty".to_string(),
-                target: self.target,
-                hint: "Empty schemas ({}) accept any value and are not supported by OpenAI Strict Mode.".into(),
-            });
+        // ── #97 Unconstrained sub-schemas (transform) ─────────────
+        if path != "#" {
+            if let Some(obj) = schema.as_object() {
+                if is_unconstrained(obj) {
+                    self.errors.push(ProviderCompatError::UnconstrainedSchema {
+                        path: path.to_string(),
+                        schema_kind: "empty".to_string(),
+                        target: self.target,
+                        hint: "Unconstrained schema replaced with opaque string.".into(),
+                    });
+
+                    // Replace with opaque string (same as p4)
+                    *schema = json!({
+                        "type": "string",
+                        "description": "A JSON-encoded string representing the object. Parse with JSON.parse() after generation."
+                    });
+                    self.transforms.push(Transform::JsonStringParse {
+                        path: path.to_string(),
+                    });
+                    return; // No children to recurse into
+                }
+            }
         }
 
         // ── Recurse into children ──────────────────────────────────
 
         // properties
-        if let Some(props) = obj.get("properties").and_then(|v| v.as_object()) {
-            for (key, child) in props {
+        if let Some(props) = schema.get("properties").and_then(|v| v.as_object()) {
+            let keys: Vec<String> = props.keys().cloned().collect();
+            let _ = props;
+            for key in &keys {
                 let child_path = build_path(path, &["properties", key]);
-                self.visit(child, &child_path, depth + 1);
+                // Temporarily take the child, visit it, put it back
+                if let Some(child) = schema.get_mut("properties").and_then(|p| p.get_mut(key)) {
+                    self.visit(child, &child_path, depth + 1);
+                }
             }
         }
 
         // items (single schema)
-        if let Some(items) = obj.get("items") {
-            if items.is_object() || items.is_boolean() {
+        {
+            let has_items = schema.get("items").map(|v| v.is_object() || v.is_boolean()).unwrap_or(false);
+            if has_items {
                 let child_path = build_path(path, &["items"]);
-                self.visit(items, &child_path, depth + 1);
+                if let Some(child) = schema.get_mut("items") {
+                    self.visit(child, &child_path, depth + 1);
+                }
             }
         }
 
         // prefixItems (tuple)
-        if let Some(prefix) = obj.get("prefixItems").and_then(|v| v.as_array()) {
-            for (i, child) in prefix.iter().enumerate() {
+        {
+            let count = schema.get("prefixItems").and_then(|v| v.as_array()).map(|a| a.len()).unwrap_or(0);
+            for i in 0..count {
                 let child_path = build_path(path, &["prefixItems", &i.to_string()]);
-                self.visit(child, &child_path, depth + 1);
+                if let Some(child) = schema.get_mut("prefixItems").and_then(|p| p.get_mut(i)) {
+                    self.visit(child, &child_path, depth + 1);
+                }
             }
         }
 
-        // additionalProperties (if it's a schema)
-        if let Some(ap) = obj.get("additionalProperties") {
-            if ap.is_object() {
+        // additionalProperties (if it's a schema object)
+        {
+            let has_ap = schema.get("additionalProperties").map(|v| v.is_object()).unwrap_or(false);
+            if has_ap {
                 let child_path = build_path(path, &["additionalProperties"]);
-                self.visit(ap, &child_path, depth + 1);
+                if let Some(child) = schema.get_mut("additionalProperties") {
+                    self.visit(child, &child_path, depth + 1);
+                }
             }
         }
 
         // anyOf / oneOf / allOf
         for keyword in &["anyOf", "oneOf", "allOf"] {
-            if let Some(variants) = obj.get(*keyword).and_then(|v| v.as_array()) {
-                for (i, child) in variants.iter().enumerate() {
-                    let child_path = build_path(path, &[keyword, &i.to_string()]);
+            let count = schema.get(*keyword).and_then(|v| v.as_array()).map(|a| a.len()).unwrap_or(0);
+            for i in 0..count {
+                let child_path = build_path(path, &[keyword, &i.to_string()]);
+                if let Some(child) = schema.get_mut(*keyword).and_then(|v| v.get_mut(i)) {
                     self.visit(child, &child_path, depth + 1);
                 }
             }
@@ -247,10 +300,14 @@ impl CompatVisitor<'_> {
 
         // $defs / definitions
         for keyword in &["$defs", "definitions"] {
-            if let Some(defs) = obj.get(*keyword).and_then(|v| v.as_object()) {
-                for (key, child) in defs {
+            if let Some(defs) = schema.get(*keyword).and_then(|v| v.as_object()) {
+                let keys: Vec<String> = defs.keys().cloned().collect();
+                let _ = defs;
+                for key in &keys {
                     let child_path = build_path(path, &[keyword, key]);
-                    self.visit(child, &child_path, depth + 1);
+                    if let Some(child) = schema.get_mut(*keyword).and_then(|v| v.get_mut(key)) {
+                        self.visit(child, &child_path, depth + 1);
+                    }
                 }
             }
         }
@@ -258,34 +315,63 @@ impl CompatVisitor<'_> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Check helpers
+// Transform helpers
 // ═══════════════════════════════════════════════════════════════════════════
 
-/// Check whether an enum has mixed types. If so, emit `MixedEnumTypes`.
-fn check_enum_homogeneity(
-    values: &[Value],
+/// Detect mixed-type enums and stringify all values in-place.
+///
+/// Produces an `EnumStringify` codec entry so the rehydrator can reverse it.
+fn fix_enum_homogeneity(
+    schema: &mut Value,
     path: &str,
     target: Target,
     errors: &mut Vec<ProviderCompatError>,
+    transforms: &mut Vec<Transform>,
 ) {
-    if values.is_empty() {
-        return;
-    }
+    let enum_vals = match schema.get("enum").and_then(|v| v.as_array()) {
+        Some(vals) if !vals.is_empty() => vals,
+        _ => return,
+    };
 
     let mut types = std::collections::BTreeSet::new();
-    for v in values {
+    for v in enum_vals {
         types.insert(json_type_name(v));
     }
 
-    if types.len() > 1 {
-        let types_found: Vec<String> = types.into_iter().map(|s| s.to_string()).collect();
-        errors.push(ProviderCompatError::MixedEnumTypes {
-            path: path.to_string(),
-            types_found,
-            target,
-            hint: "OpenAI Strict Mode requires all enum values to be the same type.".into(),
-        });
+    if types.len() <= 1 {
+        return; // Homogeneous — nothing to fix
     }
+
+    let types_found: Vec<String> = types.into_iter().map(|s| s.to_string()).collect();
+    let original_values: Vec<Value> = enum_vals.clone();
+
+    // Stringify all values
+    let stringified: Vec<Value> = original_values
+        .iter()
+        .map(|v| match v {
+            Value::String(s) => Value::String(s.clone()),
+            other => Value::String(other.to_string()),
+        })
+        .collect();
+
+    // Replace enum in-place
+    if let Some(obj) = schema.as_object_mut() {
+        obj.insert("enum".to_string(), Value::Array(stringified));
+        // Ensure type is string since all values are now strings
+        obj.insert("type".to_string(), json!("string"));
+    }
+
+    errors.push(ProviderCompatError::MixedEnumTypes {
+        path: path.to_string(),
+        types_found,
+        target,
+        hint: "Mixed-type enum values normalized to strings.".into(),
+    });
+
+    transforms.push(Transform::EnumStringify {
+        path: path.to_string(),
+        original_values,
+    });
 }
 
 /// Returns the JSON type name for a value.
@@ -386,8 +472,12 @@ mod tests {
     fn missing_type_wrapped() {
         let schema = json!({"description": "no type"});
         let r = check_provider_compat(&schema, &opts());
-        assert_eq!(r.transforms.len(), 1);
+        // Root wrap + inner unconstrained → opaque string = 2 transforms
+        assert_eq!(r.transforms.len(), 2);
         assert_eq!(r.schema.get("type").unwrap(), "object");
+        // The inner schema should be an opaque string now
+        let result_schema = &r.schema["properties"]["result"];
+        assert_eq!(result_schema["type"], "string");
     }
 
     // ── Depth budget ──────────────────────────────────────────
