@@ -274,8 +274,8 @@ impl CompatVisitor<'_> {
             }
         }
 
-        // ── Data-shape: items (single-schema OR tuple array) ─────────
-        // Handle both `items: {schema}` and `items: [{schema}, ...]`
+        // ── Data-shape: items (single-schema, tuple array, or boolean) ──
+        // Handle `items: {schema}`, `items: [{schema}, ...]`, and `items: true|false`
         // (cf. schema_utils::recurse_into_children for the canonical list)
         {
             let items_kind = schema.get("items").map(|v| {
@@ -283,12 +283,14 @@ impl CompatVisitor<'_> {
                     1u8 // single schema
                 } else if v.is_array() {
                     2 // tuple array
+                } else if v.is_boolean() {
+                    3 // boolean schema (true = unconstrained, false = deny)
                 } else {
                     0
                 }
             });
             match items_kind {
-                Some(1) => {
+                Some(1) | Some(3) => {
                     let child_path = build_path(path, &["items"]);
                     if let Some(child) = schema.get_mut("items") {
                         self.visit(child, &child_path, rd, sd_data);
