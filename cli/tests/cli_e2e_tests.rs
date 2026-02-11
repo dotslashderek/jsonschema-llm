@@ -28,7 +28,7 @@ fn clean_fixtures() -> Vec<&'static str> {
 /// Fixtures that trigger advisory provider compat diagnostics (e.g. depth budget)
 /// but still produce valid output. The CLI exits 0 (transforms were applied).
 fn warned_fixtures() -> Vec<&'static str> {
-    vec!["kitchen_sink"]
+    vec!["kitchen_sink", "deep_objects"]
 }
 
 // ── E2E: Convert all fixtures via CLI ───────────────────────────────────────
