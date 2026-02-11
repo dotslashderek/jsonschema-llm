@@ -15,13 +15,13 @@ fn cmd() -> Command {
 
 /// Fixtures that convert cleanly with zero provider compat errors.
 fn clean_fixtures() -> Vec<&'static str> {
-    vec!["simple", "discriminator", "opaque", "allof"]
+    vec!["simple", "discriminator", "opaque", "allof", "maps"]
 }
 
 /// Fixtures that trigger advisory provider compat diagnostics (e.g. depth budget)
 /// but still produce valid output. The CLI exits 0 (transforms were applied).
 fn warned_fixtures() -> Vec<&'static str> {
-    vec!["maps", "kitchen_sink", "recursive"]
+    vec!["kitchen_sink", "recursive"]
 }
 
 // ── E2E: Convert all fixtures via CLI ───────────────────────────────────────

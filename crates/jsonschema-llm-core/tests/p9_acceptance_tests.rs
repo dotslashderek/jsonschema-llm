@@ -485,3 +485,207 @@ fn p9_multiple_issues_all_reported() {
     assert!(has_root, "should report RootTypeIncompatible");
     assert!(has_enum, "should report MixedEnumTypes");
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// #109 — Keyword recursion coverage
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn p9_mixed_enum_inside_anyof_detected() {
+    // A mixed-type enum nested inside an anyOf variant must be found by CompatVisitor.
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "val": {
+                "anyOf": [
+                    { "type": "object", "properties": { "code": { "enum": ["a", 1] } } },
+                    { "type": "null" }
+                ]
+            }
+        }
+    });
+    let result = convert_strict(&schema);
+    let enum_errors: Vec<_> = result
+        .provider_compat_errors
+        .iter()
+        .filter(|e| matches!(e, ProviderCompatError::MixedEnumTypes { .. }))
+        .collect();
+    assert_eq!(
+        enum_errors.len(),
+        1,
+        "mixed-type enum inside anyOf variant should trigger MixedEnumTypes"
+    );
+    if let ProviderCompatError::MixedEnumTypes { path, .. } = &enum_errors[0] {
+        assert!(
+            path.contains("code"),
+            "path should reference the 'code' property, got: {path}"
+        );
+    }
+}
+
+#[test]
+fn p9_unconstrained_inside_oneof_detected() {
+    // An empty sub-schema inside a oneOf variant should be caught.
+    // Note: earlier passes may fill in empty schemas, so we use `true` (boolean schema)
+    // which p0 normalizes to `{}` and then p9 catches as unconstrained.
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "data": {
+                "oneOf": [
+                    { "type": "string" },
+                    true
+                ]
+            }
+        }
+    });
+    let result = convert_strict(&schema);
+    let uncon_errors: Vec<_> = result
+        .provider_compat_errors
+        .iter()
+        .filter(|e| matches!(e, ProviderCompatError::UnconstrainedSchema { .. }))
+        .collect();
+    assert!(
+        !uncon_errors.is_empty(),
+        "boolean `true` schema inside oneOf should trigger UnconstrainedSchema"
+    );
+}
+
+#[test]
+fn p9_mixed_enum_inside_pattern_properties_detected() {
+    // A mixed-type enum nested inside patternProperties must be found.
+    // (Note: if/then/else is tested at the unit level since p7 strips
+    // conditionals from OpenAI schemas before p9 runs.)
+    let schema = json!({
+        "type": "object",
+        "patternProperties": {
+            "^x-": {
+                "type": "object",
+                "properties": {
+                    "code": { "enum": ["a", 1] }
+                }
+            }
+        }
+    });
+    let result = convert_strict(&schema);
+    let enum_errors: Vec<_> = result
+        .provider_compat_errors
+        .iter()
+        .filter(|e| matches!(e, ProviderCompatError::MixedEnumTypes { .. }))
+        .collect();
+    assert!(
+        !enum_errors.is_empty(),
+        "mixed-type enum inside patternProperties should trigger MixedEnumTypes"
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// #111 — Depth budget fix (combinator/nullable wrappers)
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn p9_nullable_wrapper_does_not_inflate_depth() {
+    // Build a 4-level deep schema where each level is wrapped in anyOf for
+    // nullable support: anyOf: [{type: "object", properties: {...}}, {type: "null"}]
+    // With root properties, semantic depth is: root props(1) → level_3(2) → level_2(3) → level_1(4) → level_0(5) → leaf = 5 property accesses.
+    // Wait, let's count carefully with the loop:
+    //   loop builds inner → level_0 → level_1 → level_2 → level_3 (4 iterations)
+    //   Final wrap: {type:object, properties: {root: <4-nested>}}
+    // Semantic depth: root.properties.root (1) → anyOf→properties.level_3 (2) → anyOf→properties.level_2 (3) → anyOf→properties.level_1 (4) → anyOf→properties.level_0 (5)
+    // That's 5 (exactly at limit), not over. Should NOT trigger DepthBudgetExceeded.
+    let mut inner: Value = json!({ "type": "string" });
+    for i in (0..4).rev() {
+        inner = json!({
+            "anyOf": [
+                {
+                    "type": "object",
+                    "properties": { format!("level_{i}"): inner }
+                },
+                { "type": "null" }
+            ]
+        });
+    }
+    // Wrap in a root object
+    let schema = json!({
+        "type": "object",
+        "properties": { "root": inner }
+    });
+    let result = convert_strict(&schema);
+    let depth_errors: Vec<_> = result
+        .provider_compat_errors
+        .iter()
+        .filter(|e| matches!(e, ProviderCompatError::DepthBudgetExceeded { .. }))
+        .collect();
+    assert!(
+        depth_errors.is_empty(),
+        "4-level schema with nullable wrappers + root = 5 semantic depth, \
+         should NOT exceed depth budget (max=5), but got {} depth errors",
+        depth_errors.len()
+    );
+}
+
+#[test]
+fn p9_deep_combinator_chain_no_depth_inflation() {
+    // Schema structure: root → allOf[0] → oneOf[0] → properties.a → properties.b
+    // Combinators (allOf, oneOf) should NOT increment semantic depth.
+    // Semantic depth: root(0) → a(1) → b(2) → leaf(3) = 3 levels.
+    // Should be well under the 5-level OpenAI limit.
+    let schema = json!({
+        "type": "object",
+        "allOf": [{
+            "oneOf": [{
+                "type": "object",
+                "properties": {
+                    "a": {
+                        "type": "object",
+                        "properties": {
+                            "b": {
+                                "type": "object",
+                                "properties": {
+                                    "leaf": { "type": "string" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }]
+        }]
+    });
+    let result = convert_strict(&schema);
+    let depth_errors: Vec<_> = result
+        .provider_compat_errors
+        .iter()
+        .filter(|e| matches!(e, ProviderCompatError::DepthBudgetExceeded { .. }))
+        .collect();
+    assert!(
+        depth_errors.is_empty(),
+        "allOf→oneOf→properties chain should not inflate depth beyond 3, \
+         but got DepthBudgetExceeded"
+    );
+}
+
+#[test]
+fn p9_deep_combinator_stack_safety() {
+    // 40 nested anyOf levels — safely under earlier passes' 50-level recursion limit.
+    // Must not panic/crash/stack overflow.
+    // Semantic depth stays low (no data-shape edges in anyOf), so no DepthBudgetExceeded.
+    let mut inner: Value = json!({ "type": "string" });
+    for _ in 0..40 {
+        inner = json!({ "anyOf": [inner] });
+    }
+    let schema = json!({
+        "type": "object",
+        "properties": { "deep": inner }
+    });
+    // Should not panic
+    let result = convert_strict(&schema);
+    let depth_errors: Vec<_> = result
+        .provider_compat_errors
+        .iter()
+        .filter(|e| matches!(e, ProviderCompatError::DepthBudgetExceeded { .. }))
+        .collect();
+    assert!(
+        depth_errors.is_empty(),
+        "40 nested anyOfs with no data edges should not report DepthBudgetExceeded"
+    );
+}

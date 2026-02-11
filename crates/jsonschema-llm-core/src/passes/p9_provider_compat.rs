@@ -58,7 +58,7 @@ pub fn check_provider_compat(schema: &Value, config: &ConvertOptions) -> Provide
                     target: config.target,
                     max_depth_observed: 0,
                 };
-                visitor.visit(&mut schema, "#", 0);
+                visitor.visit(&mut schema, "#", 0, 0);
                 visitor.max_depth_observed
             };
 
@@ -139,6 +139,9 @@ fn check_root_type(
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Checks 2–4: Single-pass CompatVisitor
+//
+// NOTE: When adding keywords here, also update `schema_utils::recurse_into_children`.
+// Conversely, when adding keywords to `recurse_into_children`, update this visitor.
 // ═══════════════════════════════════════════════════════════════════════════
 
 struct CompatVisitor<'a> {
@@ -151,12 +154,24 @@ struct CompatVisitor<'a> {
 impl CompatVisitor<'_> {
     /// Recursively visit and **mutate** a schema node.
     ///
-    /// - #95 Depth budget: diagnostic only (tracks max depth)
+    /// Uses two depth counters:
+    /// - `recursion_depth`: **always** increments — guards against stack overflow
+    ///   via `HARD_RECURSION_LIMIT`.
+    /// - `semantic_depth`: increments only on data-shape edges (`properties`, `items`,
+    ///   `additionalProperties`, etc.) — used for `OPENAI_MAX_DEPTH` budget.
+    ///
+    /// - #95 Depth budget: diagnostic only (tracks max semantic depth)
     /// - #96 Enum homogeneity: **transforms** mixed enums → all strings + codec entry
     /// - #97 Boolean/empty schemas: **transforms** → opaque string or sealed empty object
-    fn visit(&mut self, schema: &mut Value, path: &str, depth: usize) {
-        // Hard recursion guard
-        if depth > HARD_RECURSION_LIMIT {
+    fn visit(
+        &mut self,
+        schema: &mut Value,
+        path: &str,
+        recursion_depth: usize,
+        semantic_depth: usize,
+    ) {
+        // Hard recursion guard (always uses recursion_depth)
+        if recursion_depth > HARD_RECURSION_LIMIT {
             return;
         }
 
@@ -169,10 +184,6 @@ impl CompatVisitor<'_> {
                 hint: format!("Boolean schema '{}' replaced with opaque string.", b),
             });
 
-            // Both `true` and `false` → opaque string.
-            // `true` accepts everything → stringify for round-trip.
-            // `false` rejects everything → no provider-safe unsatisfiable schema exists,
-            //   so we use opaque string as the safest approximation.
             *schema = json!({
                 "type": "string",
                 "description": "A JSON-encoded string representing the object. Parse with JSON.parse() after generation."
@@ -188,9 +199,9 @@ impl CompatVisitor<'_> {
             None => return,
         };
 
-        // ── #95 Depth budget (diagnostic) ──────────────────────────
-        if depth > self.max_depth_observed {
-            self.max_depth_observed = depth;
+        // ── #95 Depth budget (diagnostic, uses semantic_depth) ─────
+        if semantic_depth > self.max_depth_observed {
+            self.max_depth_observed = semantic_depth;
         }
 
         // ── #96 Enum homogeneity (transform) ──────────────────────
@@ -207,7 +218,6 @@ impl CompatVisitor<'_> {
                         hint: "Unconstrained schema replaced with opaque string.".into(),
                     });
 
-                    // Replace with opaque string (same as p4)
                     *schema = json!({
                         "type": "string",
                         "description": "A JSON-encoded string representing the object. Parse with JSON.parse() after generation."
@@ -215,41 +225,58 @@ impl CompatVisitor<'_> {
                     self.transforms.push(Transform::JsonStringParse {
                         path: path.to_string(),
                     });
-                    return; // No children to recurse into
+                    return;
                 }
             }
         }
 
         // ── Recurse into children ──────────────────────────────────
+        // Data-shape keywords increment semantic_depth.
+        // Non-data-shape keywords (combinators, conditionals, defs) do not.
+        // All keywords always increment recursion_depth.
 
-        // properties
-        let keys: Vec<String> = schema
-            .get("properties")
-            .and_then(|v| v.as_object())
-            .map(|props| props.keys().cloned().collect())
-            .unwrap_or_default();
-        for key in &keys {
-            let child_path = build_path(path, &["properties", key]);
-            if let Some(child) = schema.get_mut("properties").and_then(|p| p.get_mut(key)) {
-                self.visit(child, &child_path, depth + 1);
-            }
-        }
+        let rd = recursion_depth + 1; // next recursion depth (always +1)
+        let sd_data = semantic_depth + 1; // next semantic depth for data-shape edges
+        let sd_same = semantic_depth; // unchanged semantic depth for non-data edges
 
-        // items (single schema)
-        {
-            let has_items = schema
-                .get("items")
-                .map(|v| v.is_object() || v.is_boolean())
-                .unwrap_or(false);
-            if has_items {
-                let child_path = build_path(path, &["items"]);
-                if let Some(child) = schema.get_mut("items") {
-                    self.visit(child, &child_path, depth + 1);
+        // ── Data-shape: map-of-schemas ─────────────────────────────
+        // properties, patternProperties
+        for keyword in &["properties", "patternProperties"] {
+            let keys: Vec<String> = schema
+                .get(*keyword)
+                .and_then(|v| v.as_object())
+                .map(|props| props.keys().cloned().collect())
+                .unwrap_or_default();
+            for key in &keys {
+                let child_path = build_path(path, &[keyword, key]);
+                if let Some(child) = schema.get_mut(*keyword).and_then(|p| p.get_mut(key)) {
+                    self.visit(child, &child_path, rd, sd_data);
                 }
             }
         }
 
-        // prefixItems (tuple)
+        // ── Data-shape: single-schema ──────────────────────────────
+        // items, additionalProperties, unevaluatedProperties, unevaluatedItems, contains
+        // Note: only recurse if an object. Boolean values (e.g. `additionalProperties: false`)
+        // are intentional constraints, not unconstrained sub-schemas.
+        for keyword in &[
+            "items",
+            "additionalProperties",
+            "unevaluatedProperties",
+            "unevaluatedItems",
+            "contains",
+        ] {
+            let is_obj = schema.get(*keyword).map(|v| v.is_object()).unwrap_or(false);
+            if is_obj {
+                let child_path = build_path(path, &[keyword]);
+                if let Some(child) = schema.get_mut(*keyword) {
+                    self.visit(child, &child_path, rd, sd_data);
+                }
+            }
+        }
+
+        // ── Data-shape: array-of-schemas ───────────────────────────
+        // prefixItems
         {
             let count = schema
                 .get("prefixItems")
@@ -259,26 +286,13 @@ impl CompatVisitor<'_> {
             for i in 0..count {
                 let child_path = build_path(path, &["prefixItems", &i.to_string()]);
                 if let Some(child) = schema.get_mut("prefixItems").and_then(|p| p.get_mut(i)) {
-                    self.visit(child, &child_path, depth + 1);
+                    self.visit(child, &child_path, rd, sd_data);
                 }
             }
         }
 
-        // additionalProperties (if it's a schema object)
-        {
-            let has_ap = schema
-                .get("additionalProperties")
-                .map(|v| v.is_object())
-                .unwrap_or(false);
-            if has_ap {
-                let child_path = build_path(path, &["additionalProperties"]);
-                if let Some(child) = schema.get_mut("additionalProperties") {
-                    self.visit(child, &child_path, depth + 1);
-                }
-            }
-        }
-
-        // anyOf / oneOf / allOf
+        // ── Non-data-shape: array-of-schemas (combinators) ────────
+        // anyOf, oneOf, allOf
         for keyword in &["anyOf", "oneOf", "allOf"] {
             let count = schema
                 .get(*keyword)
@@ -288,20 +302,36 @@ impl CompatVisitor<'_> {
             for i in 0..count {
                 let child_path = build_path(path, &[keyword, &i.to_string()]);
                 if let Some(child) = schema.get_mut(*keyword).and_then(|v| v.get_mut(i)) {
-                    self.visit(child, &child_path, depth + 1);
+                    self.visit(child, &child_path, rd, sd_same);
                 }
             }
         }
 
-        // $defs / definitions
-        for keyword in &["$defs", "definitions"] {
+        // ── Non-data-shape: single-schema (conditionals, negation) ─
+        // if, then, else, not, propertyNames
+        for keyword in &["if", "then", "else", "not", "propertyNames"] {
+            let has = schema
+                .get(*keyword)
+                .map(|v| v.is_object() || v.is_boolean())
+                .unwrap_or(false);
+            if has {
+                let child_path = build_path(path, &[keyword]);
+                if let Some(child) = schema.get_mut(*keyword) {
+                    self.visit(child, &child_path, rd, sd_same);
+                }
+            }
+        }
+
+        // ── Non-data-shape: map-of-schemas ────────────────────────
+        // $defs, definitions, dependentSchemas
+        for keyword in &["$defs", "definitions", "dependentSchemas"] {
             if let Some(defs) = schema.get(*keyword).and_then(|v| v.as_object()) {
                 let keys: Vec<String> = defs.keys().cloned().collect();
                 let _ = defs;
                 for key in &keys {
                     let child_path = build_path(path, &[keyword, key]);
                     if let Some(child) = schema.get_mut(*keyword).and_then(|v| v.get_mut(key)) {
-                        self.visit(child, &child_path, depth + 1);
+                        self.visit(child, &child_path, rd, sd_same);
                     }
                 }
             }
@@ -614,5 +644,122 @@ mod tests {
             "colliding values should be deduplicated"
         );
         assert_eq!(enum_vals[0], json!("1"));
+    }
+
+    // ── #109 Keyword recursion ────────────────────────────────
+    #[test]
+    fn visitor_recurses_pattern_properties() {
+        // patternProperties values should be visited for mixed enum detection
+        let mut schema = json!({
+            "type": "object",
+            "patternProperties": {
+                "^x-": { "enum": ["a", 1] }
+            }
+        });
+        let mut errors = Vec::new();
+        let mut transforms = Vec::new();
+        let mut visitor = CompatVisitor {
+            errors: &mut errors,
+            transforms: &mut transforms,
+            target: Target::OpenaiStrict,
+            max_depth_observed: 0,
+        };
+        visitor.visit(&mut schema, "#", 0, 0);
+        let enum_errs: Vec<_> = errors
+            .iter()
+            .filter(|e| matches!(e, ProviderCompatError::MixedEnumTypes { .. }))
+            .collect();
+        assert_eq!(
+            enum_errs.len(),
+            1,
+            "mixed enum inside patternProperties should be detected"
+        );
+    }
+
+    #[test]
+    fn visitor_recurses_dependent_schemas() {
+        // dependentSchemas values should be visited for unconstrained detection
+        let mut schema = json!({
+            "type": "object",
+            "dependentSchemas": {
+                "foo": {}
+            }
+        });
+        let mut errors = Vec::new();
+        let mut transforms = Vec::new();
+        let mut visitor = CompatVisitor {
+            errors: &mut errors,
+            transforms: &mut transforms,
+            target: Target::OpenaiStrict,
+            max_depth_observed: 0,
+        };
+        visitor.visit(&mut schema, "#", 0, 0);
+        let uc_errs: Vec<_> = errors
+            .iter()
+            .filter(|e| matches!(e, ProviderCompatError::UnconstrainedSchema { .. }))
+            .collect();
+        assert!(
+            !uc_errs.is_empty(),
+            "empty schema inside dependentSchemas should trigger UnconstrainedSchema"
+        );
+    }
+
+    // ── #111 Depth semantics ──────────────────────────────────
+    #[test]
+    fn visitor_combinator_no_depth_increment() {
+        // anyOf/oneOf/allOf should NOT increment semantic depth (max_depth_observed)
+        let mut schema = json!({
+            "type": "object",
+            "anyOf": [{
+                "type": "object",
+                "oneOf": [{
+                    "type": "string"
+                }]
+            }]
+        });
+        let mut errors = Vec::new();
+        let mut transforms = Vec::new();
+        let mut visitor = CompatVisitor {
+            errors: &mut errors,
+            transforms: &mut transforms,
+            target: Target::OpenaiStrict,
+            max_depth_observed: 0,
+        };
+        visitor.visit(&mut schema, "#", 0, 0);
+        assert_eq!(
+            visitor.max_depth_observed, 0,
+            "combinators should not increment semantic depth, got: {}",
+            visitor.max_depth_observed
+        );
+    }
+
+    #[test]
+    fn visitor_data_shape_keywords_increment_depth() {
+        // properties/items/additionalProperties should increment semantic depth
+        let mut schema = json!({
+            "type": "object",
+            "properties": {
+                "child": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        });
+        let mut errors = Vec::new();
+        let mut transforms = Vec::new();
+        let mut visitor = CompatVisitor {
+            errors: &mut errors,
+            transforms: &mut transforms,
+            target: Target::OpenaiStrict,
+            max_depth_observed: 0,
+        };
+        visitor.visit(&mut schema, "#", 0, 0);
+        assert_eq!(
+            visitor.max_depth_observed, 2,
+            "properties → items should yield semantic depth 2, got: {}",
+            visitor.max_depth_observed
+        );
     }
 }

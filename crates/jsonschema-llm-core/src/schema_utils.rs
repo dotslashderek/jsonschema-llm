@@ -124,7 +124,8 @@ pub fn split_path(path: &str) -> Vec<String> {
 ///
 /// ## Cross-Reference
 ///
-/// When adding keywords here, also update `p1_composition::walk()`.
+/// When adding keywords here, also update `p1_composition::walk()` and
+/// `CompatVisitor` in `p9_provider_compat.rs`.
 pub fn recurse_into_children<F>(
     obj: &mut Map<String, Value>,
     path: &str,
