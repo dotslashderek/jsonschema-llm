@@ -152,6 +152,73 @@ fn check_root_type(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Helper: build a descriptive summary for truncated opaque-string schemas
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Summarise a sub-schema that is about to be replaced with an opaque
+/// `type: "string"` so that the LLM knows what JSON structure to produce.
+///
+/// Recursively describes the entire sub-tree in a compact TypeScript-like
+/// syntax so the LLM can produce structurally correct stringified JSON.
+///
+/// Example output:
+///   `"A JSON-encoded string. Structure: {name: string, address: {street: string, city: string}, tags: [string]}. Produce valid, parseable JSON."`
+fn build_opaque_description(schema: &Value) -> String {
+    let structure = describe_schema_structure(schema, 0);
+    format!("A JSON-encoded string. Structure: {structure}. Produce valid, parseable JSON.")
+}
+
+/// Recursively convert a schema into a compact structural description.
+/// Uses a TypeScript-like object/array syntax for clarity.
+/// Depth parameter prevents runaway recursion (cap at 10 levels of description).
+fn describe_schema_structure(schema: &Value, depth: usize) -> String {
+    if depth > 10 {
+        return "...".to_string();
+    }
+
+    let schema_type = schema.get("type").and_then(|v| v.as_str()).unwrap_or("any");
+
+    match schema_type {
+        "object" => {
+            if let Some(props) = schema.get("properties").and_then(|v| v.as_object()) {
+                let fields: Vec<String> = props
+                    .iter()
+                    .take(30) // cap field count
+                    .map(|(name, sub)| {
+                        let desc = describe_schema_structure(sub, depth + 1);
+                        format!("{name}: {desc}")
+                    })
+                    .collect();
+                let suffix = if props.len() > 30 {
+                    ", ...".to_string()
+                } else {
+                    String::new()
+                };
+                format!("{{{}{}}}", fields.join(", "), suffix)
+            } else {
+                "object".to_string()
+            }
+        }
+        "array" => {
+            if let Some(items) = schema.get("items") {
+                let item_desc = describe_schema_structure(items, depth + 1);
+                format!("[{item_desc}]")
+            } else if let Some(prefix) = schema.get("prefixItems").and_then(|v| v.as_array()) {
+                let descs: Vec<String> = prefix
+                    .iter()
+                    .take(10)
+                    .map(|s| describe_schema_structure(s, depth + 1))
+                    .collect();
+                format!("[{}]", descs.join(", "))
+            } else {
+                "[any]".to_string()
+            }
+        }
+        _ => schema_type.to_string(),
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Checks 2–4: Single-pass CompatVisitor
 //
 // NOTE: When adding keywords here, also update `schema_utils::recurse_into_children`.
@@ -219,7 +286,32 @@ impl CompatVisitor<'_> {
         }
 
         // ── #95 Depth budget: TRUNCATE at limit ───────────────
+        // Only truncate schemas that contribute to nesting (objects, arrays).
+        // Primitive leaves (string, integer, number, boolean) don't add depth
+        // and should pass through untouched.
         if semantic_depth >= OPENAI_MAX_DEPTH && path != "#" {
+            let schema_type = schema.get("type").and_then(|v| v.as_str()).unwrap_or("");
+            let is_primitive = matches!(
+                schema_type,
+                "string" | "integer" | "number" | "boolean" | "null"
+            );
+            // Also skip if the schema has no sub-structure (no properties, items, etc.)
+            let has_sub_structure = schema.get("properties").is_some()
+                || schema.get("items").is_some()
+                || schema.get("additionalProperties").is_some()
+                || schema.get("anyOf").is_some()
+                || schema.get("oneOf").is_some()
+                || schema.get("allOf").is_some()
+                || schema.get("prefixItems").is_some();
+
+            if is_primitive && !has_sub_structure {
+                // Primitive leaf — no nesting contribution, leave it alone
+                return;
+            }
+
+            // Build a structural description so the LLM knows what JSON to produce
+            let desc = build_opaque_description(schema);
+
             self.errors.push(ProviderCompatError::DepthBudgetExceeded {
                 actual_depth: semantic_depth,
                 max_depth: OPENAI_MAX_DEPTH,
@@ -232,7 +324,7 @@ impl CompatVisitor<'_> {
 
             *schema = json!({
                 "type": "string",
-                "description": "A JSON-encoded string representing the object. Parse with JSON.parse() after generation."
+                "description": desc
             });
             self.transforms.push(Transform::JsonStringParse {
                 path: path.to_string(),
