@@ -44,11 +44,12 @@ def run_cli_conversion(binary_path, input_path, output_path, codec_path, timeout
 
 
 def run_cli_rehydration(
-    binary_path, input_data_path, codec_path, output_rehydrated_path, timeout=30
+    binary_path, input_data_path, codec_path, output_rehydrated_path, schema_path=None, timeout=30
 ):
     """Rehydrate LLM output using the codec.
 
     Args:
+        schema_path: Optional original schema for type coercion.
         timeout: Subprocess timeout in seconds (default 30).
     """
     cmd = [
@@ -60,6 +61,8 @@ def run_cli_rehydration(
         "--output",
         output_rehydrated_path,
     ]
+    if schema_path:
+        cmd.extend(["--schema", schema_path])
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
         if result.returncode != 0:
@@ -274,6 +277,7 @@ def main():
             llm_output_path,
             codec_path,
             rehydrated_path,
+            schema_path=input_path,
             timeout=args.timeout_subprocess,
         )
         if not success:

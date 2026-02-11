@@ -37,7 +37,7 @@ pub use codec::Codec;
 pub use codec_warning::Warning;
 pub use config::{ConvertOptions, Mode, PolymorphismStrategy, Target};
 pub use error::{ConvertError, ErrorCode, ProviderCompatError};
-pub use rehydrator::RehydrateResult;
+pub use rehydrator::{coerce_types, RehydrateResult};
 pub use schema_utils::{build_path, escape_pointer_segment, split_path, unescape_pointer_segment};
 
 /// Bridge API version. Included in all FFI JSON responses.

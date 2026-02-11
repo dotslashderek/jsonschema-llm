@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand, ValueEnum};
 use jsonschema_llm_core::config::PolymorphismStrategy;
-use jsonschema_llm_core::{convert, rehydrate, Codec, ConvertOptions, Mode, Target};
+use jsonschema_llm_core::{coerce_types, convert, rehydrate, Codec, ConvertOptions, Mode, Target};
 use serde::Deserialize;
 use std::fs::File;
 use std::io::{self, BufReader, BufWriter, Write};
@@ -69,6 +69,10 @@ enum Commands {
         /// Codec file from conversion
         #[arg(long)]
         codec: PathBuf,
+
+        /// Original schema file (enables type coercion for LLM type mismatches)
+        #[arg(long)]
+        schema: Option<PathBuf>,
 
         /// Output rehydrated JSON file (defaults to stdout if not specified)
         #[arg(short, long)]
@@ -204,6 +208,7 @@ fn main() -> Result<()> {
         Commands::Rehydrate {
             input,
             codec,
+            schema,
             output,
             format,
         } => {
@@ -231,11 +236,30 @@ fn main() -> Result<()> {
             let result = rehydrate(&data, &codec_obj)
                 .map_err(|e| anyhow::Error::from(e).context("Rehydration failed"))?;
 
+            let mut final_data = result.data;
+
+            // Type coercion: if original schema provided, fix LLM type mismatches
+            if let Some(schema_path) = &schema {
+                let original_schema: serde_json::Value = {
+                    let file = File::open(schema_path).with_context(|| {
+                        format!("Failed to open schema file: {}", schema_path.display())
+                    })?;
+                    let reader = BufReader::new(file);
+                    serde_json::from_reader(reader).with_context(|| {
+                        format!("Failed to parse schema from: {}", schema_path.display())
+                    })?
+                };
+                let coercion_warnings = coerce_types(&mut final_data, &original_schema);
+                for warning in &coercion_warnings {
+                    eprintln!("Coercion: {}", warning.message);
+                }
+            }
+
             for warning in &result.warnings {
                 eprintln!("Warning: {}", warning.message);
             }
 
-            write_json(&result.data, output.as_ref(), format)?;
+            write_json(&final_data, output.as_ref(), format)?;
         }
     }
 

@@ -1303,6 +1303,221 @@ fn validate_codec_version(codec: &Codec) -> Result<(), ConvertError> {
     Ok(())
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Type Coercion — fix LLM type mismatches using the original schema
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Coerce data types to match the original schema expectations.
+///
+/// LLMs sometimes return the wrong JSON type for a field — e.g. a bare `123`
+/// where `type: "string"` was expected, or `"42"` where `type: "integer"` was
+/// expected. This function walks the original schema and data in parallel,
+/// applying safe coercions:
+///
+/// | Got | Expected | Action |
+/// |-----|----------|--------|
+/// | number/integer | `"string"` | `value.to_string()` |
+/// | boolean | `"string"` | `"true"` / `"false"` |
+/// | `"string"` | `"number"` | parse as f64 (validate roundtrip) |
+/// | `"string"` | `"integer"` | parse as i64 (validate roundtrip) |
+///
+/// Returns warnings for each coercion applied.
+pub fn coerce_types(data: &mut Value, original_schema: &Value) -> Vec<Warning> {
+    let mut warnings = Vec::new();
+    coerce_walk(data, original_schema, "", &mut warnings);
+    warnings
+}
+
+/// Recursive walker for type coercion.
+fn coerce_walk(data: &mut Value, schema: &Value, path: &str, warnings: &mut Vec<Warning>) {
+    let schema_obj = match schema.as_object() {
+        Some(o) => o,
+        None => return,
+    };
+
+    // Determine expected type(s). Handle both `type: "string"` and `type: ["string", "null"]`.
+    let expected_types: Vec<&str> = match schema_obj.get("type") {
+        Some(Value::String(s)) => vec![s.as_str()],
+        Some(Value::Array(arr)) => arr.iter().filter_map(|v| v.as_str()).collect(),
+        _ => vec![],
+    };
+
+    // If data is null and null is an allowed type, skip coercion
+    if data.is_null() && expected_types.contains(&"null") {
+        return;
+    }
+
+    // --- Attempt type coercion at this node ---
+    if !expected_types.is_empty() {
+        if let Some(msg) = try_coerce(data, &expected_types) {
+            warnings.push(Warning {
+                data_path: if path.is_empty() {
+                    "/".to_string()
+                } else {
+                    path.to_string()
+                },
+                schema_path: String::new(),
+                kind: WarningKind::ConstraintViolation {
+                    constraint: "type".to_string(),
+                },
+                message: msg,
+            });
+        }
+    }
+
+    // --- Recurse into children ---
+
+    // Object properties
+    if expected_types.iter().any(|t| *t == "object") || schema_obj.contains_key("properties") {
+        if let (Some(data_obj), Some(props)) = (
+            data.as_object_mut(),
+            schema_obj.get("properties").and_then(|v| v.as_object()),
+        ) {
+            let keys: Vec<String> = data_obj.keys().cloned().collect();
+            for key in keys {
+                if let Some(prop_schema) = props.get(&key) {
+                    let child_path = format!("{}/{}", path, escape_pointer_segment(&key));
+                    if let Some(child_data) = data_obj.get_mut(&key) {
+                        coerce_walk(child_data, prop_schema, &child_path, warnings);
+                    }
+                }
+            }
+        }
+    }
+
+    // Array items — handle both prefixItems (tuples) and uniform items
+    if expected_types.iter().any(|t| *t == "array")
+        || schema_obj.contains_key("items")
+        || schema_obj.contains_key("prefixItems")
+    {
+        if let Some(data_arr) = data.as_array_mut() {
+            let prefix_items = schema_obj.get("prefixItems").and_then(|v| v.as_array());
+            let items_schema = schema_obj.get("items");
+
+            for (i, item) in data_arr.iter_mut().enumerate() {
+                let child_path = format!("{}/{}", path, i);
+                // Use positional schema from prefixItems if available, else fallback to items
+                if let Some(positional) = prefix_items.and_then(|pi| pi.get(i)) {
+                    coerce_walk(item, positional, &child_path, warnings);
+                } else if let Some(uniform) = items_schema {
+                    coerce_walk(item, uniform, &child_path, warnings);
+                }
+            }
+        }
+    }
+
+    // anyOf / oneOf — try each variant, use the first that matches the data's type
+    for keyword in &["anyOf", "oneOf"] {
+        if let Some(variants) = schema_obj.get(*keyword).and_then(|v| v.as_array()) {
+            for variant in variants {
+                let variant_types: Vec<&str> = match variant.get("type") {
+                    Some(Value::String(s)) => vec![s.as_str()],
+                    Some(Value::Array(arr)) => arr.iter().filter_map(|v| v.as_str()).collect(),
+                    _ => continue,
+                };
+                let data_type = json_type_name(data);
+                if variant_types.contains(&data_type) {
+                    coerce_walk(data, variant, path, warnings);
+                    break;
+                }
+            }
+        }
+    }
+}
+
+/// Attempt to coerce a value to match one of the expected types.
+/// Returns `Some(message)` if coercion was applied, `None` if no action needed.
+fn try_coerce(value: &mut Value, expected_types: &[&str]) -> Option<String> {
+    let actual_type = json_type_name(value);
+
+    // If the actual type already matches, no coercion needed.
+    // Special case: "integer" values also satisfy "number" expectations.
+    if expected_types.contains(&actual_type)
+        || (actual_type == "integer" && expected_types.contains(&"number"))
+    {
+        return None;
+    }
+
+    for expected in expected_types {
+        match *expected {
+            "string" => match value {
+                Value::Number(n) => {
+                    let s = n.to_string();
+                    let msg = format!("coerced number {} to string \"{}\"", s, s);
+                    *value = Value::String(s);
+                    return Some(msg);
+                }
+                Value::Bool(b) => {
+                    let s = b.to_string();
+                    let msg = format!("coerced boolean {} to string \"{}\"", b, s);
+                    *value = Value::String(s);
+                    return Some(msg);
+                }
+                _ => {}
+            },
+            "integer" => {
+                if let Some(s) = value.as_str() {
+                    if let Ok(n) = s.parse::<i64>() {
+                        // Roundtrip check: parsed.to_string() == original
+                        if n.to_string() == s {
+                            let msg = format!("coerced string \"{}\" to integer {}", s, n);
+                            *value = Value::Number(serde_json::Number::from(n));
+                            return Some(msg);
+                        }
+                    }
+                }
+            }
+            "number" => {
+                if let Some(s) = value.as_str() {
+                    if let Ok(n) = s.parse::<f64>() {
+                        if let Some(num) = serde_json::Number::from_f64(n) {
+                            let msg = format!("coerced string \"{}\" to number {}", s, n);
+                            *value = Value::Number(num);
+                            return Some(msg);
+                        }
+                    }
+                }
+            }
+            "boolean" => {
+                if let Some(s) = value.as_str() {
+                    match s {
+                        "true" => {
+                            *value = Value::Bool(true);
+                            return Some("coerced string \"true\" to boolean true".to_string());
+                        }
+                        "false" => {
+                            *value = Value::Bool(false);
+                            return Some("coerced string \"false\" to boolean false".to_string());
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    None
+}
+
+/// Return the JSON type name for a value.
+fn json_type_name(value: &Value) -> &'static str {
+    match value {
+        Value::Null => "null",
+        Value::Bool(_) => "boolean",
+        Value::Number(n) => {
+            if n.is_i64() || n.is_u64() {
+                "integer"
+            } else {
+                "number"
+            }
+        }
+        Value::String(_) => "string",
+        Value::Array(_) => "array",
+        Value::Object(_) => "object",
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2005,5 +2220,151 @@ mod tests {
             result.data["child"].is_object(),
             "child should be an object after rehydration"
         );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Type Coercion Tests
+    // ═══════════════════════════════════════════════════════════════════════
+
+    #[test]
+    fn test_coerce_number_to_string() {
+        let schema = json!({"type": "object", "properties": {"name": {"type": "string"}}});
+        let mut data = json!({"name": 123});
+        let warnings = coerce_types(&mut data, &schema);
+        assert_eq!(data["name"], json!("123"));
+        assert_eq!(warnings.len(), 1);
+        assert!(warnings[0].message.contains("coerced number"));
+    }
+
+    #[test]
+    fn test_coerce_boolean_to_string() {
+        let schema = json!({"type": "object", "properties": {"flag": {"type": "string"}}});
+        let mut data = json!({"flag": true});
+        let warnings = coerce_types(&mut data, &schema);
+        assert_eq!(data["flag"], json!("true"));
+        assert_eq!(warnings.len(), 1);
+    }
+
+    #[test]
+    fn test_coerce_string_to_integer() {
+        let schema = json!({"type": "object", "properties": {"age": {"type": "integer"}}});
+        let mut data = json!({"age": "42"});
+        let warnings = coerce_types(&mut data, &schema);
+        assert_eq!(data["age"], json!(42));
+        assert_eq!(warnings.len(), 1);
+        assert!(warnings[0].message.contains("coerced string"));
+    }
+
+    #[test]
+    fn test_coerce_string_to_number() {
+        let schema = json!({"type": "object", "properties": {"score": {"type": "number"}}});
+        let mut data = json!({"score": "2.78"});
+        let warnings = coerce_types(&mut data, &schema);
+        assert!((data["score"].as_f64().unwrap() - 2.78).abs() < f64::EPSILON);
+        assert_eq!(warnings.len(), 1);
+    }
+
+    #[test]
+    fn test_coerce_string_to_boolean() {
+        let schema = json!({"type": "object", "properties": {"active": {"type": "boolean"}}});
+        let mut data = json!({"active": "false"});
+        let warnings = coerce_types(&mut data, &schema);
+        assert_eq!(data["active"], json!(false));
+        assert_eq!(warnings.len(), 1);
+    }
+
+    #[test]
+    fn test_coerce_roundtrip_rejects_non_numeric() {
+        let schema = json!({"type": "object", "properties": {"count": {"type": "integer"}}});
+        let mut data = json!({"count": "hello"});
+        let warnings = coerce_types(&mut data, &schema);
+        // Should NOT coerce — "hello" is not parseable as integer
+        assert_eq!(data["count"], json!("hello"));
+        assert_eq!(warnings.len(), 0);
+    }
+
+    #[test]
+    fn test_coerce_nested_objects() {
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "user": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "age": {"type": "integer"}
+                    }
+                }
+            }
+        });
+        let mut data = json!({"user": {"id": 456, "age": "30"}});
+        let warnings = coerce_types(&mut data, &schema);
+        assert_eq!(data["user"]["id"], json!("456"));
+        assert_eq!(data["user"]["age"], json!(30));
+        assert_eq!(warnings.len(), 2);
+    }
+
+    #[test]
+    fn test_coerce_array_items() {
+        let schema = json!({
+            "type": "array",
+            "items": {"type": "string"}
+        });
+        let mut data = json!([1, "two", 3, true]);
+        let warnings = coerce_types(&mut data, &schema);
+        assert_eq!(data, json!(["1", "two", "3", "true"]));
+        assert_eq!(warnings.len(), 3); // 1, 3, true coerced
+    }
+
+    #[test]
+    fn test_coerce_null_passthrough() {
+        let schema = json!({"type": ["string", "null"]});
+        let mut data = json!(null);
+        let warnings = coerce_types(&mut data, &schema);
+        assert_eq!(data, json!(null));
+        assert_eq!(warnings.len(), 0);
+    }
+
+    #[test]
+    fn test_coerce_no_op_when_types_match() {
+        let schema = json!({"type": "object", "properties": {"name": {"type": "string"}}});
+        let mut data = json!({"name": "Alice"});
+        let warnings = coerce_types(&mut data, &schema);
+        assert_eq!(data["name"], json!("Alice"));
+        assert_eq!(warnings.len(), 0);
+    }
+
+    #[test]
+    fn test_coerce_integer_satisfies_number() {
+        // An integer value should satisfy a "number" type without coercion
+        let schema = json!({"type": "object", "properties": {"val": {"type": "number"}}});
+        let mut data = json!({"val": 42});
+        let warnings = coerce_types(&mut data, &schema);
+        assert_eq!(data["val"], json!(42));
+        assert_eq!(warnings.len(), 0);
+    }
+
+    #[test]
+    fn test_coerce_prefix_items_tuple() {
+        let schema = json!({
+            "type": "array",
+            "prefixItems": [
+                {"type": "integer"},
+                {"type": "boolean"},
+                {"type": "string"}
+            ],
+            "items": {"type": "string"}
+        });
+        let mut data = json!(["42", "true", "hello", 99]);
+        let warnings = coerce_types(&mut data, &schema);
+        // prefixItems[0] → integer: "42" → 42
+        assert_eq!(data[0], json!(42));
+        // prefixItems[1] → boolean: "true" → true
+        assert_eq!(data[1], json!(true));
+        // prefixItems[2] → string: "hello" stays "hello"
+        assert_eq!(data[2], json!("hello"));
+        // items (fallback) → string: 99 → "99"
+        assert_eq!(data[3], json!("99"));
+        assert_eq!(warnings.len(), 3); // 3 coercions
     }
 }
