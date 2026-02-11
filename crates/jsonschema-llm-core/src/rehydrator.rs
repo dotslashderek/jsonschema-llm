@@ -298,11 +298,25 @@ fn execute_transform(data: &mut Value, transform: &Transform) -> Result<(), Conv
             parse_json_string(data)?;
         }
         Transform::RootObjectWrapper { wrapper_key, .. } => {
-            // Unwrap: extract data[wrapper_key] and promote it to root
-            if let Some(obj) = data.as_object_mut() {
-                if let Some(inner) = obj.remove(wrapper_key) {
-                    *data = inner;
-                }
+            // Unwrap: extract data[wrapper_key] and promote it to root.
+            // Fail loudly if the wrapper object is missing/invalid to avoid silently
+            // accepting malformed LLM output or discarding unexpected keys.
+            let obj = data.as_object_mut().ok_or_else(|| {
+                ConvertError::RehydrationError(format!(
+                    "Expected root object with wrapper key `{}` but found non-object value",
+                    wrapper_key
+                ))
+            })?;
+
+            if !obj.contains_key(wrapper_key) {
+                return Err(ConvertError::RehydrationError(format!(
+                    "Expected wrapper key `{}` at root object but it was missing",
+                    wrapper_key
+                )));
+            }
+
+            if let Some(inner) = obj.remove(wrapper_key) {
+                *data = inner;
             }
         }
         Transform::EnumStringify {

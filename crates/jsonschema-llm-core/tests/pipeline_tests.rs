@@ -167,10 +167,7 @@ fn test_convert_with_oneof() {
 
     // The original oneOf→anyOf conversion lives inside properties.result
     let inner = &result.schema["properties"]["result"];
-    assert!(
-        inner.get("oneOf").is_none(),
-        "oneOf should be removed"
-    );
+    assert!(inner.get("oneOf").is_none(), "oneOf should be removed");
     assert!(
         inner.get("anyOf").is_some(),
         "anyOf should be present inside the wrapper"

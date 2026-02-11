@@ -1,8 +1,9 @@
 //! Acceptance tests for Pass 9 — Provider compatibility checks.
 //!
 //! These tests exercise the full pipeline (`convert()`) and assert on
-//! `ConvertResult.provider_compat_errors`. They are written BEFORE the
-//! implementation (constraint-based TDD) and must fail until p9 is populated.
+//! `ConvertResult.provider_compat_errors`. They were originally written
+//! before the implementation (constraint-based TDD) and now serve as
+//! regression tests for the populated p9 pass.
 //!
 //! Each test maps to a specific sub-issue of #100:
 //!   - #94: Root type enforcement (non-object roots must be wrapped)
@@ -52,7 +53,10 @@ fn p9_root_object_no_error() {
         .iter()
         .filter(|e| matches!(e, ProviderCompatError::RootTypeIncompatible { .. }))
         .collect();
-    assert!(root_errors.is_empty(), "object root should not trigger RootTypeIncompatible");
+    assert!(
+        root_errors.is_empty(),
+        "object root should not trigger RootTypeIncompatible"
+    );
 }
 
 #[test]
@@ -69,7 +73,11 @@ fn p9_root_array_emits_error_and_wraps() {
         .iter()
         .filter(|e| matches!(e, ProviderCompatError::RootTypeIncompatible { .. }))
         .collect();
-    assert_eq!(root_errors.len(), 1, "array root should trigger exactly 1 RootTypeIncompatible");
+    assert_eq!(
+        root_errors.len(),
+        1,
+        "array root should trigger exactly 1 RootTypeIncompatible"
+    );
 
     // The output schema should be wrapped in an object
     assert_eq!(
@@ -78,7 +86,11 @@ fn p9_root_array_emits_error_and_wraps() {
         "wrapped schema must have type: object at root"
     );
     assert!(
-        result.schema.get("properties").and_then(|p| p.get("result")).is_some(),
+        result
+            .schema
+            .get("properties")
+            .and_then(|p| p.get("result"))
+            .is_some(),
         "wrapped schema must have properties.result"
     );
 }
@@ -96,7 +108,11 @@ fn p9_root_string_emits_error_and_wraps() {
         .iter()
         .filter(|e| matches!(e, ProviderCompatError::RootTypeIncompatible { .. }))
         .collect();
-    assert_eq!(root_errors.len(), 1, "string root should trigger RootTypeIncompatible");
+    assert_eq!(
+        root_errors.len(),
+        1,
+        "string root should trigger RootTypeIncompatible"
+    );
     assert_eq!(
         result.schema.get("type").and_then(|v| v.as_str()),
         Some("object"),
@@ -140,7 +156,10 @@ fn p9_root_missing_type_emits_error() {
 
     // Original schema lives inside properties.result
     assert!(
-        result.schema.pointer("/properties/result/properties/x").is_some(),
+        result
+            .schema
+            .pointer("/properties/result/properties/x")
+            .is_some(),
         "original property 'x' should be inside properties.result"
     );
 }
@@ -191,7 +210,10 @@ fn p9_shallow_schema_no_depth_error() {
         .iter()
         .filter(|e| matches!(e, ProviderCompatError::DepthBudgetExceeded { .. }))
         .collect();
-    assert!(depth_errors.is_empty(), "2-level schema should not exceed depth budget");
+    assert!(
+        depth_errors.is_empty(),
+        "2-level schema should not exceed depth budget"
+    );
 }
 
 #[test]
@@ -225,7 +247,10 @@ fn p9_deep_schema_emits_depth_error() {
         ..
     } = &depth_errors[0]
     {
-        assert!(*actual_depth > *max_depth, "actual_depth should exceed max_depth");
+        assert!(
+            *actual_depth > *max_depth,
+            "actual_depth should exceed max_depth"
+        );
     }
 }
 
@@ -249,7 +274,10 @@ fn p9_homogeneous_enum_no_error() {
         .iter()
         .filter(|e| matches!(e, ProviderCompatError::MixedEnumTypes { .. }))
         .collect();
-    assert!(enum_errors.is_empty(), "homogeneous string enum should not trigger MixedEnumTypes");
+    assert!(
+        enum_errors.is_empty(),
+        "homogeneous string enum should not trigger MixedEnumTypes"
+    );
 }
 
 #[test]
@@ -274,7 +302,10 @@ fn p9_heterogeneous_enum_emits_error() {
         "mixed-type enum should trigger exactly 1 MixedEnumTypes"
     );
 
-    if let ProviderCompatError::MixedEnumTypes { types_found, path, .. } = &enum_errors[0] {
+    if let ProviderCompatError::MixedEnumTypes {
+        types_found, path, ..
+    } = &enum_errors[0]
+    {
         assert!(types_found.len() > 1, "should report multiple types");
         assert!(
             path.contains("mixed"),
@@ -333,7 +364,10 @@ fn p9_typed_schema_no_unconstrained_error() {
         .iter()
         .filter(|e| matches!(e, ProviderCompatError::UnconstrainedSchema { .. }))
         .collect();
-    assert!(uncon_errors.is_empty(), "fully typed schema should not trigger UnconstrainedSchema");
+    assert!(
+        uncon_errors.is_empty(),
+        "fully typed schema should not trigger UnconstrainedSchema"
+    );
 }
 
 #[test]
