@@ -51,7 +51,7 @@ pub fn check_provider_compat(schema: &Value, config: &ConvertOptions) -> Provide
             let mut schema = check_root_type(schema, config.target, &mut errors, &mut transforms);
 
             // ── Checks 2–4: Single-pass mutating visitor (#95, #96, #97)
-            let max_depth_observed = {
+            {
                 let mut visitor = CompatVisitor {
                     errors: &mut errors,
                     transforms: &mut transforms,
@@ -59,21 +59,9 @@ pub fn check_provider_compat(schema: &Value, config: &ConvertOptions) -> Provide
                     max_depth_observed: 0,
                 };
                 visitor.visit(&mut schema, "#", 0, 0);
-                visitor.max_depth_observed
-            };
-
-            // Emit a single aggregated DepthBudgetExceeded if needed
-            if max_depth_observed > OPENAI_MAX_DEPTH {
-                errors.push(ProviderCompatError::DepthBudgetExceeded {
-                    actual_depth: max_depth_observed,
-                    max_depth: OPENAI_MAX_DEPTH,
-                    target: config.target,
-                    hint: format!(
-                        "Schema nesting depth {} exceeds OpenAI Strict Mode limit of {}.",
-                        max_depth_observed, OPENAI_MAX_DEPTH,
-                    ),
-                });
             }
+
+            // (#95 truncation emits per-path DepthBudgetExceeded errors inline)
 
             ProviderCompatResult {
                 schema,
@@ -217,6 +205,28 @@ impl CompatVisitor<'_> {
         // ── #95 Depth budget (diagnostic, uses semantic_depth) ─────
         if semantic_depth > self.max_depth_observed {
             self.max_depth_observed = semantic_depth;
+        }
+
+        // ── #95 Depth budget: TRUNCATE at limit ───────────────
+        if semantic_depth >= OPENAI_MAX_DEPTH && path != "#" {
+            self.errors.push(ProviderCompatError::DepthBudgetExceeded {
+                actual_depth: semantic_depth,
+                max_depth: OPENAI_MAX_DEPTH,
+                target: self.target,
+                hint: format!(
+                    "Sub-schema at '{}' exceeds depth limit {}. Replaced with opaque string.",
+                    path, OPENAI_MAX_DEPTH,
+                ),
+            });
+
+            *schema = json!({
+                "type": "string",
+                "description": "A JSON-encoded string representing the object. Parse with JSON.parse() after generation."
+            });
+            self.transforms.push(Transform::JsonStringParse {
+                path: path.to_string(),
+            });
+            return;
         }
 
         // ── #96 Enum homogeneity (transform) ──────────────────────
@@ -635,7 +645,7 @@ mod tests {
 
     #[test]
     fn deep_emits_error() {
-        // Build 7 levels deep
+        // Build 7 levels deep — should trigger truncation at depth limit
         let mut inner = json!({"type": "string"});
         for i in (0..7).rev() {
             inner = json!({"type": "object", "properties": {format!("l{i}"): inner}});
@@ -649,6 +659,111 @@ mod tests {
         assert!(
             !depth_errs.is_empty(),
             "should have at least one depth error"
+        );
+        // #95: truncation should also produce transforms
+        let parse_transforms: Vec<_> = r
+            .transforms
+            .iter()
+            .filter(|t| matches!(t, Transform::JsonStringParse { .. }))
+            .collect();
+        assert!(
+            !parse_transforms.is_empty(),
+            "deep schema should be truncated with JsonStringParse transforms"
+        );
+    }
+
+    #[test]
+    fn deep_schema_truncated_at_limit() {
+        // Build 7 levels deep: root -> l0 -> l1 -> l2 -> l3 -> l4 -> l5 -> l6(string)
+        // At OPENAI_MAX_DEPTH (5), the sub-tree should become opaque string
+        let mut inner = json!({"type": "string"});
+        for i in (0..7).rev() {
+            inner = json!({"type": "object", "properties": {format!("l{i}"): inner}});
+        }
+        let r = check_provider_compat(&inner, &opts());
+
+        // The sub-tree at depth >= 5 should be replaced with opaque string
+        // Navigate to the deepening path and check for truncation
+        let mut cursor = &r.schema;
+        for i in 0..5 {
+            cursor = &cursor["properties"][format!("l{i}")];
+        }
+        // At depth 5, the schema should be an opaque string placeholder
+        assert_eq!(
+            cursor.get("type").and_then(|v| v.as_str()),
+            Some("string"),
+            "sub-schema at depth limit should be opaque string type"
+        );
+        assert!(
+            cursor.get("description").is_some(),
+            "opaque string should have a description"
+        );
+    }
+
+    #[test]
+    fn depth_truncation_preserves_shallow_branches() {
+        // One branch 7 deep, one branch 2 deep
+        let mut deep = json!({"type": "string"});
+        for i in (0..6).rev() {
+            deep = json!({"type": "object", "properties": {format!("d{i}"): deep}});
+        }
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "deep_branch": deep,
+                "shallow": {"type": "string"}
+            }
+        });
+        let r = check_provider_compat(&schema, &opts());
+
+        // Shallow branch should be untouched
+        assert_eq!(
+            r.schema.pointer("/properties/shallow/type")
+                .and_then(|v| v.as_str()),
+            Some("string"),
+            "shallow branch should remain a string"
+        );
+
+        // Deep branch should be truncated somewhere
+        let truncate_transforms: Vec<_> = r
+            .transforms
+            .iter()
+            .filter(|t| matches!(t, Transform::JsonStringParse { .. }))
+            .collect();
+        assert!(
+            !truncate_transforms.is_empty(),
+            "deep branch should produce truncation transforms"
+        );
+    }
+
+    #[test]
+    fn depth_truncation_emits_per_path_errors() {
+        // Build two parallel deep branches
+        let mut deep_a = json!({"type": "string"});
+        let mut deep_b = json!({"type": "integer"});
+        for i in (0..6).rev() {
+            deep_a = json!({"type": "object", "properties": {format!("a{i}"): deep_a}});
+            deep_b = json!({"type": "object", "properties": {format!("b{i}"): deep_b}});
+        }
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "branch_a": deep_a,
+                "branch_b": deep_b,
+            }
+        });
+        let r = check_provider_compat(&schema, &opts());
+
+        // Should have multiple per-path depth errors (one for each branch's truncation point)
+        let depth_errs: Vec<_> = r
+            .errors
+            .iter()
+            .filter(|e| matches!(e, ProviderCompatError::DepthBudgetExceeded { .. }))
+            .collect();
+        assert!(
+            depth_errs.len() >= 2,
+            "should have at least 2 per-path depth errors, got {}",
+            depth_errs.len()
         );
     }
 
