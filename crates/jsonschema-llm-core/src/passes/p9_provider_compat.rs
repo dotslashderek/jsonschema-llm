@@ -257,16 +257,18 @@ impl CompatVisitor<'_> {
 
         // ── Data-shape: single-schema ──────────────────────────────
         // additionalProperties, unevaluatedProperties, unevaluatedItems, contains
-        // Note: only recurse if an object. Boolean values (e.g. `additionalProperties: false`)
-        // are intentional constraints, not unconstrained sub-schemas.
+        // Visit objects and `true` booleans (unconstrained). Skip `false` (sealed constraint).
         for keyword in &[
             "additionalProperties",
             "unevaluatedProperties",
             "unevaluatedItems",
             "contains",
         ] {
-            let is_obj = schema.get(*keyword).map(|v| v.is_object()).unwrap_or(false);
-            if is_obj {
+            let should_visit = schema
+                .get(*keyword)
+                .map(|v| v.is_object() || v.as_bool() == Some(true))
+                .unwrap_or(false);
+            if should_visit {
                 let child_path = build_path(path, &[keyword]);
                 if let Some(child) = schema.get_mut(*keyword) {
                     self.visit(child, &child_path, rd, sd_data);
@@ -275,19 +277,20 @@ impl CompatVisitor<'_> {
         }
 
         // ── Data-shape: items (single-schema, tuple array, or boolean) ──
-        // Handle `items: {schema}`, `items: [{schema}, ...]`, and `items: true|false`
+        // Handle `items: {schema}`, `items: [{schema}, ...]`, and `items: true` (unconstrained).
+        // Skip `items: false` (deny all items = intentional constraint).
         // (cf. schema_utils::recurse_into_children for the canonical list)
         {
             // Determine shape without holding a mutable borrow
             let is_obj = schema.get("items").is_some_and(|v| v.is_object());
-            let is_bool = schema.get("items").is_some_and(|v| v.is_boolean());
+            let is_true = schema.get("items").and_then(|v| v.as_bool()) == Some(true);
             let tuple_len = schema
                 .get("items")
                 .and_then(|v| v.as_array())
                 .map(|a| a.len());
 
-            if is_obj || is_bool {
-                // Single schema or boolean schema (true = unconstrained, false = deny)
+            if is_obj || is_true {
+                // Single schema or boolean `true` (unconstrained)
                 let child_path = build_path(path, &["items"]);
                 if let Some(child) = schema.get_mut("items") {
                     self.visit(child, &child_path, rd, sd_data);
@@ -819,6 +822,294 @@ mod tests {
         assert!(
             !enum_errs.is_empty(),
             "mixed enum inside tuple items should be detected"
+        );
+    }
+
+    // ── Boolean schema consistency ───────────────────────────
+    #[test]
+    fn visitor_boolean_true_detected_across_data_shape_keywords() {
+        // `true` booleans should be caught as unconstrained across all data-shape keywords
+        for keyword in &[
+            "items",
+            "additionalProperties",
+            "unevaluatedProperties",
+            "unevaluatedItems",
+            "contains",
+        ] {
+            let mut schema = json!({
+                "type": "object",
+                (keyword.to_string()): true
+            });
+            let mut errors = Vec::new();
+            let mut transforms = Vec::new();
+            let mut visitor = CompatVisitor {
+                errors: &mut errors,
+                transforms: &mut transforms,
+                target: Target::OpenaiStrict,
+                max_depth_observed: 0,
+            };
+            visitor.visit(&mut schema, "#", 0, 0);
+            let unconstrained: Vec<_> = errors
+                .iter()
+                .filter(|e| matches!(e, ProviderCompatError::UnconstrainedSchema { .. }))
+                .collect();
+            assert!(
+                !unconstrained.is_empty(),
+                "'{}: true' should be detected as unconstrained",
+                keyword
+            );
+        }
+    }
+
+    #[test]
+    fn visitor_boolean_false_left_alone_across_data_shape_keywords() {
+        // `false` booleans are sealed constraints — should NOT trigger UnconstrainedSchema
+        for keyword in &[
+            "items",
+            "additionalProperties",
+            "unevaluatedProperties",
+            "unevaluatedItems",
+            "contains",
+        ] {
+            let mut schema = json!({
+                "type": "object",
+                (keyword.to_string()): false
+            });
+            let mut errors = Vec::new();
+            let mut transforms = Vec::new();
+            let mut visitor = CompatVisitor {
+                errors: &mut errors,
+                transforms: &mut transforms,
+                target: Target::OpenaiStrict,
+                max_depth_observed: 0,
+            };
+            visitor.visit(&mut schema, "#", 0, 0);
+            let unconstrained: Vec<_> = errors
+                .iter()
+                .filter(|e| matches!(e, ProviderCompatError::UnconstrainedSchema { .. }))
+                .collect();
+            assert!(
+                unconstrained.is_empty(),
+                "'{}: false' should NOT be detected as unconstrained, but got {:?}",
+                keyword,
+                unconstrained
+            );
+        }
+    }
+
+    // ── Gap #1: additionalProperties: true nested inside properties ──
+    #[test]
+    fn visitor_nested_additional_properties_true_caught() {
+        // A property with `additionalProperties: true` should be detected as
+        // unconstrained, even though the root wrapper injects `false` at top level.
+        let mut schema = json!({
+            "type": "object",
+            "properties": {
+                "meta": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        });
+        let mut errors = Vec::new();
+        let mut transforms = Vec::new();
+        let mut visitor = CompatVisitor {
+            errors: &mut errors,
+            transforms: &mut transforms,
+            target: Target::OpenaiStrict,
+            max_depth_observed: 0,
+        };
+        visitor.visit(&mut schema, "#", 0, 0);
+        let unconstrained: Vec<_> = errors
+            .iter()
+            .filter(|e| matches!(e, ProviderCompatError::UnconstrainedSchema { .. }))
+            .collect();
+        assert!(
+            !unconstrained.is_empty(),
+            "nested additionalProperties: true should be caught"
+        );
+        // Verify the path points inside the nested property, not the root
+        let paths: Vec<_> = errors
+            .iter()
+            .filter_map(|e| match e {
+                ProviderCompatError::UnconstrainedSchema { path, .. } => Some(path.as_str()),
+                _ => None,
+            })
+            .collect();
+        assert!(
+            paths.iter().any(|p| p.contains("meta")),
+            "error path should reference the nested property, got {:?}",
+            paths
+        );
+    }
+
+    // ── Gap #2: Root wrapper additionalProperties: false is NOT transformed ──
+    #[test]
+    fn visitor_root_wrapper_additional_properties_false_preserved() {
+        // The root wrapper adds `additionalProperties: false`. The visitor
+        // must NOT flag this as unconstrained or transform it.
+        let mut schema = json!({
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" }
+            },
+            "additionalProperties": false,
+            "required": ["name"]
+        });
+        let mut errors = Vec::new();
+        let mut transforms = Vec::new();
+        let mut visitor = CompatVisitor {
+            errors: &mut errors,
+            transforms: &mut transforms,
+            target: Target::OpenaiStrict,
+            max_depth_observed: 0,
+        };
+        visitor.visit(&mut schema, "#", 0, 0);
+        // The `false` should remain untouched — no UnconstrainedSchema error for it
+        let unconstrained: Vec<_> = errors
+            .iter()
+            .filter(|e| matches!(e, ProviderCompatError::UnconstrainedSchema { .. }))
+            .collect();
+        assert!(
+            unconstrained.is_empty(),
+            "additionalProperties: false should NOT be flagged, got {:?}",
+            unconstrained
+        );
+        // Verify the original value is still false (not transformed to opaque string)
+        assert_eq!(
+            schema.get("additionalProperties"),
+            Some(&json!(false)),
+            "additionalProperties: false should be preserved, not transformed"
+        );
+    }
+
+    // ── Gap #3: Errors inside if/then/else are reported ──
+    #[test]
+    fn visitor_recurses_into_if_then_else() {
+        // An unconstrained schema inside `then` should be detected
+        let mut schema = json!({
+            "type": "object",
+            "if": { "properties": { "kind": { "const": "a" } } },
+            "then": {
+                "type": "object",
+                "properties": {
+                    "nested": {}
+                }
+            },
+            "else": {
+                "type": "object",
+                "properties": {
+                    "fallback": {}
+                }
+            }
+        });
+        let mut errors = Vec::new();
+        let mut transforms = Vec::new();
+        let mut visitor = CompatVisitor {
+            errors: &mut errors,
+            transforms: &mut transforms,
+            target: Target::OpenaiStrict,
+            max_depth_observed: 0,
+        };
+        visitor.visit(&mut schema, "#", 0, 0);
+        let unconstrained_paths: Vec<_> = errors
+            .iter()
+            .filter_map(|e| match e {
+                ProviderCompatError::UnconstrainedSchema { path, .. } => Some(path.clone()),
+                _ => None,
+            })
+            .collect();
+        // Should find unconstrained schemas inside both then and else
+        assert!(
+            unconstrained_paths
+                .iter()
+                .any(|p| p.contains("then") && p.contains("nested")),
+            "unconstrained schema inside 'then' should be detected, got {:?}",
+            unconstrained_paths
+        );
+        assert!(
+            unconstrained_paths
+                .iter()
+                .any(|p| p.contains("else") && p.contains("fallback")),
+            "unconstrained schema inside 'else' should be detected, got {:?}",
+            unconstrained_paths
+        );
+    }
+
+    // ── Gap #4: contains with empty schema detected ──
+    #[test]
+    fn visitor_recurses_into_contains() {
+        // An empty `contains` schema should be detected as unconstrained
+        let mut schema = json!({
+            "type": "object",
+            "properties": {
+                "tags": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "contains": {}
+                }
+            }
+        });
+        let mut errors = Vec::new();
+        let mut transforms = Vec::new();
+        let mut visitor = CompatVisitor {
+            errors: &mut errors,
+            transforms: &mut transforms,
+            target: Target::OpenaiStrict,
+            max_depth_observed: 0,
+        };
+        visitor.visit(&mut schema, "#", 0, 0);
+        let unconstrained_paths: Vec<_> = errors
+            .iter()
+            .filter_map(|e| match e {
+                ProviderCompatError::UnconstrainedSchema { path, .. } => Some(path.clone()),
+                _ => None,
+            })
+            .collect();
+        assert!(
+            unconstrained_paths.iter().any(|p| p.contains("contains")),
+            "unconstrained 'contains' schema should be detected, got {:?}",
+            unconstrained_paths
+        );
+    }
+
+    // ── Gap #5: Semantic depth through combinator→data-shape chain ──
+    #[test]
+    fn visitor_depth_through_combinator_then_data_shape() {
+        // anyOf → items should increment semantic depth only for items, not anyOf
+        // Expected: root(0) → anyOf(0) → items(1) = max semantic depth 1
+        let mut schema = json!({
+            "type": "object",
+            "properties": {
+                "field": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "val": { "type": "string" }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        });
+        let mut errors = Vec::new();
+        let mut transforms = Vec::new();
+        let mut visitor = CompatVisitor {
+            errors: &mut errors,
+            transforms: &mut transforms,
+            target: Target::OpenaiStrict,
+            max_depth_observed: 0,
+        };
+        visitor.visit(&mut schema, "#", 0, 0);
+        // properties(1) → anyOf(1, combinator, no increment) → items(2) → properties(3)
+        assert_eq!(
+            visitor.max_depth_observed, 3,
+            "properties → anyOf → items → properties should yield semantic depth 3, got: {}",
+            visitor.max_depth_observed
         );
     }
 }
