@@ -88,7 +88,7 @@ async function testSchema(filename: string, model: string) {
 
         // 4. Rehydrate (JS Binding)
         console.log(' rehydrating...');
-        const rehydrated = rehydrate(llmData, result.codec);
+        const rehydrated = rehydrate(llmData, result.codec, originalSchema);
 
         if (rehydrated.warnings && rehydrated.warnings.length > 0) {
             console.warn(' Warnings:', rehydrated.warnings);

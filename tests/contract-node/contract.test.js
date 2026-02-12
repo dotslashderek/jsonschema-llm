@@ -137,7 +137,7 @@ describe("rehydrate", () => {
     const { codec } = wasm.convert(schema, { target: "openai-strict" });
     const sampleData = { name: "Alice", age: 30 };
 
-    const result = wasm.rehydrate(sampleData, codec);
+    const result = wasm.rehydrate(sampleData, codec, schema);
 
     expect(result).toHaveProperty("apiVersion", "1.0");
     expect(result.data).toBeDefined();
@@ -164,7 +164,7 @@ describe("rehydrate", () => {
     ).toBeGreaterThan(0);
 
     // Rehydrate with data — should succeed and produce warnings array
-    const result = wasm.rehydrate({}, codec);
+    const result = wasm.rehydrate({}, codec, kitchenSink.schema);
     expect(result).toHaveProperty("apiVersion", "1.0");
     expect(Array.isArray(result.warnings)).toBe(true);
     },
@@ -189,7 +189,7 @@ describe("error handling", () => {
 
   it("bad codec type → structured error with code", () => {
     try {
-      wasm.rehydrate({ name: "test" }, 42);
+      wasm.rehydrate({ name: "test" }, 42, {});
       expect.unreachable("should have thrown");
     } catch (e) {
       expect(e).toHaveProperty("code", "json_parse_error");
@@ -205,7 +205,7 @@ describe("error handling", () => {
       droppedConstraints: [],
     };
     try {
-      wasm.rehydrate({}, badCodec);
+      wasm.rehydrate({}, badCodec, {});
       expect.unreachable("should have thrown");
     } catch (e) {
       // Should be a structured error from core

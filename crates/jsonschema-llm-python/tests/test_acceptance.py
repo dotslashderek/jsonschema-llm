@@ -91,24 +91,24 @@ class TestRehydrate:
 
     def test_rehydrate_returns_dict(self):
         cr = convert(BASIC_SCHEMA)
-        result = rehydrate({"name": "Ada", "age": 36}, cr["codec"])
+        result = rehydrate({"name": "Ada", "age": 36}, cr["codec"], BASIC_SCHEMA)
         assert isinstance(result, dict)
 
     def test_rehydrate_has_api_version(self):
         cr = convert(BASIC_SCHEMA)
-        result = rehydrate({"name": "Ada"}, cr["codec"])
+        result = rehydrate({"name": "Ada"}, cr["codec"], BASIC_SCHEMA)
         assert result["api_version"] == "1.0"
 
     def test_rehydrate_has_data(self):
         cr = convert(BASIC_SCHEMA)
-        result = rehydrate({"name": "Ada", "age": 36}, cr["codec"])
+        result = rehydrate({"name": "Ada", "age": 36}, cr["codec"], BASIC_SCHEMA)
         assert "data" in result
         assert result["data"]["name"] == "Ada"
         assert result["data"]["age"] == 36
 
     def test_rehydrate_has_warnings(self):
         cr = convert(BASIC_SCHEMA)
-        result = rehydrate({"name": "Ada"}, cr["codec"])
+        result = rehydrate({"name": "Ada"}, cr["codec"], BASIC_SCHEMA)
         assert "warnings" in result
         assert isinstance(result["warnings"], list)
 

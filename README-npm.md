@@ -33,8 +33,8 @@ const result = convert(
 console.log(result.schema); // LLM-compatible schema
 console.log(result.codec); // Rehydration metadata
 
-// Rehydrate LLM output back to original shape
-const rehydrated = rehydrate(llmOutput, result.codec);
+// Rehydrate LLM output back to original shape (pass original schema for type coercion)
+const rehydrated = rehydrate(llmOutput, result.codec, mySchema);
 console.log(rehydrated.data); // Original shape restored
 console.log(rehydrated.warnings); // Constraint violation warnings
 ```

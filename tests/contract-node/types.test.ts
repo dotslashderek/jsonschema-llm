@@ -125,7 +125,7 @@ if (transforms.length > 0) {
 // rehydrate — round-trip
 // ---------------------------------------------------------------------------
 
-const rehydrated: RehydrateResult = rehydrate({ name: "test" }, result.codec);
+const rehydrated: RehydrateResult = rehydrate({ name: "test" }, result.codec, { type: "object" });
 
 const _rehydratedVersion: string = rehydrated.apiVersion;
 const _rehydratedData: unknown = rehydrated.data;
