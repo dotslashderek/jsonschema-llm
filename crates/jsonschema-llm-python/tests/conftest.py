@@ -1,61 +1,12 @@
-"""Shared pytest fixtures for jsonschema-llm Python contract tests.
+"""Pytest conftest — shared fixtures for jsonschema-llm Python tests.
 
-Discovers and loads all fixture schemas from the repo-level tests/schemas/
-directory tree (top-level, stress/, real-world/).
+Constants and schema loading live in _contract_fixtures.py to avoid
+import issues with conftest as a module.
 """
-
-import json
-from pathlib import Path
 
 import pytest
 
-# ---------------------------------------------------------------------------
-# Path anchors
-# ---------------------------------------------------------------------------
-
-# crates/jsonschema-llm-python/tests/ → repo root
-REPO_ROOT = Path(__file__).resolve().parents[3]
-SCHEMAS_DIR = REPO_ROOT / "tests" / "schemas"
-SNAPSHOTS_DIR = REPO_ROOT / "tests" / "snapshots"
-
-TARGETS = ["openai-strict", "gemini", "claude"]
-
-
-# ---------------------------------------------------------------------------
-# Schema loading helpers
-# ---------------------------------------------------------------------------
-
-
-def _load_schemas_from(directory: Path) -> list[tuple[str, dict]]:
-    """Load all .json files from a directory as (name, schema) tuples."""
-    if not directory.is_dir():
-        return []
-    schemas = []
-    for path in sorted(directory.glob("*.json")):
-        with open(path) as f:
-            schemas.append((path.stem, json.load(f)))
-    return schemas
-
-
-def _all_schemas() -> list[tuple[str, dict]]:
-    """Load schemas from all three fixture directories."""
-    schemas = []
-    schemas.extend(_load_schemas_from(SCHEMAS_DIR))
-    schemas.extend(_load_schemas_from(SCHEMAS_DIR / "stress"))
-    schemas.extend(_load_schemas_from(SCHEMAS_DIR / "real-world"))
-    return schemas
-
-
-# ---------------------------------------------------------------------------
-# Pytest fixtures
-# ---------------------------------------------------------------------------
-
-ALL_FIXTURES = _all_schemas()
-assert ALL_FIXTURES, (
-    f"No fixture schemas found — expected schemas in {SCHEMAS_DIR}. "
-    "Check that the repo root is correctly resolved."
-)
-FIXTURE_IDS = [name for name, _ in ALL_FIXTURES]
+from _contract_fixtures import ALL_FIXTURES, FIXTURE_IDS, TARGETS
 
 
 @pytest.fixture(params=ALL_FIXTURES, ids=FIXTURE_IDS)

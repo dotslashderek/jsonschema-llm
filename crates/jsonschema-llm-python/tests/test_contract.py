@@ -6,16 +6,16 @@ raises structured errors for invalid inputs.
 
 Mirrors the Node.js contract tests in tests/contract-node/contract.test.js.
 
-Run: python -m pytest tests/test_contract.py -v
+Run (from crate dir): python -m pytest tests/test_contract.py -v
+Run (from repo root): python -m pytest crates/jsonschema-llm-python/tests/test_contract.py -v
 """
 
 import json
-from pathlib import Path
 
 import pytest
 from jsonschema_llm import convert, rehydrate, JsonSchemaLlmError
 
-from conftest import ALL_FIXTURES, TARGETS, SCHEMAS_DIR, SNAPSHOTS_DIR
+from _contract_fixtures import ALL_FIXTURES, TARGETS, SCHEMAS_DIR, SNAPSHOTS_DIR
 
 
 # ---------------------------------------------------------------------------

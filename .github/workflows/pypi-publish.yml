@@ -35,7 +35,7 @@ jobs:
           command: build
           args: --release --out dist -m crates/jsonschema-llm-python/Cargo.toml
           target: ${{ matrix.target }}
-          manylinux: ${{ matrix.manylinux || 'auto' }}
+          manylinux: ${{ matrix.manylinux || '' }}
 
       - uses: actions/upload-artifact@v4
         with:
