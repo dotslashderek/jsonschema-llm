@@ -696,3 +696,160 @@ fn p9_deep_combinator_stack_safety() {
         "40 nested anyOfs with no data edges should not report DepthBudgetExceeded"
     );
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// #110 — Inner schema strict enforcement after p9 wrapping
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn p9_wrapped_inner_schema_has_strict_enforcement() {
+    // Root with `properties` but NO `type: object`.
+    // After p9 wraps, the inner schema at properties.result must have
+    // additionalProperties: false and required: ["x"].
+    let schema = json!({
+        "properties": {
+            "x": { "type": "string" }
+        }
+    });
+    let result = convert_strict(&schema);
+
+    // Wrapper itself should be sealed
+    assert_eq!(
+        result.schema.get("additionalProperties"),
+        Some(&json!(false)),
+        "wrapper must be sealed"
+    );
+
+    // Inner schema at properties.result must also be sealed
+    let inner = result
+        .schema
+        .pointer("/properties/result")
+        .expect("inner schema must exist at properties.result");
+    assert_eq!(
+        inner.get("additionalProperties"),
+        Some(&json!(false)),
+        "inner schema must have additionalProperties: false"
+    );
+
+    // All properties must be required
+    let required = inner
+        .get("required")
+        .and_then(|v| v.as_array())
+        .expect("inner schema must have required array");
+    assert!(
+        required.contains(&json!("x")),
+        "inner schema must require 'x', got: {required:?}"
+    );
+}
+
+#[test]
+fn p9_wrapped_inner_schema_optional_props_nullable() {
+    // Root with required + optional props, no `type: object`.
+    // After wrapping, optional prop `o` should be wrapped in anyOf nullable.
+    let schema = json!({
+        "properties": {
+            "r": { "type": "string" },
+            "o": { "type": "integer" }
+        },
+        "required": ["r"]
+    });
+    let result = convert_strict(&schema);
+
+    let inner = result
+        .schema
+        .pointer("/properties/result")
+        .expect("inner schema must exist at properties.result");
+
+    // Both properties must be required (strict mode)
+    let required = inner
+        .get("required")
+        .and_then(|v| v.as_array())
+        .expect("inner schema must have required array");
+    assert!(
+        required.contains(&json!("r")),
+        "inner schema must require 'r'"
+    );
+    assert!(
+        required.contains(&json!("o")),
+        "inner schema must require 'o' (promoted to required with nullable)"
+    );
+
+    // 'o' must be wrapped in anyOf nullable since it was originally optional
+    let o_prop = inner
+        .pointer("/properties/o")
+        .expect("inner schema must have property 'o'");
+    let any_of = o_prop
+        .get("anyOf")
+        .and_then(|v| v.as_array())
+        .expect("optional 'o' must be wrapped in anyOf");
+    let has_null = any_of.iter().any(|v| v.get("type") == Some(&json!("null")));
+    assert!(
+        has_null,
+        "anyOf must include a null type branch, got: {any_of:?}"
+    );
+}
+
+#[test]
+fn p9_wrapped_array_root_no_double_enforcement() {
+    // Array root — p9 wraps it, but the inner schema is an array, not an object.
+    // Strict enforcement should not apply to non-object inner schemas.
+    let schema = json!({
+        "type": "array",
+        "items": { "type": "string" }
+    });
+    let result = convert_strict(&schema);
+
+    // Should wrap successfully
+    assert_eq!(
+        result.schema.get("type").and_then(|v| v.as_str()),
+        Some("object"),
+        "wrapper must be type: object"
+    );
+
+    // Inner schema should be the array, no crash / no additionalProperties on array
+    let inner = result
+        .schema
+        .pointer("/properties/result")
+        .expect("inner schema must exist");
+    // Array shouldn't have additionalProperties — it's not meaningful
+    // Just verify we didn't panic and the inner schema is intact
+    assert_eq!(
+        inner.get("type").and_then(|v| v.as_str()),
+        Some("array"),
+        "inner schema should remain an array"
+    );
+}
+
+#[test]
+fn p9_wrapped_root_with_type_object_but_combinator() {
+    // Root with type: object AND a combinator — p6 should have already
+    // applied strict enforcement. p9 should NOT re-process it
+    // (and in fact, since it has type: object, p9 won't wrap it).
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "a": { "type": "string" }
+        },
+        "anyOf": [
+            {
+                "properties": {
+                    "b": { "type": "integer" }
+                }
+            }
+        ]
+    });
+    let result = convert_strict(&schema);
+
+    // Should NOT be wrapped (root is already type: object)
+    // It should directly have type: object with strict enforcement from p6
+    assert_eq!(
+        result.schema.get("type").and_then(|v| v.as_str()),
+        Some("object"),
+        "schema with type: object should not be wrapped"
+    );
+    assert_eq!(
+        result.schema.get("additionalProperties"),
+        Some(&json!(false)),
+        "p6 should have enforced strict on the root"
+    );
+}
