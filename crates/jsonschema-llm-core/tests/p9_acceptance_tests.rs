@@ -822,9 +822,10 @@ fn p9_wrapped_array_root_no_double_enforcement() {
 
 #[test]
 fn p9_wrapped_root_with_type_object_but_combinator() {
-    // Root with type: object AND a combinator — p6 should have already
-    // applied strict enforcement. p9 should NOT re-process it
-    // (and in fact, since it has type: object, p9 won't wrap it).
+    // Root with type: object AND a combinator — p9 wraps it because
+    // OpenAI strict mode forbids root-level combinators. p6 already ran
+    // strict enforcement on the original schema, so the inner schema at
+    // properties.result should already be strict.
     let schema = json!({
         "type": "object",
         "properties": {
@@ -840,16 +841,84 @@ fn p9_wrapped_root_with_type_object_but_combinator() {
     });
     let result = convert_strict(&schema);
 
-    // Should NOT be wrapped (root is already type: object)
-    // It should directly have type: object with strict enforcement from p6
+    // Should be wrapped because of the root combinator
     assert_eq!(
         result.schema.get("type").and_then(|v| v.as_str()),
         Some("object"),
-        "schema with type: object should not be wrapped"
+        "wrapper must be type: object"
+    );
+    assert!(
+        result.schema.pointer("/properties/result").is_some(),
+        "schema with root combinator must be wrapped in properties.result"
     );
     assert_eq!(
         result.schema.get("additionalProperties"),
         Some(&json!(false)),
-        "p6 should have enforced strict on the root"
+        "wrapper must have additionalProperties: false"
+    );
+
+    // Inner schema should have strict enforcement from p6
+    let inner = result
+        .schema
+        .pointer("/properties/result")
+        .expect("inner schema must exist");
+    assert_eq!(
+        inner.get("additionalProperties"),
+        Some(&json!(false)),
+        "inner schema should have additionalProperties: false from p6"
+    );
+}
+
+#[test]
+fn p9_inner_schema_with_partial_strict_still_enforced() {
+    // Edge case: inner schema has additionalProperties: false (user-provided)
+    // but incomplete required — enforce_object_strict must still complete it.
+    let schema = json!({
+        "properties": {
+            "a": { "type": "string" },
+            "b": { "type": "integer" }
+        },
+        "required": ["a"],
+        "additionalProperties": false
+    });
+    let result = convert_strict(&schema);
+
+    // Must be wrapped (no type: object)
+    let inner = result
+        .schema
+        .pointer("/properties/result")
+        .and_then(|v| v.as_object())
+        .expect("inner schema must exist as object");
+
+    // All properties must be required
+    let req: Vec<String> = inner
+        .get("required")
+        .and_then(|v| v.as_array())
+        .unwrap()
+        .iter()
+        .filter_map(|v| v.as_str().map(String::from))
+        .collect();
+    assert!(
+        req.contains(&"a".to_string()),
+        "inner schema must require 'a'"
+    );
+    assert!(
+        req.contains(&"b".to_string()),
+        "inner schema must require 'b' (promoted to required)"
+    );
+
+    // "b" was optional, so must be nullable-wrapped
+    let b_prop = inner
+        .get("properties")
+        .and_then(|v| v.get("b"))
+        .expect("inner schema must have property 'b'");
+    let any_of = b_prop
+        .get("anyOf")
+        .and_then(|v| v.as_array())
+        .expect("optional 'b' must be wrapped in anyOf");
+    let has_null = any_of.iter().any(|v| v.get("type") == Some(&json!("null")));
+    assert!(
+        has_null,
+        "anyOf must include a null type branch, got: {any_of:?}"
     );
 }

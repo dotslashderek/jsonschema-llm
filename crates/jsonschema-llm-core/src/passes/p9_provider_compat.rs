@@ -165,10 +165,14 @@ fn check_root_type(
         "additionalProperties": false,
     });
 
-    // #110: If the inner schema has `properties` but wasn't already strict-enforced
-    // (i.e., it lacks `additionalProperties: false`), apply strict mode now.
-    // This handles schemas that had properties but no `type: object` — p6 skipped
-    // them because it gates on is_typed_object.
+    // #110: If the inner schema has `properties`, apply strict enforcement.
+    // This handles schemas that had properties but no `type: object` — p6
+    // skipped them because it gates on is_typed_object.
+    //
+    // We run unconditionally when properties exist because enforce_object_strict
+    // is idempotent: already-nullable props are not double-wrapped,
+    // already-required keys stay required, and additionalProperties: false is
+    // a no-op if already set.
     //
     // Transform path must be "#/properties/result" (the physical wrapped path)
     // because the rehydrator applies transforms LIFO: NullableOptional runs
@@ -181,9 +185,8 @@ fn check_root_type(
             .get("properties")
             .and_then(|v| v.as_object())
             .is_some_and(|p| !p.is_empty());
-        let already_strict = inner.get("additionalProperties") == Some(&Value::Bool(false));
 
-        if has_properties && !already_strict {
+        if has_properties {
             enforce_object_strict(inner, "#/properties/result", transforms);
         }
     }
