@@ -35,7 +35,7 @@ def _load_schemas_from(directory: Path) -> list[tuple[str, dict]]:
         return []
     schemas = []
     for path in sorted(directory.glob("*.json")):
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             schemas.append((path.stem, json.load(f)))
     return schemas
 
@@ -54,7 +54,7 @@ def load_kitchen_sink() -> dict | None:
     path = SCHEMAS_DIR / "kitchen_sink.json"
     if not path.exists():
         return None
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
