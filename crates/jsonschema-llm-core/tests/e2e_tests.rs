@@ -423,7 +423,7 @@ fn test_e2e_rehydrate_coercion_then_minimum_violation() {
 
     // (2) Should have both coercion and constraint warnings
     let has_coercion = rehydrated.warnings.iter().any(|w| {
-        w.message.contains("coerced") && matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "type")
+        matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "type")
     });
     let has_minimum = rehydrated.warnings.iter().any(|w| {
         matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "minimum")
@@ -465,7 +465,7 @@ fn test_e2e_rehydrate_coercion_then_maximum_enforcement() {
     let has_coercion = rehydrated
         .warnings
         .iter()
-        .any(|w| w.message.contains("coerced"));
+        .any(|w| matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "type"));
     let has_maximum = rehydrated.warnings.iter().any(|w| {
         matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "maximum")
     });
@@ -506,7 +506,7 @@ fn test_e2e_rehydrate_coercion_then_constraint_pass() {
     let has_coercion = rehydrated
         .warnings
         .iter()
-        .any(|w| w.message.contains("coerced"));
+        .any(|w| matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "type"));
     let has_constraint_violation = rehydrated.warnings.iter().any(|w| {
         matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "minimum" || constraint == "maximum")
     });
