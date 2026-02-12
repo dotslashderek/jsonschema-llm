@@ -87,7 +87,7 @@ jobs:
       - name: Install wheel and test dependencies
         run: |
           pip install pytest
-          pip install --no-index --find-links dist jsonschema_llm
+          pip install --no-index dist/*.whl
 
       - name: Run tests
         run: python -m pytest crates/jsonschema-llm-python/tests/ -v

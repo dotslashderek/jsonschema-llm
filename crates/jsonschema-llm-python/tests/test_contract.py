@@ -15,7 +15,14 @@ import json
 import pytest
 from jsonschema_llm import convert, rehydrate, JsonSchemaLlmError
 
-from _contract_fixtures import ALL_FIXTURES, TARGETS, SCHEMAS_DIR, SNAPSHOTS_DIR
+from _contract_fixtures import (
+    ALL_FIXTURES,
+    EXPECTED_CONVERT_ERRORS,
+    EXPECTED_REHYDRATE_ERRORS,
+    SCHEMAS_DIR,
+    SNAPSHOTS_DIR,
+    TARGETS,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -36,9 +43,9 @@ class TestConvertEnvelope:
         try:
             result = convert(schema, {"target": target})
         except JsonSchemaLlmError as e:
-            # Some schemas (e.g. depth-50) exceed recursion limits —
-            # a structured error is acceptable behavior, but mark as xfail for visibility.
-            pytest.xfail(f"{name} × {target}: convert raised {e.code}")
+            if e.code in EXPECTED_CONVERT_ERRORS:
+                pytest.xfail(f"{name} × {target}: convert raised {e.code}")
+            raise  # unexpected error — fail the test
 
         # api_version
         assert result["api_version"] == "1.0", f"{name} × {target}: missing api_version"
@@ -73,11 +80,12 @@ class TestConvertSchema:
         try:
             result = convert(schema, {"target": "openai-strict"})
         except JsonSchemaLlmError as e:
-            # Some schemas exceed depth limits — structured error is valid.
-            pytest.xfail(f"{name}: convert raised {e.code}")
+            if e.code in EXPECTED_CONVERT_ERRORS:
+                pytest.xfail(f"{name}: convert raised {e.code}")
+            raise
         output = result["schema"]
-        if isinstance(output, dict):
-            assert "type" in output, f"{name}: output schema missing 'type' key"
+        assert isinstance(output, dict), f"{name}: output schema not dict"
+        assert "type" in output, f"{name}: output schema missing 'type' key"
 
 
 # ---------------------------------------------------------------------------
@@ -129,16 +137,17 @@ class TestRoundTrip:
     def test_round_trip_empty(self, name, schema, target):
         try:
             cr = convert(schema, {"target": target})
-        except JsonSchemaLlmError:
-            # Some schemas exceed depth/recursion limits — skip round-trip.
-            pytest.skip(f"{name} × {target}: convert raised structured error")
+        except JsonSchemaLlmError as e:
+            if e.code in EXPECTED_CONVERT_ERRORS:
+                pytest.skip(f"{name} × {target}: convert raised {e.code}")
+            raise  # unexpected convert error — fail the test
 
         try:
             result = rehydrate({}, cr["codec"], schema)
         except JsonSchemaLlmError as e:
-            # Some schemas (edge cases, root arrays, etc.) produce codecs
-            # that expect specific data shapes — structured error is valid.
-            pytest.xfail(f"{name} × {target}: rehydrate raised {e.code}")
+            if e.code in EXPECTED_REHYDRATE_ERRORS:
+                pytest.xfail(f"{name} × {target}: rehydrate raised {e.code}")
+            raise  # unexpected rehydrate error — fail the test
 
         assert result["api_version"] == "1.0", f"{name} × {target}: rehydrate missing api_version"
         assert "data" in result, f"{name} × {target}: rehydrate missing data"
@@ -154,14 +163,6 @@ class TestRoundTrip:
 
 class TestSnapshotParity:
     """Verify Python binding produces identical output to Rust core snapshots."""
-
-    @pytest.fixture()
-    def kitchen_sink_schema(self):
-        path = SCHEMAS_DIR / "kitchen_sink.json"
-        if not path.exists():
-            pytest.skip("kitchen_sink.json not found")
-        with open(path) as f:
-            return json.load(f)
 
     def test_schema_matches_golden(self, kitchen_sink_schema):
         golden_path = SNAPSHOTS_DIR / "kitchen_sink_openai.expected.json"
@@ -203,14 +204,6 @@ class TestSnapshotParity:
 
 class TestRoundTripPopulated:
     """Verify round-trip with representative nested data across FFI."""
-
-    @pytest.fixture()
-    def kitchen_sink_schema(self):
-        path = SCHEMAS_DIR / "kitchen_sink.json"
-        if not path.exists():
-            pytest.skip("kitchen_sink.json not found")
-        with open(path) as f:
-            return json.load(f)
 
     def test_populated_round_trip(self, kitchen_sink_schema):
         cr = convert(kitchen_sink_schema, {"target": "openai-strict"})
