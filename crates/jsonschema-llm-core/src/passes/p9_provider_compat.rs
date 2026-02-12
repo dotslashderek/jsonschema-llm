@@ -501,6 +501,38 @@ impl CompatVisitor<'_> {
             }
         }
 
+        // ── #122: Strip conflicting `items` when mixed-type `prefixItems` ──
+        // LLMs see `items: {type: T}` and produce all-T arrays, ignoring
+        // positional `prefixItems` types. Remove `items` when it conflicts
+        // so the LLM respects each position's type.
+        //
+        // Conservative: only compare entries that have an explicit `type` field.
+        // Entries using `$ref`, combinators, or other constructs are ignored
+        // to avoid false positives.
+        {
+            let has_conflict = (|| {
+                let prefix_arr = schema.get("prefixItems")?.as_array()?;
+                if prefix_arr.is_empty() {
+                    return Some(false);
+                }
+                let items_type = schema.get("items")?.get("type")?.as_str()?;
+                let typed_entries: Vec<&str> = prefix_arr
+                    .iter()
+                    .filter_map(|pi| pi.get("type").and_then(|t| t.as_str()))
+                    .collect();
+                if typed_entries.is_empty() {
+                    return Some(false);
+                }
+                Some(!typed_entries.iter().all(|t| *t == items_type))
+            })()
+            .unwrap_or(false);
+            if has_conflict {
+                if let Some(obj) = schema.as_object_mut() {
+                    obj.remove("items");
+                }
+            }
+        }
+
         // ── Non-data-shape: array-of-schemas (combinators) ────────
         // anyOf, oneOf, allOf
         for keyword in &["anyOf", "oneOf", "allOf"] {
@@ -1470,6 +1502,73 @@ mod tests {
             visitor.max_depth_observed, 3,
             "properties → anyOf → items → properties should yield semantic depth 3, got: {}",
             visitor.max_depth_observed
+        );
+    }
+
+    // ── #122: Mixed-type prefixItems + conflicting items ───────────────
+
+    #[test]
+    fn test_mixed_prefixitems_conflicting_items_removed() {
+        // prefixItems has mixed types (integer, boolean, string) but items says "string".
+        // The items declaration conflicts and should be stripped.
+        let schema = json!({
+            "type": "array",
+            "prefixItems": [
+                {"type": "integer"},
+                {"type": "boolean"},
+                {"type": "string"}
+            ],
+            "items": {"type": "string"},
+            "description": "Mixed tuple"
+        });
+        let r = check_provider_compat(&schema, &opts());
+        // After p9, the root gets wrapped (it's an array, not object).
+        // Look inside the wrapper for the original array schema.
+        let inner = &r.schema["properties"]["result"];
+        assert!(
+            inner.get("items").is_none(),
+            "conflicting items should be removed when prefixItems has mixed types, but got: {:?}",
+            inner.get("items")
+        );
+        assert!(
+            inner.get("prefixItems").is_some(),
+            "prefixItems should be preserved"
+        );
+    }
+
+    #[test]
+    fn test_homogeneous_prefixitems_items_preserved() {
+        // prefixItems is all "string", items is also "string" — no conflict.
+        let schema = json!({
+            "type": "array",
+            "prefixItems": [
+                {"type": "string"},
+                {"type": "string"}
+            ],
+            "items": {"type": "string"},
+            "description": "Homogeneous tuple"
+        });
+        let r = check_provider_compat(&schema, &opts());
+        let inner = &r.schema["properties"]["result"];
+        assert!(
+            inner.get("items").is_some(),
+            "items should be preserved when prefixItems types all match items type"
+        );
+    }
+
+    #[test]
+    fn test_no_prefixitems_items_preserved() {
+        // Plain array with items only — no prefixItems, no conflict.
+        let schema = json!({
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Simple array"
+        });
+        let r = check_provider_compat(&schema, &opts());
+        let inner = &r.schema["properties"]["result"];
+        assert!(
+            inner.get("items").is_some(),
+            "items should be preserved when there are no prefixItems"
         );
     }
 }
