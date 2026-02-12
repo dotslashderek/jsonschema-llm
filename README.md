@@ -4,6 +4,10 @@
     Convert any JSON Schema into an LLM-compatible structured output schema.<br/>
     Full round-trip: <strong>Schema → Convert → Generate → Rehydrate → Original Shape</strong>
   </p>
+  <p align="center">
+    <a href="https://github.com/dotslashderek/jsonschema-llm/releases"><img src="https://img.shields.io/badge/status-alpha-orange" alt="Status: Alpha"></a>
+    <a href="COMPATIBILITY.md"><img src="https://img.shields.io/badge/compatibility-matrix-blue" alt="Compatibility Matrix"></a>
+  </p>
 </p>
 
 <p align="center">
@@ -72,8 +76,8 @@ jsonschema-llm convert schema.json -o schema.llm.json --target gemini
 # Convert in permissive mode (skip strict enforcement)
 jsonschema-llm convert schema.json -o schema.llm.json --mode permissive
 
-# Rehydrate LLM output back to the original shape
-jsonschema-llm rehydrate output.json --codec codec.json
+# Rehydrate LLM output back to the original shape (pass original schema for type coercion)
+jsonschema-llm rehydrate output.json --codec codec.json --schema schema.json
 ```
 
 ### Library
@@ -97,10 +101,11 @@ const response = await openai.chat.completions.create({
   messages: [{ role: "user", content: prompt }],
 });
 
-// Rehydrate — maps restored, nulls stripped, JSON strings parsed
+// Rehydrate — maps restored, nulls stripped, JSON strings parsed, types coerced
 const original = rehydrate(
   JSON.parse(response.choices[0].message.content),
   codec,
+  mySchema,
 );
 ```
 
@@ -122,9 +127,9 @@ response = client.chat.completions.create(
     messages=[{"role": "user", "content": prompt}]
 )
 
-# Rehydrate — maps restored, nulls stripped, JSON strings parsed
+# Rehydrate — maps restored, nulls stripped, JSON strings parsed, types coerced
 import json
-rehydrated = rehydrate(json.loads(response.choices[0].message.content), result["codec"])
+rehydrated = rehydrate(json.loads(response.choices[0].message.content), result["codec"], my_schema)
 original = rehydrated["data"]
 ```
 
@@ -144,8 +149,8 @@ var codec = result.codec();
 
 // ... send convertedSchema to your LLM provider ...
 
-// Rehydrate
-var original = Rehydrator.rehydrate(llmOutput, codec);
+// Rehydrate (pass original schema for type coercion)
+var original = Rehydrator.rehydrate(llmOutput, codec, schema);
 ```
 
 </details>
@@ -256,7 +261,7 @@ llm_output = call_openai(result["schema"], prompt)
 
 # LLM output has arrays where you had maps, strings where you had objects, nulls everywhere
 # Rehydrate fixes all of it:
-rehydrated = rehydrate(llm_output, result["codec"])
+rehydrated = rehydrate(llm_output, result["codec"], my_api_schema)
 
 # rehydrated["data"] now has:
 # - Maps restored: {"X-Rate-Limit": "100"} instead of [{key: "X-Rate-Limit", value: "100"}]
@@ -282,6 +287,15 @@ rehydrated = rehydrate(llm_output, result["codec"])
 | `{type: object}` (opaque)      |  ❌ → string  |   ⚠️ → string    |   ❌ → string    |
 | `minimum` / `maximum`          |   ❌ → drop   |  ✅ (preserve)   |    ❌ → drop     |
 | `pattern`                      |      ✅       |        ✅        |    ❌ → drop     |
+
+---
+
+## Known Limitations
+
+1. **Recursion**: Recursive schemas are supported up to a configurable depth (default: 3). Deeply nested recursive structures may be truncated.
+2. **Mixed-Type Arrays**: Arrays with mixed types (e.g. `[1, "string"]`) may have reduced fidelity in some LLM providers.
+3. **Opaque Objects**: Schemas using `type: "object"` without properties are converted to JSON strings to avoid hallucination, requiring rehydration to restore.
+4. **Provider Variations**: While OpenAI Strict is fully validated, other providers (Gemini, Claude) have varying degrees of structured output support. The `COMPATIBILITY.md` file tracks granular feature support.
 
 ---
 

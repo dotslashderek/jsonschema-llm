@@ -114,10 +114,11 @@ fn test_cli_e2e_roundtrip() {
     });
     fs::write(&llm_output, llm_data.to_string()).unwrap();
 
-    // Step 3: Rehydrate
+    // Step 3: Rehydrate (--schema is required for type coercion)
     cmd()
         .args(["rehydrate", llm_output.to_str().unwrap()])
         .args(["--codec", codec.to_str().unwrap()])
+        .args(["--schema", &input])
         .args(["-o", rehydrated.to_str().unwrap()])
         .assert()
         .success();

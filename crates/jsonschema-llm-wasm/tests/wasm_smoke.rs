@@ -126,7 +126,7 @@ fn test_rehydrate_round_trip() {
     let sample_data = serde_json::json!({ "name": "Alice", "age": 30 });
     let data_js = serde_wasm_bindgen::to_value(&sample_data).unwrap();
 
-    let rehydrate_result = rehydrate(data_js, codec_js).unwrap();
+    let rehydrate_result = rehydrate(data_js, codec_js, schema_js()).unwrap();
     let rehydrate_json = js_to_json(&rehydrate_result);
 
     assert_eq!(rehydrate_json["apiVersion"], "1.0", "rehydrate envelope");
@@ -152,7 +152,8 @@ fn test_convert_serde_error_for_bad_options() {
 fn test_rehydrate_serde_error_for_bad_codec() {
     let data = serde_wasm_bindgen::to_value(&serde_json::json!({"name": "test"})).unwrap();
     let bad_codec = JsValue::from_f64(42.0);
-    let err = rehydrate(data, bad_codec).unwrap_err();
+    let schema_val = serde_wasm_bindgen::to_value(&serde_json::json!({"type": "object"})).unwrap();
+    let err = rehydrate(data, bad_codec, schema_val).unwrap_err();
     let err_json = js_to_json(&err);
 
     assert_eq!(err_json["code"], "json_parse_error");

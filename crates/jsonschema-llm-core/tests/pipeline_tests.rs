@@ -308,7 +308,8 @@ fn test_convert_full_roundtrip() {
         ]
     });
 
-    let rehydrated = rehydrate(&llm_output, &result.codec).expect("rehydrate should succeed");
+    let rehydrated =
+        rehydrate(&llm_output, &result.codec, &schema).expect("rehydrate should succeed");
 
     // After rehydration, tags should be back to a map
     let tags = &rehydrated.data["tags"];

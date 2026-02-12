@@ -178,19 +178,26 @@ pub fn convert(schema: JsValue, options: JsValue) -> Result<JsValue, JsValue> {
 
 /// Rehydrate LLM output back to the original schema shape.
 ///
-/// Accepts a JS object (data) and a JS object (codec).
+/// Accepts a JS object (data), a JS object (codec), and the original
+/// JSON Schema (for type coercion).
 /// Returns a JS object: `{ apiVersion: "1.0", data, warnings }`.
 ///
 /// On error, throws a structured JS object `{ code, message, path }`.
 #[wasm_bindgen(skip_typescript)]
-pub fn rehydrate(data: JsValue, codec: JsValue) -> Result<JsValue, JsValue> {
+pub fn rehydrate(
+    data: JsValue,
+    codec: JsValue,
+    original_schema: JsValue,
+) -> Result<JsValue, JsValue> {
     let data: serde_json::Value =
         serde_wasm_bindgen::from_value(data).map_err(to_serde_js_error)?;
     let codec: jsonschema_llm_core::Codec =
         serde_wasm_bindgen::from_value(codec).map_err(to_serde_js_error)?;
+    let original_schema: serde_json::Value =
+        serde_wasm_bindgen::from_value(original_schema).map_err(to_serde_js_error)?;
 
-    let result =
-        jsonschema_llm_core::rehydrate(&data, &codec).map_err(|e| to_structured_js_error(&e))?;
+    let result = jsonschema_llm_core::rehydrate(&data, &codec, &original_schema)
+        .map_err(|e| to_structured_js_error(&e))?;
 
     let bridge = WasmRehydrateResult {
         api_version: API_VERSION,
@@ -307,6 +314,7 @@ export function convert(
 
 export function rehydrate(
   data: unknown,
-  codec: Codec
+  codec: Codec,
+  originalSchema: Record<string, unknown> | boolean
 ): RehydrateResult;
 "#;

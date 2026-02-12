@@ -124,7 +124,7 @@ fn test_e2e_fixture_codec_roundtrip() {
         "active": null
     });
 
-    let rehydrated = rehydrate(&llm_output, &result.codec);
+    let rehydrated = rehydrate(&llm_output, &result.codec, &schema);
     assert!(
         rehydrated.is_ok(),
         "Rehydration failed: {:?}",
@@ -301,7 +301,7 @@ fn test_e2e_rehydrate_extra_field() {
         "hallucinated_field": "this shouldn't be here"
     });
 
-    let rehydrated = rehydrate(&llm_output, &result.codec);
+    let rehydrated = rehydrate(&llm_output, &result.codec, &schema);
     assert!(
         rehydrated.is_ok(),
         "Rehydrator should handle extra fields gracefully"
@@ -322,7 +322,7 @@ fn test_e2e_rehydrate_null_non_nullable() {
         "active": null
     });
 
-    let rehydrated = rehydrate(&llm_output, &result.codec);
+    let rehydrated = rehydrate(&llm_output, &result.codec, &schema);
     assert!(
         rehydrated.is_ok(),
         "Rehydrator should not crash on null for required fields"
