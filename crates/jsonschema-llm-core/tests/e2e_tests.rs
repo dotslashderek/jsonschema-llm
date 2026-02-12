@@ -392,3 +392,205 @@ fn test_e2e_rehydrate_type_coercion_boolean() {
         "String 'true' should be coerced to boolean true"
     );
 }
+
+// ── Coercion + Constraint Interaction Tests (#125 / #126) ──────────────
+
+// 14. Coercion then constraint violation: string→integer with minimum
+#[test]
+fn test_e2e_rehydrate_coercion_then_minimum_violation() {
+    use jsonschema_llm_core::codec_warning::WarningKind;
+
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "age": { "type": "integer", "minimum": 5 }
+        },
+        "required": ["age"]
+    });
+
+    let result = convert(&schema, &openai_options()).unwrap();
+
+    // LLM returns "1" (string) — should coerce to 1, then catch minimum:5 violation
+    let llm_output = json!({ "age": "1" });
+    let rehydrated = rehydrate(&llm_output, &result.codec, &schema).unwrap();
+
+    // (1) Value should be coerced to integer 1 then clamped to minimum 5
+    assert_eq!(
+        rehydrated.data["age"],
+        json!(5),
+        "String '1' should be coerced to 1 then clamped to minimum 5"
+    );
+
+    // (2) Should have both coercion and constraint warnings
+    let has_coercion = rehydrated.warnings.iter().any(|w| {
+        w.message.contains("coerced") && matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "type")
+    });
+    let has_minimum = rehydrated.warnings.iter().any(|w| {
+        matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "minimum")
+    });
+    assert!(has_coercion, "Should have a type coercion warning");
+    assert!(
+        has_minimum,
+        "Should have a minimum constraint violation warning"
+    );
+}
+
+// 15. Coercion then enforcement: string→integer with maximum, clamped
+#[test]
+fn test_e2e_rehydrate_coercion_then_maximum_enforcement() {
+    use jsonschema_llm_core::codec_warning::WarningKind;
+
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "score": { "type": "integer", "maximum": 100 }
+        },
+        "required": ["score"]
+    });
+
+    let result = convert(&schema, &openai_options()).unwrap();
+
+    // LLM returns "150" (string) — should coerce to 150, then clamp to 100
+    let llm_output = json!({ "score": "150" });
+    let rehydrated = rehydrate(&llm_output, &result.codec, &schema).unwrap();
+
+    // (1) Value should be coerced then clamped to 100
+    assert_eq!(
+        rehydrated.data["score"],
+        json!(100),
+        "String '150' should be coerced to 150 then clamped to maximum 100"
+    );
+
+    // (2) Should have both coercion and constraint enforcement warnings
+    let has_coercion = rehydrated
+        .warnings
+        .iter()
+        .any(|w| w.message.contains("coerced"));
+    let has_maximum = rehydrated.warnings.iter().any(|w| {
+        matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "maximum")
+    });
+    assert!(has_coercion, "Should have a type coercion warning");
+    assert!(
+        has_maximum,
+        "Should have a maximum constraint enforcement warning"
+    );
+}
+
+// 16. Coercion then constraint pass: value within bounds after coercion
+#[test]
+fn test_e2e_rehydrate_coercion_then_constraint_pass() {
+    use jsonschema_llm_core::codec_warning::WarningKind;
+
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "score": { "type": "integer", "minimum": 0, "maximum": 100 }
+        },
+        "required": ["score"]
+    });
+
+    let result = convert(&schema, &openai_options()).unwrap();
+
+    // LLM returns "50" (string) — within bounds after coercion
+    let llm_output = json!({ "score": "50" });
+    let rehydrated = rehydrate(&llm_output, &result.codec, &schema).unwrap();
+
+    // (1) Value should be coerced to integer 50
+    assert_eq!(
+        rehydrated.data["score"],
+        json!(50),
+        "String '50' should be coerced to integer 50"
+    );
+
+    // (2) Should have coercion warning but NO constraint violation
+    let has_coercion = rehydrated
+        .warnings
+        .iter()
+        .any(|w| w.message.contains("coerced"));
+    let has_constraint_violation = rehydrated.warnings.iter().any(|w| {
+        matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "minimum" || constraint == "maximum")
+    });
+    assert!(has_coercion, "Should have a type coercion warning");
+    assert!(
+        !has_constraint_violation,
+        "Should NOT have any constraint violation — 50 is within [0,100]"
+    );
+}
+
+// 17. Warning ordering: coercion warnings before constraint warnings
+#[test]
+fn test_e2e_rehydrate_coercion_warning_ordering() {
+    use jsonschema_llm_core::codec_warning::WarningKind;
+
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "age": { "type": "integer", "minimum": 5 }
+        },
+        "required": ["age"]
+    });
+
+    let result = convert(&schema, &openai_options()).unwrap();
+
+    let llm_output = json!({ "age": "1" });
+    let rehydrated = rehydrate(&llm_output, &result.codec, &schema).unwrap();
+
+    // Find the first coercion warning and first constraint warning
+    let first_coercion_idx = rehydrated.warnings.iter().position(|w| {
+        matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "type")
+    });
+    let first_constraint_idx = rehydrated.warnings.iter().position(|w| {
+        matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "minimum")
+    });
+
+    assert!(
+        first_coercion_idx.is_some(),
+        "Should have a coercion warning"
+    );
+    assert!(
+        first_constraint_idx.is_some(),
+        "Should have a constraint warning"
+    );
+    assert!(
+        first_coercion_idx.unwrap() < first_constraint_idx.unwrap(),
+        "Coercion warnings should appear before constraint warnings (coercion at {}, constraint at {})",
+        first_coercion_idx.unwrap(),
+        first_constraint_idx.unwrap()
+    );
+}
+
+// 18. Failed coercion: non-coercible value skips constraint check
+#[test]
+fn test_e2e_rehydrate_failed_coercion_no_constraint() {
+    use jsonschema_llm_core::codec_warning::WarningKind;
+
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "age": { "type": "integer", "minimum": 5 }
+        },
+        "required": ["age"]
+    });
+
+    let result = convert(&schema, &openai_options()).unwrap();
+
+    // LLM returns "abc" — not coercible to integer
+    let llm_output = json!({ "age": "abc" });
+    let rehydrated = rehydrate(&llm_output, &result.codec, &schema).unwrap();
+
+    // (1) Value should remain as string "abc" (coercion fails silently)
+    assert_eq!(
+        rehydrated.data["age"],
+        json!("abc"),
+        "Non-coercible 'abc' should remain as string"
+    );
+
+    // (2) Should NOT have a minimum constraint warning (string is not numeric)
+    let has_minimum = rehydrated.warnings.iter().any(|w| {
+        matches!(&w.kind, WarningKind::ConstraintViolation { constraint } if constraint == "minimum")
+    });
+    assert!(
+        !has_minimum,
+        "Should NOT have minimum violation — 'abc' is not numeric so constraint doesn't apply"
+    );
+}

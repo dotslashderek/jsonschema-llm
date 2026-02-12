@@ -24,12 +24,13 @@ pub struct RehydrateResult {
     pub warnings: Vec<Warning>,
 }
 
-/// Rehydrate LLM output using the codec sidecar.
+/// Apply codec transforms to rehydrate LLM output back to the original schema shape.
 ///
-/// Applies transforms in REVERSE order (LIFO) to undo the stack of changes,
-/// then enforces enforceable dropped constraints (clamp/truncate) and validates
-/// the rest.
-pub fn rehydrate(data: &Value, codec: &Codec) -> Result<RehydrateResult, ConvertError> {
+/// Applies transforms in REVERSE order (LIFO) to undo the stack of changes
+/// recorded during conversion. Does NOT run constraint enforcement or validation;
+/// those are orchestrated by the public `rehydrate()` in `lib.rs` after type
+/// coercion so that constraints evaluate against correctly-typed values.
+pub fn apply_transforms(data: &Value, codec: &Codec) -> Result<RehydrateResult, ConvertError> {
     // Validate codec version — hard-fail on incompatible major version
     validate_codec_version(codec)?;
 
@@ -57,22 +58,17 @@ pub fn rehydrate(data: &Value, codec: &Codec) -> Result<RehydrateResult, Convert
         apply_transform(&mut result, &seg_refs, transform, &regex_cache)?;
     }
 
-    // Enforce enforceable constraints (clamp/truncate) before validation
-    let mut enforcement_warnings = enforce_constraints(&mut result, codec, &regex_cache);
-
-    // Validate remaining constraints (pattern, min*, etc.) as advisory warnings
-    let mut validation_warnings = validate_constraints(&result, codec, &regex_cache);
-    enforcement_warnings.append(&mut validation_warnings);
-
     Ok(RehydrateResult {
         data: result,
-        warnings: enforcement_warnings,
+        warnings: Vec::new(),
     })
 }
 
 /// Pre-scan transform and constraint paths for patternProperties segments
 /// and compile their regex patterns into a reusable cache.
-fn build_pattern_properties_cache(codec: &Codec) -> HashMap<String, Result<Regex, String>> {
+pub(crate) fn build_pattern_properties_cache(
+    codec: &Codec,
+) -> HashMap<String, Result<Regex, String>> {
     let mut cache = HashMap::new();
 
     // Extract paths from transforms using match statement
@@ -446,7 +442,7 @@ const ADVISORY_CONSTRAINTS: &[&str] = &["if", "then", "else"];
 ///
 /// Uses the pre-compiled regex cache for pattern matching. Walks each
 /// constraint path to locate data nodes and check violations.
-fn validate_constraints(
+pub(crate) fn validate_constraints(
     data: &Value,
     codec: &Codec,
     regex_cache: &HashMap<String, Result<Regex, String>>,
@@ -981,7 +977,7 @@ const ENFORCEABLE_CONSTRAINTS: &[&str] = &[
 /// - `maxItems`: truncate arrays
 ///
 /// Returns warnings for each enforcement action taken.
-fn enforce_constraints(
+pub(crate) fn enforce_constraints(
     data: &mut Value,
     codec: &Codec,
     regex_cache: &HashMap<String, Result<Regex, String>>,
@@ -1532,6 +1528,22 @@ mod tests {
     use super::*;
     use serde_json::json;
 
+    /// Helper: run the full rehydration pipeline (transforms + constraints)
+    /// for unit tests that need constraint behavior. Mirror of `lib.rs::rehydrate()`
+    /// without the coercion step (unit tests don't use an original schema).
+    fn apply_transforms_with_constraints(
+        data: &Value,
+        codec: &Codec,
+    ) -> Result<RehydrateResult, ConvertError> {
+        let mut result = apply_transforms(data, codec)?;
+        let regex_cache = build_pattern_properties_cache(codec);
+        let enforcement = enforce_constraints(&mut result.data, codec, &regex_cache);
+        let validation = validate_constraints(&result.data, codec, &regex_cache);
+        result.warnings.extend(enforcement);
+        result.warnings.extend(validation);
+        Ok(result)
+    }
+
     // Test 1: Strip Nullable
     #[test]
     fn test_strip_nullable() {
@@ -1546,7 +1558,7 @@ mod tests {
             "fixed": 1,
             "optional": null
         });
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         assert_eq!(result.data, json!({"fixed": 1}));
 
         // Case B: Present value -> should be kept
@@ -1554,7 +1566,7 @@ mod tests {
             "fixed": 1,
             "optional": "kept"
         });
-        let result_present = rehydrate(&data_present, &codec).unwrap();
+        let result_present = apply_transforms(&data_present, &codec).unwrap();
         assert_eq!(result_present.data, json!({"fixed": 1, "optional": "kept"}));
     }
 
@@ -1574,7 +1586,7 @@ mod tests {
             ]
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         assert_eq!(
             result.data,
             json!({
@@ -1595,7 +1607,7 @@ mod tests {
             "config": "{\"debug\": true}"
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         assert_eq!(
             result.data,
             json!({
@@ -1616,7 +1628,7 @@ mod tests {
             "config": "{invalid"
         });
 
-        let result = rehydrate(&data, &codec);
+        let result = apply_transforms(&data, &codec);
         assert!(matches!(result, Err(ConvertError::RehydrationError(_))));
     }
 
@@ -1641,7 +1653,7 @@ mod tests {
             "map": [{"key": "a", "value": 1}]
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         assert_eq!(
             result.data,
             json!({
@@ -1665,7 +1677,7 @@ mod tests {
             ]
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         assert_eq!(result.data["list"][0]["data"], json!({"id": 1}));
         assert_eq!(result.data["list"][1]["data"], json!({"id": 2}));
     }
@@ -1691,7 +1703,7 @@ mod tests {
             }
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         assert_eq!(
             result.data,
             json!({
@@ -1707,7 +1719,7 @@ mod tests {
     fn test_empty_codec() {
         let codec = Codec::new();
         let data = json!({"a": 1});
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         assert_eq!(result.data, data);
     }
 
@@ -1727,7 +1739,7 @@ mod tests {
             ]
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         // Last wins semantics
         assert_eq!(result.data["map"]["dup"], json!(2));
     }
@@ -1751,7 +1763,7 @@ mod tests {
             }
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         assert!(result.data["outer"].get("inner").is_none());
         assert_eq!(result.data["outer"]["config"], json!({"x": 1}));
     }
@@ -1773,7 +1785,7 @@ mod tests {
             ]
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         // Original array preserved, not partially converted
         assert!(result.data["map"].is_array());
         assert_eq!(result.data["map"].as_array().unwrap().len(), 2);
@@ -1796,7 +1808,7 @@ mod tests {
             "_extra": "not an object"
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         assert_eq!(result.data["_extra"], json!("not an object"));
         assert_eq!(result.data["fixed"], json!("keep"));
     }
@@ -1815,7 +1827,7 @@ mod tests {
             "required_field": null
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         // Required field should keep its null value
         assert_eq!(result.data["required_field"], json!(null));
         assert_eq!(result.data["other"], json!(1));
@@ -1835,7 +1847,7 @@ mod tests {
             "config": "{\"a\": 1}"
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         assert_eq!(result.data, json!({"config": {"a": 1}}));
     }
 
@@ -1854,7 +1866,7 @@ mod tests {
             ]
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         assert_eq!(result.data["list"][0]["data"], json!({"x": true}));
         assert_eq!(result.data["list"][1]["data"], json!({"x": false}));
     }
@@ -1872,7 +1884,7 @@ mod tests {
             {"config": "{\"parsed\": true}"}
         ]);
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         assert_eq!(result.data[0]["config"], json!("kept as string"));
         assert_eq!(result.data[1]["config"], json!({"parsed": true}));
     }
@@ -1891,7 +1903,7 @@ mod tests {
             "other": 1
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
         assert!(result.data.get("a/b").is_none());
         assert_eq!(result.data["other"], json!(1));
     }
@@ -1910,7 +1922,7 @@ mod tests {
         });
 
         let data = json!({"email": "NOT_AN_EMAIL"});
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         assert_eq!(result.warnings.len(), 1);
         assert_eq!(result.warnings[0].data_path, "/email");
         assert!(result.warnings[0]
@@ -1930,7 +1942,7 @@ mod tests {
         });
 
         let data = json!({"email": "test@example.com"});
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         assert!(result.warnings.is_empty());
     }
 
@@ -1946,7 +1958,7 @@ mod tests {
         });
 
         let data = json!({"age": 15});
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         assert_eq!(result.warnings.len(), 1);
         // Enforcement clamps the value and uses "below minimum" message
         assert!(result.warnings[0].message.contains("below minimum"));
@@ -1967,7 +1979,7 @@ mod tests {
         });
 
         let data = json!({"score": 99});
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         assert!(result.warnings.is_empty());
     }
 
@@ -1982,7 +1994,7 @@ mod tests {
         });
 
         let data = json!({"name": "toolong"});
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         assert_eq!(result.warnings.len(), 1);
         // Enforcement truncates and uses "exceeded maxLength" message
         assert!(result.warnings[0].message.contains("exceeded maxLength"));
@@ -2003,7 +2015,7 @@ mod tests {
         });
 
         let data = json!({"type": "premium"});
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         assert_eq!(result.warnings.len(), 1);
         assert!(result.warnings[0]
             .message
@@ -2029,7 +2041,7 @@ mod tests {
             ]
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         // Only users/1/email should fail
         assert_eq!(result.warnings.len(), 1);
         assert_eq!(result.warnings[0].data_path, "/users/1/email");
@@ -2040,7 +2052,7 @@ mod tests {
     fn test_no_constraints_no_warnings() {
         let codec = Codec::new();
         let data = json!({"any": "data"});
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         assert!(result.warnings.is_empty());
     }
 
@@ -2056,7 +2068,7 @@ mod tests {
         });
 
         let data = json!({"other": 1});
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         assert!(result.warnings.is_empty());
     }
 
@@ -2077,7 +2089,7 @@ mod tests {
             "other": "XY"        // does NOT match ^S_ → no warning
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         assert_eq!(result.warnings.len(), 1);
         assert_eq!(result.warnings[0].data_path, "/S_name");
     }
@@ -2094,7 +2106,7 @@ mod tests {
         });
 
         let data = json!({"code": "anything"});
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         assert_eq!(result.warnings.len(), 1);
         assert_eq!(result.warnings[0].data_path, "/");
         assert_eq!(result.warnings[0].schema_path, "#/properties/code");
@@ -2117,7 +2129,7 @@ mod tests {
         });
 
         let data = json!({"code": "anything"});
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         assert_eq!(result.warnings.len(), 1);
         assert_eq!(result.warnings[0].data_path, "/");
         assert!(result.warnings[0].message.contains("is not a string"));
@@ -2139,7 +2151,7 @@ mod tests {
         });
 
         let data = json!({"any": "value"});
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         assert_eq!(result.warnings.len(), 1);
         assert_eq!(result.warnings[0].schema_path, "#/patternProperties");
         assert!(result.warnings[0].message.contains("missing regex segment"));
@@ -2178,7 +2190,7 @@ mod tests {
             "max_items": [1, 2, 3] // Fail: len 3 > 2
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms_with_constraints(&data, &codec).unwrap();
         // 5 warnings: exclusiveMinimum (enforced), exclusiveMaximum (enforced),
         // minLength (advisory), minItems (advisory), maxItems (enforced)
         assert_eq!(result.warnings.len(), 5);
@@ -2220,7 +2232,7 @@ mod tests {
             "child": "{\"value\": 99}"
         });
 
-        let result = rehydrate(&data, &codec).unwrap();
+        let result = apply_transforms(&data, &codec).unwrap();
 
         // The JSON string should be parsed back into an object
         assert_eq!(result.data["value"], 42);
