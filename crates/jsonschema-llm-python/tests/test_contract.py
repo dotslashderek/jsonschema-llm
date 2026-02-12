@@ -19,9 +19,9 @@ from _contract_fixtures import (
     ALL_FIXTURES,
     EXPECTED_CONVERT_ERRORS,
     EXPECTED_REHYDRATE_ERRORS,
-    SCHEMAS_DIR,
     SNAPSHOTS_DIR,
     TARGETS,
+    load_kitchen_sink,
 )
 
 
@@ -139,7 +139,7 @@ class TestRoundTrip:
             cr = convert(schema, {"target": target})
         except JsonSchemaLlmError as e:
             if e.code in EXPECTED_CONVERT_ERRORS:
-                pytest.skip(f"{name} × {target}: convert raised {e.code}")
+                pytest.xfail(f"{name} × {target}: convert raised {e.code}")
             raise  # unexpected convert error — fail the test
 
         try:
@@ -169,7 +169,7 @@ class TestSnapshotParity:
         if not golden_path.exists():
             pytest.skip("golden snapshot not found")
 
-        with open(golden_path) as f:
+        with open(golden_path, encoding="utf-8") as f:
             expected = json.load(f)
 
         result = convert(kitchen_sink_schema, {"target": "openai-strict"})
@@ -185,7 +185,7 @@ class TestSnapshotParity:
         if not golden_path.exists():
             pytest.skip("golden snapshot not found")
 
-        with open(golden_path) as f:
+        with open(golden_path, encoding="utf-8") as f:
             expected = json.load(f)
 
         result = convert(kitchen_sink_schema, {"target": "openai-strict"})
@@ -229,13 +229,8 @@ class TestRehydrateKitchenSink:
     """Verify dropped constraints and warnings for the complex kitchen_sink schema."""
 
     @pytest.fixture()
-    def kitchen_sink_cr(self):
-        path = SCHEMAS_DIR / "kitchen_sink.json"
-        if not path.exists():
-            pytest.skip("kitchen_sink.json not found")
-        with open(path) as f:
-            schema = json.load(f)
-        return convert(schema, {"target": "openai-strict"}), schema
+    def kitchen_sink_cr(self, kitchen_sink_schema):
+        return convert(kitchen_sink_schema, {"target": "openai-strict"}), kitchen_sink_schema
 
     def test_has_dropped_constraints(self, kitchen_sink_cr):
         cr, _ = kitchen_sink_cr
@@ -285,5 +280,6 @@ class TestErrorPaths:
 
     def test_error_is_exception_subclass(self):
         """JsonSchemaLlmError can be caught as a generic Exception."""
-        with pytest.raises(Exception):
+        with pytest.raises(Exception) as exc_info:
             convert({"$ref": "#/$defs/NonExistent"})
+        assert isinstance(exc_info.value, JsonSchemaLlmError)
