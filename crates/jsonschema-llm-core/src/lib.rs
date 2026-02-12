@@ -160,14 +160,37 @@ pub fn convert(schema: &Value, options: &ConvertOptions) -> Result<ConvertResult
 /// let llm_output = json!({"name": "Ada"});
 /// let rehydrated = rehydrate(&llm_output, &result.codec, &schema).unwrap();
 /// ```
+///
+/// # Warning Ordering
+///
+/// Warnings follow a deterministic phase-group order:
+/// 1. Type coercion warnings (value type adjusted to match schema)
+/// 2. Constraint enforcement warnings (value clamped/truncated to satisfy bounds)
+/// 3. Constraint validation warnings (advisory: value violates a dropped constraint)
+///
+/// Enforcement may **auto-correct** values (e.g., clamping an integer that exceeds
+/// `maximum`). Validation warnings are advisory-only and do not modify the data.
 pub fn rehydrate(
     data: &Value,
     codec: &Codec,
     original_schema: &Value,
 ) -> Result<RehydrateResult, ConvertError> {
-    let mut result = rehydrator::rehydrate(data, codec)?;
+    // Phase 1: Apply transforms (reverse codec operations)
+    let mut result = rehydrator::apply_transforms(data, codec)?;
+
+    // Phase 2: Type coercion (e.g., string "42" → integer 42)
     let coercion_warnings = rehydrator::coerce_types(&mut result.data, original_schema);
     result.warnings.extend(coercion_warnings);
+
+    // Phase 3: Constraint enforcement + validation (runs AFTER coercion so
+    // constraints evaluate against correctly-typed values)
+    let regex_cache = rehydrator::build_pattern_properties_cache(codec);
+    let enforcement_warnings =
+        rehydrator::enforce_constraints(&mut result.data, codec, &regex_cache);
+    let validation_warnings = rehydrator::validate_constraints(&result.data, codec, &regex_cache);
+    result.warnings.extend(enforcement_warnings);
+    result.warnings.extend(validation_warnings);
+
     Ok(result)
 }
 
