@@ -170,8 +170,9 @@ fn test_convert_json_invalid_options() {
 fn test_rehydrate_json_valid() {
     let data = r#"{"name": "Alice"}"#;
     let codec = r#"{"$schema": "https://jsonschema-llm.dev/codec/v1", "transforms": [], "droppedConstraints": []}"#;
+    let schema = r#"{"type": "object", "properties": {"name": {"type": "string"}}}"#;
 
-    let result = rehydrate_json(data, codec);
+    let result = rehydrate_json(data, codec, schema);
     assert!(result.is_ok(), "Expected Ok, got: {:?}", result);
 
     let parsed: serde_json::Value = serde_json::from_str(&result.unwrap()).unwrap();
@@ -182,7 +183,8 @@ fn test_rehydrate_json_valid() {
 #[test]
 fn test_rehydrate_json_invalid_data() {
     let codec = r#"{"$schema": "https://jsonschema-llm.dev/codec/v1", "transforms": [], "droppedConstraints": []}"#;
-    let result = rehydrate_json("not valid json", codec);
+    let schema = r#"{"type": "object"}"#;
+    let result = rehydrate_json("not valid json", codec, schema);
     assert!(result.is_err());
 
     let err_json: serde_json::Value = serde_json::from_str(&result.unwrap_err()).unwrap();
@@ -192,7 +194,8 @@ fn test_rehydrate_json_invalid_data() {
 #[test]
 fn test_rehydrate_json_invalid_codec() {
     let data = r#"{"name": "Alice"}"#;
-    let result = rehydrate_json(data, "not valid json");
+    let schema = r#"{"type": "object"}"#;
+    let result = rehydrate_json(data, "not valid json", schema);
     assert!(result.is_err());
 
     let err_json: serde_json::Value = serde_json::from_str(&result.unwrap_err()).unwrap();
@@ -220,7 +223,7 @@ fn test_roundtrip_json_bridge() {
 
     // Step 4: Rehydrate via JSON bridge
     let rehydrate_result =
-        rehydrate_json(llm_output, &codec_json).expect("rehydrate_json should succeed");
+        rehydrate_json(llm_output, &codec_json, schema).expect("rehydrate_json should succeed");
     let rehydrate_parsed: serde_json::Value = serde_json::from_str(&rehydrate_result).unwrap();
 
     // Verify rehydrated data matches original
@@ -296,7 +299,7 @@ fn test_convert_json_invalid_target_enum() {
 fn test_rehydrate_json_wrong_codec_shape() {
     let data = r#"{"name": "Alice"}"#;
     // Valid JSON object but not a valid Codec structure
-    let result = rehydrate_json(data, "{}");
+    let result = rehydrate_json(data, "{}", r#"{"type": "object"}"#);
     assert!(result.is_err());
 
     let err_json: serde_json::Value =
@@ -334,8 +337,9 @@ fn test_convert_json_has_api_version() {
 fn test_rehydrate_json_has_api_version() {
     let data = r#"{"name": "Alice"}"#;
     let codec = r#"{"$schema": "https://jsonschema-llm.dev/codec/v1", "transforms": [], "droppedConstraints": []}"#;
+    let schema = r#"{"type": "object", "properties": {"name": {"type": "string"}}}"#;
 
-    let result = rehydrate_json(data, codec).expect("rehydrate_json should succeed");
+    let result = rehydrate_json(data, codec, schema).expect("rehydrate_json should succeed");
     let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
 
     assert!(
@@ -410,7 +414,7 @@ fn test_codec_version_mismatch() {
     // Use a v99 codec version that is incompatible
     let codec = r#"{"$schema": "https://jsonschema-llm.dev/codec/v99", "transforms": [], "droppedConstraints": []}"#;
 
-    let result = rehydrate_json(data, codec);
+    let result = rehydrate_json(data, codec, r#"{"type": "object"}"#);
     assert!(result.is_err(), "Incompatible codec version must fail");
 
     let err: serde_json::Value = serde_json::from_str(&result.unwrap_err()).unwrap();
@@ -427,7 +431,7 @@ fn test_codec_version_malformed_uri() {
     let data = r#"{"name": "Alice"}"#;
     let codec = r#"{"$schema": "not-a-valid-uri", "transforms": [], "droppedConstraints": []}"#;
 
-    let result = rehydrate_json(data, codec);
+    let result = rehydrate_json(data, codec, r#"{"type": "object"}"#);
     assert!(result.is_err(), "Malformed codec URI must fail");
 
     let err: serde_json::Value = serde_json::from_str(&result.unwrap_err()).unwrap();
@@ -571,7 +575,7 @@ fn test_roundtrip_json_bridge_with_map_transform() {
 
     // Step 4: Rehydrate
     let rehydrate_result =
-        rehydrate_json(llm_output, &codec_json).expect("rehydrate_json should succeed");
+        rehydrate_json(llm_output, &codec_json, schema).expect("rehydrate_json should succeed");
     let rehydrate_parsed: serde_json::Value = serde_json::from_str(&rehydrate_result).unwrap();
 
     // Verify map was restored

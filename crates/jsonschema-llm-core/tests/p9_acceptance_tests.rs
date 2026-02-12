@@ -174,7 +174,7 @@ fn p9_root_array_roundtrip_rehydration() {
 
     // Simulate LLM output matching the wrapped schema
     let llm_output = json!({ "result": ["hello", "world"] });
-    let rehydrated = jsonschema_llm_core::rehydrate(&llm_output, &result.codec)
+    let rehydrated = jsonschema_llm_core::rehydrate(&llm_output, &result.codec, &schema)
         .expect("rehydration should succeed");
 
     // After rehydration, the wrapper should be removed

@@ -162,6 +162,7 @@ fn convert(
 /// Args:
 ///     data: The LLM-generated data as a Python dict.
 ///     codec: The codec sidecar from a prior convert() call.
+///     original_schema: The original JSON Schema dict (for type coercion).
 ///
 /// Returns:
 ///     A dict with keys: api_version, data, warnings
@@ -173,12 +174,16 @@ fn rehydrate(
     py: Python<'_>,
     data: &Bound<'_, PyAny>,
     codec: &Bound<'_, PyAny>,
+    original_schema: &Bound<'_, PyAny>,
 ) -> PyResult<Py<PyAny>> {
     let data: serde_json::Value = depythonize(data).map_err(|e| to_py_deser_error(py, e))?;
     let codec: jsonschema_llm_core::Codec =
         depythonize(codec).map_err(|e| to_py_deser_error(py, e))?;
+    let original_schema: serde_json::Value =
+        depythonize(original_schema).map_err(|e| to_py_deser_error(py, e))?;
 
-    let result = jsonschema_llm_core::rehydrate(&data, &codec).map_err(|e| to_py_error(py, &e))?;
+    let result = jsonschema_llm_core::rehydrate(&data, &codec, &original_schema)
+        .map_err(|e| to_py_error(py, &e))?;
 
     let dict = PyDict::new(py);
     dict.set_item("api_version", API_VERSION)?;
