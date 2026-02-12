@@ -59,7 +59,14 @@ fn bench_rehydrate_roundtrip(c: &mut Criterion) {
     });
 
     c.bench_function("rehydrate/simple_roundtrip", |b| {
-        b.iter(|| rehydrate(black_box(&llm_output), black_box(&result.codec)).unwrap())
+        b.iter(|| {
+            rehydrate(
+                black_box(&llm_output),
+                black_box(&result.codec),
+                black_box(&schema),
+            )
+            .unwrap()
+        })
     });
 }
 
