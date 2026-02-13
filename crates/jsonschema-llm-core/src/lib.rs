@@ -86,7 +86,7 @@ pub fn convert(schema: &Value, options: &ConvertOptions) -> Result<ConvertResult
 
     // Pass 2: Polymorphism (oneOf → anyOf)
     let p2 = passes::p2_polymorphism::simplify_polymorphism(schema, options)?;
-    let schema = p2.schema;
+    let schema = p2.merge_into_codec(&mut codec);
 
     // Pass 3: Dictionary (Map → Array)
     let p3 = passes::p3_dictionary::transpile_dictionaries(schema, options)?;
