@@ -1,0 +1,20 @@
+{
+  "schemas": {
+    "edge_false": {
+      "reason": "Unsatisfiable schema (const: false)",
+      "stage": "validation"
+    },
+    "deep_nesting_50": {
+      "reason": "Exceeds 25-level depth limit",
+      "stage": "convert"
+    },
+    "combo_depth_50_width_2": {
+      "reason": "Exceeds 25-level depth limit",
+      "stage": "convert"
+    },
+    "combo_depth_50_width_5": {
+      "reason": "Exceeds 25-level depth limit",
+      "stage": "convert"
+    }
+  }
+}
