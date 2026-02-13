@@ -27,11 +27,11 @@ use super::pass_utils::extract_type_strings;
 /// `anyOf`/`oneOf`/`allOf`, and `additionalProperties`. Where `allOf` is
 /// found, all sub-schemas are merged into one flat object.
 pub fn compile_composition(
-    schema: &Value,
+    schema: Value,
     config: &ConvertOptions,
 ) -> Result<PassResult, ConvertError> {
     let mut dropped = Vec::new();
-    let result = walk(schema.clone(), "#", 0, config, &mut dropped)?;
+    let result = walk(schema, "#", 0, config, &mut dropped)?;
     Ok(PassResult::with_dropped(result, dropped))
 }
 
@@ -607,7 +607,7 @@ mod tests {
 
     fn run(schema: Value) -> PassResult {
         let config = ConvertOptions::default();
-        compile_composition(&schema, &config).expect("should not error")
+        compile_composition(schema, &config).expect("should not error")
     }
 
     // -----------------------------------------------------------------------
@@ -714,7 +714,7 @@ mod tests {
         });
 
         let config = ConvertOptions::default();
-        let result = compile_composition(&input, &config);
+        let result = compile_composition(input, &config);
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
         assert!(err.contains("type conflict"));
@@ -924,7 +924,7 @@ mod tests {
         });
 
         let config = ConvertOptions::default();
-        let result = compile_composition(&input, &config);
+        let result = compile_composition(input, &config);
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
         assert!(err.contains("const conflict"));

@@ -41,11 +41,11 @@ const OPAQUE_DESC_SUFFIX: &str =
 /// structural constraints), converts them to `{type: string}` with a
 /// descriptive instruction and emits a `JsonStringParse` codec transform.
 pub fn stringify_opaque(
-    schema: &Value,
+    schema: Value,
     config: &ConvertOptions,
 ) -> Result<PassResult, ConvertError> {
     let mut transforms = Vec::new();
-    let result = walk(schema, "#", 0, config, &mut transforms)?;
+    let result = walk(&schema, "#", 0, config, &mut transforms)?;
     Ok(PassResult::with_transforms(result, transforms))
 }
 
@@ -389,7 +389,7 @@ mod tests {
 
     fn run(schema: Value) -> (Value, Vec<Transform>) {
         let config = ConvertOptions::default();
-        let result = stringify_opaque(&schema, &config).unwrap();
+        let result = stringify_opaque(schema, &config).unwrap();
         (result.schema, result.transforms)
     }
 
@@ -630,7 +630,7 @@ mod tests {
             ..ConvertOptions::default()
         };
 
-        let result = stringify_opaque(&input, &config);
+        let result = stringify_opaque(input, &config);
         let err = result.unwrap_err();
         match err {
             ConvertError::RecursionDepthExceeded { max_depth, .. } => {

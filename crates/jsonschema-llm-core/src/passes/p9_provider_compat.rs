@@ -50,14 +50,14 @@ pub struct ProviderCompatResult {
 ///
 /// Returns the (potentially wrapped) schema, any new transforms, and
 /// advisory errors.
-pub fn check_provider_compat(schema: &Value, config: &ConvertOptions) -> ProviderCompatResult {
+pub fn check_provider_compat(schema: Value, config: &ConvertOptions) -> ProviderCompatResult {
     match config.target {
         Target::OpenaiStrict if config.mode == Mode::Strict => {
             let mut errors = Vec::new();
             let mut transforms = Vec::new();
 
             // ── Check 1: Root type enforcement (#94) ──────────────────
-            let mut schema = check_root_type(schema, config.target, &mut errors, &mut transforms);
+            let mut schema = check_root_type(&schema, config.target, &mut errors, &mut transforms);
 
             // ── Checks 2–4: Single-pass mutating visitor (#95, #96, #97)
             {
@@ -78,7 +78,7 @@ pub fn check_provider_compat(schema: &Value, config: &ConvertOptions) -> Provide
             }
         }
         _ => ProviderCompatResult {
-            pass: PassResult::schema_only(schema.clone()),
+            pass: PassResult::schema_only(schema),
             errors: vec![],
         },
     }
@@ -734,7 +734,7 @@ mod tests {
     #[test]
     fn object_root_unchanged() {
         let schema = json!({"type": "object", "properties": {"x": {"type": "string"}}});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         assert!(r.pass.transforms.is_empty());
         assert!(r
             .errors
@@ -745,7 +745,7 @@ mod tests {
     #[test]
     fn array_root_wrapped() {
         let schema = json!({"type": "array", "items": {"type": "string"}});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         assert_eq!(r.pass.transforms.len(), 1);
         assert_eq!(r.pass.schema.get("type").unwrap(), "object");
         assert!(r.pass.schema.pointer("/properties/result/type").unwrap() == "array");
@@ -754,7 +754,7 @@ mod tests {
     #[test]
     fn string_root_wrapped() {
         let schema = json!({"type": "string"});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         assert_eq!(r.pass.transforms.len(), 1);
         assert!(r.pass.schema.pointer("/properties/result/type").unwrap() == "string");
     }
@@ -762,7 +762,7 @@ mod tests {
     #[test]
     fn missing_type_wrapped() {
         let schema = json!({"description": "no type"});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         // Root wrap + inner unconstrained → opaque string = 2 transforms
         assert_eq!(r.pass.transforms.len(), 2);
         assert_eq!(r.pass.schema.get("type").unwrap(), "object");
@@ -776,7 +776,7 @@ mod tests {
     fn type_array_object_only_no_wrap() {
         // type: "object" (string) should NOT trigger wrapping
         let schema = json!({"type": "object", "properties": {"x": {"type": "string"}}});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         assert!(
             r.pass.transforms.is_empty(),
             "exact 'object' root should not be wrapped"
@@ -787,7 +787,7 @@ mod tests {
     fn type_array_with_object_null_still_wraps() {
         // type: ["object", "null"] SHOULD trigger wrapping — OpenAI strict requires exactly "object"
         let schema = json!({"type": ["object", "null"], "properties": {"x": {"type": "string"}}});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         assert!(
             r.pass
                 .transforms
@@ -820,7 +820,7 @@ mod tests {
     fn type_array_without_object_wrapped() {
         // type: ["string", "null"] should trigger wrapping with actual_type showing both
         let schema = json!({"type": ["string", "null"]});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         assert!(
             r.pass
                 .transforms
@@ -852,7 +852,7 @@ mod tests {
     #[test]
     fn shallow_no_error() {
         let schema = json!({"type": "object", "properties": {"a": {"type": "string"}}});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         assert!(r
             .errors
             .iter()
@@ -866,7 +866,7 @@ mod tests {
         for i in (0..12).rev() {
             inner = json!({"type": "object", "properties": {format!("l{i}"): inner}});
         }
-        let r = check_provider_compat(&inner, &opts());
+        let r = check_provider_compat(inner, &opts());
         let depth_errs: Vec<_> = r
             .errors
             .iter()
@@ -897,7 +897,7 @@ mod tests {
         for i in (0..12).rev() {
             inner = json!({"type": "object", "properties": {format!("l{i}"): inner}});
         }
-        let r = check_provider_compat(&inner, &opts());
+        let r = check_provider_compat(inner, &opts());
 
         // The sub-tree at depth >= 10 should be replaced with opaque string
         // Navigate to the deepening path and check for truncation
@@ -931,7 +931,7 @@ mod tests {
                 "shallow": {"type": "string"}
             }
         });
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
 
         // Shallow branch should be untouched
         assert_eq!(
@@ -972,7 +972,7 @@ mod tests {
                 "branch_b": deep_b,
             }
         });
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
 
         // Should have multiple per-path depth errors (one for each branch's truncation point)
         let depth_errs: Vec<_> = r
@@ -991,7 +991,7 @@ mod tests {
     #[test]
     fn homo_enum_clean() {
         let schema = json!({"type": "object", "properties": {"c": {"enum": ["a", "b"]}}});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         assert!(r
             .errors
             .iter()
@@ -1001,7 +1001,7 @@ mod tests {
     #[test]
     fn mixed_enum_error() {
         let schema = json!({"type": "object", "properties": {"c": {"enum": ["a", 1]}}});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         let enum_errs: Vec<_> = r
             .errors
             .iter()
@@ -1014,7 +1014,7 @@ mod tests {
     #[test]
     fn typed_no_unconstrained() {
         let schema = json!({"type": "object", "properties": {"x": {"type": "string"}}});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         assert!(r
             .errors
             .iter()
@@ -1024,7 +1024,7 @@ mod tests {
     #[test]
     fn empty_sub_schema_flagged() {
         let schema = json!({"type": "object", "properties": {"x": {}}});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         let uc_errs: Vec<_> = r
             .errors
             .iter()
@@ -1039,7 +1039,7 @@ mod tests {
         let schema = json!({"type": "array"});
         let mut o = opts();
         o.target = Target::Gemini;
-        let r = check_provider_compat(&schema, &o);
+        let r = check_provider_compat(schema, &o);
         assert!(r.errors.is_empty());
         assert!(r.pass.transforms.is_empty());
     }
@@ -1048,7 +1048,7 @@ mod tests {
     #[test]
     fn false_schema_becomes_opaque_string() {
         let schema = json!({"type": "object", "properties": {"deny": false}});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         // Should flag as unconstrained
         let uc_errs: Vec<_> = r
             .errors
@@ -1074,7 +1074,7 @@ mod tests {
     fn enum_collision_deduplicates() {
         // [1, "1"] should stringify to ["1"] (deduplicated), not ["1", "1"]
         let schema = json!({"type": "object", "properties": {"v": {"enum": [1, "1"]}}});
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         let enum_vals = r.pass.schema["properties"]["v"]["enum"]
             .as_array()
             .expect("enum should be an array");
@@ -1537,7 +1537,7 @@ mod tests {
             "items": {"type": "string"},
             "description": "Mixed tuple"
         });
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         // After p9, the root gets wrapped (it's an array, not object).
         // Look inside the wrapper for the original array schema.
         let inner = &r.pass.schema["properties"]["result"];
@@ -1564,7 +1564,7 @@ mod tests {
             "items": {"type": "string"},
             "description": "Homogeneous tuple"
         });
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         let inner = &r.pass.schema["properties"]["result"];
         assert!(
             inner.get("items").is_some(),
@@ -1580,7 +1580,7 @@ mod tests {
             "items": {"type": "string"},
             "description": "Simple array"
         });
-        let r = check_provider_compat(&schema, &opts());
+        let r = check_provider_compat(schema, &opts());
         let inner = &r.pass.schema["properties"]["result"];
         assert!(
             inner.get("items").is_some(),

@@ -245,7 +245,7 @@ fn resolve_single_ref(
     ctx.visiting.insert(ref_str.to_string());
 
     // Recursively resolve the target (handles chained refs like A→B→C).
-    let resolved = resolve_refs(&target, path, depth + 1, ctx)?;
+    let resolved = resolve_refs(target, path, depth + 1, ctx)?;
 
     // Unmark after resolution.
     ctx.visiting.remove(ref_str);
@@ -307,10 +307,10 @@ fn resolve_single_ref(
 /// Resolve a JSON Pointer against a root document.
 /// Supports paths like `#/$defs/Address`, `#/definitions/Thing`,
 /// `#/$defs/User/properties/address`.
-fn resolve_pointer(root: &Value, pointer: &str) -> Option<Value> {
+fn resolve_pointer<'a>(root: &'a Value, pointer: &str) -> Option<&'a Value> {
     let path = pointer.strip_prefix('#')?;
     if path.is_empty() {
-        return Some(root.clone());
+        return Some(root);
     }
     let path = path.strip_prefix('/')?;
 
@@ -330,7 +330,7 @@ fn resolve_pointer(root: &Value, pointer: &str) -> Option<Value> {
         }
     }
 
-    Some(current.clone())
+    Some(current)
 }
 
 /// Recurse into all schema-bearing children of an object.

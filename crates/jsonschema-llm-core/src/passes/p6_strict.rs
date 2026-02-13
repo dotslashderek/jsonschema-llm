@@ -22,9 +22,9 @@ use super::pass_utils::{enforce_object_strict, is_typed_object};
 /// Recursively walks every node. For `type: object` nodes with `properties`,
 /// seals them with `additionalProperties: false`, makes all properties required,
 /// and wraps optional properties with `anyOf: [T, {type: null}]`.
-pub fn enforce_strict(schema: &Value, config: &ConvertOptions) -> Result<PassResult, ConvertError> {
+pub fn enforce_strict(schema: Value, config: &ConvertOptions) -> Result<PassResult, ConvertError> {
     let mut transforms = Vec::new();
-    let result = walk(schema, "#", 0, config, &mut transforms)?;
+    let result = walk(&schema, "#", 0, config, &mut transforms)?;
     Ok(PassResult::with_transforms(result, transforms))
 }
 
@@ -89,7 +89,7 @@ mod tests {
     use crate::config::ConvertOptions;
 
     fn run(schema: Value) -> (Value, Vec<Transform>) {
-        let result = enforce_strict(&schema, &ConvertOptions::default()).unwrap();
+        let result = enforce_strict(schema, &ConvertOptions::default()).unwrap();
         (result.schema, result.transforms)
     }
 
@@ -361,7 +361,7 @@ mod tests {
             ..ConvertOptions::default()
         };
 
-        let result = enforce_strict(&input, &config);
+        let result = enforce_strict(input, &config);
         let err = result.unwrap_err();
         match err {
             ConvertError::RecursionDepthExceeded { max_depth, .. } => {

@@ -70,7 +70,7 @@ pub fn convert(schema: &Value, options: &ConvertOptions) -> Result<ConvertResult
 
     // Pass 0: Normalize ($ref resolution, draft migration)
     let p0 = passes::p0_normalize::normalize(schema, options)?;
-    let mut schema = p0.pass.schema;
+    let schema = p0.pass.schema;
 
     if !p0.recursive_refs.is_empty() {
         tracing::debug!(
@@ -81,45 +81,45 @@ pub fn convert(schema: &Value, options: &ConvertOptions) -> Result<ConvertResult
     }
 
     // Pass 1: Composition (allOf merge)
-    let p1 = passes::p1_composition::compile_composition(&schema, options)?;
+    let p1 = passes::p1_composition::compile_composition(schema, options)?;
     p1.merge_into_codec(&mut codec);
-    schema = p1.schema;
+    let schema = p1.schema;
 
     // Pass 2: Polymorphism (oneOf → anyOf)
-    let p2 = passes::p2_polymorphism::simplify_polymorphism(&schema, options)?;
-    schema = p2.schema;
+    let p2 = passes::p2_polymorphism::simplify_polymorphism(schema, options)?;
+    let schema = p2.schema;
 
     // Pass 3: Dictionary (Map → Array)
-    let p3 = passes::p3_dictionary::transpile_dictionaries(&schema, options)?;
+    let p3 = passes::p3_dictionary::transpile_dictionaries(schema, options)?;
     p3.merge_into_codec(&mut codec);
-    schema = p3.schema;
+    let schema = p3.schema;
 
     // Pass 4: Opaque (open objects → string)
-    let p4 = passes::p4_opaque::stringify_opaque(&schema, options)?;
+    let p4 = passes::p4_opaque::stringify_opaque(schema, options)?;
     p4.merge_into_codec(&mut codec);
-    schema = p4.schema;
+    let schema = p4.schema;
 
     // Pass 5: Recursion Breaking
-    let p5 = passes::p5_recursion::break_recursion(&schema, options)?;
+    let p5 = passes::p5_recursion::break_recursion(schema, options)?;
     p5.merge_into_codec(&mut codec);
-    schema = p5.schema;
+    let mut schema = p5.schema;
 
     // Pass 6: Strict enforcement
     if options.mode == Mode::Strict {
-        let p6 = passes::p6_strict::enforce_strict(&schema, options)?;
+        let p6 = passes::p6_strict::enforce_strict(schema, options)?;
         p6.merge_into_codec(&mut codec);
         schema = p6.schema;
     }
 
     // Pass 7: Constraint pruning
-    let p7 = passes::p7_constraints::prune_constraints(&schema, options)?;
+    let p7 = passes::p7_constraints::prune_constraints(schema, options)?;
     p7.merge_into_codec(&mut codec);
-    schema = p7.schema;
+    let schema = p7.schema;
 
     // Pass 9: Provider compatibility checks (soft errors)
-    let p9 = passes::p9_provider_compat::check_provider_compat(&schema, options);
+    let p9 = passes::p9_provider_compat::check_provider_compat(schema, options);
     p9.pass.merge_into_codec(&mut codec);
-    schema = p9.pass.schema;
+    let schema = p9.pass.schema;
 
     Ok(ConvertResult {
         schema,

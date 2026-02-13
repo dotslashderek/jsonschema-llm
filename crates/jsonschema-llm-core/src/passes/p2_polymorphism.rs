@@ -26,20 +26,20 @@ use super::pass_result::PassResult;
 /// Skipped when `config.target == Target::Gemini` (Gemini handles `oneOf`
 /// natively) or when `config.polymorphism == PolymorphismStrategy::Flatten`.
 pub fn simplify_polymorphism(
-    schema: &Value,
+    schema: Value,
     config: &ConvertOptions,
 ) -> Result<PassResult, ConvertError> {
     // Provider gate: Gemini supports oneOf natively.
     if config.target == Target::Gemini {
-        return Ok(PassResult::schema_only(schema.clone()));
+        return Ok(PassResult::schema_only(schema));
     }
 
     // Strategy gate: Flatten is future work.
     if config.polymorphism == PolymorphismStrategy::Flatten {
-        return Ok(PassResult::schema_only(schema.clone()));
+        return Ok(PassResult::schema_only(schema));
     }
 
-    let result = walk(schema, "#", 0, config)?;
+    let result = walk(&schema, "#", 0, config)?;
     Ok(PassResult::schema_only(result))
 }
 
@@ -126,7 +126,7 @@ mod tests {
     use serde_json::json;
 
     fn run(schema: Value) -> Value {
-        simplify_polymorphism(&schema, &ConvertOptions::default())
+        simplify_polymorphism(schema, &ConvertOptions::default())
             .unwrap()
             .schema
     }
@@ -212,7 +212,7 @@ mod tests {
             target: Target::Gemini,
             ..ConvertOptions::default()
         };
-        let result = simplify_polymorphism(&input, &config).unwrap();
+        let result = simplify_polymorphism(input.clone(), &config).unwrap();
         assert_eq!(result.schema, input, "Gemini should skip P2");
     }
 
@@ -224,7 +224,7 @@ mod tests {
         let input = json!({
             "oneOf": [{ "type": "string" }]
         });
-        let result = simplify_polymorphism(&input, &ConvertOptions::default());
+        let result = simplify_polymorphism(input, &ConvertOptions::default());
         assert!(result.is_ok());
     }
 

@@ -35,16 +35,16 @@ const ADDITIONAL_PROPERTY: &str = "_additional";
 ///
 /// Skipped entirely when `config.target == Target::Gemini`.
 pub fn transpile_dictionaries(
-    schema: &Value,
+    schema: Value,
     config: &ConvertOptions,
 ) -> Result<PassResult, ConvertError> {
     // Provider gate: Gemini supports additionalProperties natively.
     if config.target == Target::Gemini {
-        return Ok(PassResult::schema_only(schema.clone()));
+        return Ok(PassResult::schema_only(schema));
     }
 
     let mut transforms = Vec::new();
-    let result = walk(schema, "#", 0, config, &mut transforms)?;
+    let result = walk(&schema, "#", 0, config, &mut transforms)?;
     Ok(PassResult::with_transforms(result, transforms))
 }
 
@@ -243,7 +243,7 @@ mod tests {
 
     fn run(schema: Value) -> (Value, Vec<Transform>) {
         let config = ConvertOptions::default();
-        let result = transpile_dictionaries(&schema, &config).unwrap();
+        let result = transpile_dictionaries(schema, &config).unwrap();
         (result.schema, result.transforms)
     }
 
@@ -460,7 +460,7 @@ mod tests {
             ..ConvertOptions::default()
         };
 
-        let result = transpile_dictionaries(&input, &config).unwrap();
+        let result = transpile_dictionaries(input.clone(), &config).unwrap();
 
         assert_eq!(result.schema, input);
         assert_eq!(result.transforms.len(), 0);
@@ -487,7 +487,7 @@ mod tests {
             ..ConvertOptions::default()
         };
 
-        let result = transpile_dictionaries(&input, &config);
+        let result = transpile_dictionaries(input, &config);
         let err = result.unwrap_err();
         match err {
             ConvertError::RecursionDepthExceeded { max_depth, .. } => {

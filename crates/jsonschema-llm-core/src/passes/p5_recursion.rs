@@ -16,13 +16,10 @@ use crate::schema_utils::build_path;
 
 use super::pass_result::PassResult;
 
-pub fn break_recursion(
-    schema: &Value,
-    config: &ConvertOptions,
-) -> Result<PassResult, ConvertError> {
+pub fn break_recursion(schema: Value, config: &ConvertOptions) -> Result<PassResult, ConvertError> {
     // Gemini gate: native recursion support
     if config.target == Target::Gemini {
-        return Ok(PassResult::schema_only(schema.clone()));
+        return Ok(PassResult::schema_only(schema));
     }
 
     // Extract $defs for ref resolution
@@ -34,7 +31,14 @@ pub fn break_recursion(
     let mut transforms = Vec::new();
     let mut ref_counts: HashMap<String, usize> = HashMap::new();
 
-    let result = walk(schema, &defs, config, &mut ref_counts, &mut transforms, "#")?;
+    let result = walk(
+        &schema,
+        &defs,
+        config,
+        &mut ref_counts,
+        &mut transforms,
+        "#",
+    )?;
 
     // Safety check: only strip $defs if no dangling $ref nodes remain
     let result = if has_remaining_refs(&result) {
@@ -258,7 +262,7 @@ mod tests {
         });
 
         let config = config_with_limit(1);
-        let result = break_recursion(&schema, &config).unwrap();
+        let result = break_recursion(schema, &config).unwrap();
 
         // After recursion_limit=1: first expansion of B inlines B's content.
         // Inside that inlined B, the ref to A hits limit (A→B→A), so A becomes opaque string.
@@ -316,7 +320,7 @@ mod tests {
         });
 
         let config = config_with_limit(1);
-        let result = break_recursion(&schema, &config).unwrap();
+        let result = break_recursion(schema, &config).unwrap();
 
         assert!(
             !serde_json::to_string(&result.schema)
@@ -356,7 +360,7 @@ mod tests {
         });
 
         let config = config_with_limit(2);
-        let result = break_recursion(&schema, &config).unwrap();
+        let result = break_recursion(schema, &config).unwrap();
 
         assert!(
             !serde_json::to_string(&result.schema)
@@ -393,7 +397,7 @@ mod tests {
         });
 
         // With limit=1: Node expands once, then next occurrence is opaque.
-        let result_1 = break_recursion(&schema, &config_with_limit(1)).unwrap();
+        let result_1 = break_recursion(schema.clone(), &config_with_limit(1)).unwrap();
         let count_1 = result_1
             .transforms
             .iter()
@@ -401,7 +405,7 @@ mod tests {
             .count();
 
         // With limit=3: Node expands three times before breaking.
-        let result_3 = break_recursion(&schema, &config_with_limit(3)).unwrap();
+        let result_3 = break_recursion(schema.clone(), &config_with_limit(3)).unwrap();
         let count_3 = result_3
             .transforms
             .iter()
@@ -441,7 +445,7 @@ mod tests {
             }
         });
 
-        let result = break_recursion(&schema, &gemini_config()).unwrap();
+        let result = break_recursion(schema.clone(), &gemini_config()).unwrap();
 
         // Schema should be returned unchanged
         assert_eq!(
@@ -468,7 +472,7 @@ mod tests {
             "required": ["name"]
         });
 
-        let result = break_recursion(&schema, &default_config()).unwrap();
+        let result = break_recursion(schema.clone(), &default_config()).unwrap();
 
         assert_eq!(
             result.schema, schema,
@@ -498,7 +502,7 @@ mod tests {
         });
 
         let config = config_with_limit(1);
-        let result = break_recursion(&schema, &config).unwrap();
+        let result = break_recursion(schema, &config).unwrap();
 
         let inflate = result
             .transforms
@@ -545,7 +549,7 @@ mod tests {
             }
         });
 
-        let result = break_recursion(&schema, &default_config()).unwrap();
+        let result = break_recursion(schema, &default_config()).unwrap();
 
         // Both refs are non-recursive (DAG), should be fully inlined
         assert!(
@@ -587,7 +591,7 @@ mod tests {
             }
         });
 
-        let result = break_recursion(&schema, &default_config()).unwrap();
+        let result = break_recursion(schema, &default_config()).unwrap();
 
         // Both properties should have the Address schema inlined
         let billing = &result.schema["properties"]["billing"];

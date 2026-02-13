@@ -21,11 +21,11 @@ use super::pass_result::PassResult;
 /// 2. Sorts `enum` to place `default` value first (before `default` is dropped)
 /// 3. Drops unsupported constraints per target, emitting `DroppedConstraint` entries
 pub fn prune_constraints(
-    schema: &Value,
+    schema: Value,
     config: &ConvertOptions,
 ) -> Result<PassResult, ConvertError> {
     let mut dropped = Vec::new();
-    let result = walk(schema, "#", 0, config, &mut dropped)?;
+    let result = walk(&schema, "#", 0, config, &mut dropped)?;
     Ok(PassResult::with_dropped(result, dropped))
 }
 
@@ -302,7 +302,7 @@ mod tests {
             target,
             ..ConvertOptions::default()
         };
-        let result = prune_constraints(&schema, &config).unwrap();
+        let result = prune_constraints(schema, &config).unwrap();
         (result.schema, result.dropped_constraints)
     }
 
@@ -552,7 +552,7 @@ mod tests {
             ..ConvertOptions::default()
         };
 
-        let result = prune_constraints(&input, &config);
+        let result = prune_constraints(input, &config);
         assert!(result.is_err(), "should fail on depth exceeded");
     }
 
