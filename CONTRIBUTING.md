@@ -36,9 +36,11 @@ The project uses a multi-layer testing strategy:
 4. **WASM contract tests** — Node.js tests verifying WASM bindings in `tests/contract-node/`
 5. **Python acceptance tests** — pytest suite in `crates/jsonschema-llm-python/tests/`
 6. **Doc tests** — Examples in `lib.rs` and `schema_utils.rs`
+7. **Property tests** — `proptest` strategies in `crates/jsonschema-llm-core/tests/proptest_*.rs`
+8. **Fuzzing** — `cargo-fuzz` harness in `fuzz/` (requires nightly, not part of workspace)
 
 ```bash
-# Core Rust tests
+# Core Rust tests (includes proptests)
 cargo test
 
 # Python bindings
@@ -47,6 +49,9 @@ cd crates/jsonschema-llm-python && maturin develop && pytest tests/
 # WASM contract tests
 wasm-pack build crates/jsonschema-llm-wasm --target nodejs --out-dir ../../tests/contract-node/pkg
 cd tests/contract-node && pnpm test
+
+# Fuzzing (nightly only, not run in CI)
+cargo +nightly fuzz run fuzz_convert -- -max_total_time=60
 ```
 
 ### Project Structure
@@ -64,6 +69,7 @@ jsonschema-llm/
 │   ├── jsonschema-llm-wasm/     # TypeScript/JS WASM bindings
 │   └── jsonschema-llm-python/   # Python PyO3 bindings
 ├── cli/                         # CLI binary
+├── fuzz/                        # cargo-fuzz harness (standalone, nightly)
 ├── tests/
 │   └── contract-node/           # WASM contract tests (Node.js)
 └── docs/
