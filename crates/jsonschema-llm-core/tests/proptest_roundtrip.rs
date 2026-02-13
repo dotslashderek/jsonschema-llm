@@ -1,11 +1,13 @@
 //! Property-based test for the convert→rehydrate roundtrip invariant.
 //!
 //! Generates JSON Schemas with primitives, one level of nesting, and arrays
-//! of primitives. Uses `prop_flat_map` to couple schema→data generation.
+//! of primitives. Couples schema→data generation using `prop_map` to ensure
+//! data conforms to the generated schema.
 //!
 //! Invariant: for identity-preserving schemas (no maps, polymorphism, or
-//! recursion), `rehydrate(convert(schema), codec, schema)` produces output
-//! equal to the original conforming data.
+//! recursion), `rehydrate(data, convert(schema).codec, schema).data == data`
+//! for any data conforming to the schema, since the converted schema is
+//! structurally identical to the original.
 
 use jsonschema_llm_core::{convert, rehydrate, ConvertOptions};
 use proptest::prelude::*;
@@ -44,7 +46,7 @@ enum PropType {
 
 /// Generate a valid property name: [a-zA-Z_][a-zA-Z0-9_]{0,15}
 fn arb_prop_name() -> impl Strategy<Value = String> {
-    ("[a-zA-Z_][a-zA-Z0-9_]{0,10}").prop_filter("non-empty", |s| !s.is_empty())
+    "[a-zA-Z_][a-zA-Z0-9_]{0,10}"
 }
 
 /// Generate conforming data for a leaf type.
@@ -94,9 +96,11 @@ fn schema_and_data_for_prop(prop_type: &PropType) -> (Value, Value) {
             let mut data_obj = Map::new();
             let mut required = Vec::new();
             for (name, leaf) in fields {
-                props.insert(name.clone(), schema_for_leaf(leaf));
-                data_obj.insert(name.clone(), data_for_leaf(leaf));
-                required.push(json!(name));
+                if !props.contains_key(name) {
+                    props.insert(name.clone(), schema_for_leaf(leaf));
+                    data_obj.insert(name.clone(), data_for_leaf(leaf));
+                    required.push(json!(name));
+                }
             }
             let schema = json!({
                 "type": "object",
@@ -117,10 +121,12 @@ fn arb_schema_and_data() -> impl Strategy<Value = (Value, Value)> {
         let mut required = Vec::new();
 
         for (name, prop_type) in &fields {
-            let (schema_fragment, data_fragment) = schema_and_data_for_prop(prop_type);
-            properties.insert(name.clone(), schema_fragment);
-            data_obj.insert(name.clone(), data_fragment);
-            required.push(json!(name));
+            if !properties.contains_key(name) {
+                let (schema_fragment, data_fragment) = schema_and_data_for_prop(prop_type);
+                properties.insert(name.clone(), schema_fragment);
+                data_obj.insert(name.clone(), data_fragment);
+                required.push(json!(name));
+            }
         }
 
         let schema = json!({
