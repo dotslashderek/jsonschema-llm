@@ -219,7 +219,7 @@ mod tests {
     // Test 6: No transforms in result (codec-lossless)
     #[test]
     fn test_no_transforms() {
-        // PassResult has no transforms — codec-lossless keyword rename.
+        // This pass performs a codec-lossless keyword rename and produces no transforms (empty list).
         // This test just verifies the pass succeeds on a non-trivial input.
         let input = json!({
             "oneOf": [{ "type": "string" }]
