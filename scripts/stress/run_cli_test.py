@@ -9,6 +9,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import time
 
 from openai import OpenAI
@@ -324,9 +325,24 @@ def load_expected_failures(config_path):
 
     Returns:
         dict mapping schema base names to their config (reason, optional stage).
+
+    Raises:
+        SystemExit: If file not found or invalid JSON.
     """
-    with open(config_path) as f:
-        config = json.load(f)
+    try:
+        with open(config_path) as f:
+            config = json.load(f)
+    except FileNotFoundError:
+        print(
+            f"Error: expected-failures config not found: {config_path}", file=sys.stderr
+        )
+        sys.exit(2)
+    except json.JSONDecodeError as e:
+        print(
+            f"Error: invalid JSON in expected-failures config {config_path}: {e}",
+            file=sys.stderr,
+        )
+        sys.exit(2)
     return config.get("schemas", {})
 
 
@@ -398,6 +414,9 @@ def main():
         help="Path to expected-failures JSON config",
     )
     args = parser.parse_args()
+
+    if args.retries < 0:
+        parser.error("--retries must be >= 0")
 
     client = OpenAI()
 
@@ -479,14 +498,12 @@ def main():
         if args.retries > 0 and len(result["attempts"]) > 1:
             for i, attempt in enumerate(result["attempts"]):
                 attempt_label = f"({i + 1}/{max_attempts})"
+                separator = " → " if i < len(result["attempts"]) - 1 else ""
                 if attempt["passed"]:
-                    print(
-                        f"✅ PASS {attempt_label}",
-                        end=" → " if i < len(result["attempts"]) - 1 else " → ",
-                        flush=True,
-                    )
+                    print(f"✅ PASS {attempt_label}{separator}", end="", flush=True)
                 else:
-                    print(f"❌ FAIL {attempt_label}", end=" → ", flush=True)
+                    print(f"❌ FAIL {attempt_label}{separator}", end="", flush=True)
+            print(" → ", end="", flush=True)
 
         # Classify with expected failures
         classification = classify_result(result, expected_failures)
@@ -503,6 +520,14 @@ def main():
         elif classification == "expected_fail":
             reason = expected_failures.get(base_name, {}).get("reason", "unknown")
             print(f"🔇 EXPECTED FAIL ({reason})")
+            results["fail"].append(
+                {
+                    "file": schema_file,
+                    "stage": result["attempts"][-1].get("stage", "unknown"),
+                    "reason": "expected_fail",
+                    "error": reason,
+                }
+            )
             expected_fail_list.append(result)
         elif classification == "unexpected_pass":
             print("🚨 UNEXPECTED PASS")
@@ -576,8 +601,6 @@ def main():
     print(f"\nResults written to {report_path}")
 
     # Exit code: fail on solid_fail or unexpected_pass
-    import sys
-
     if solid_fails or unexpected_pass_list:
         sys.exit(1)
 

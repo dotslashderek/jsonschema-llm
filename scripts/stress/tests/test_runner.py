@@ -348,6 +348,7 @@ class TestRetryLogic:
                                         timeout_subprocess=30,
                                         timeout_api=60,
                                         retries=2,
+                                        retry_delay=0,
                                     )
         assert result["verdict"] == "solid_pass"
         assert len(result["attempts"]) == 1
@@ -382,6 +383,7 @@ class TestRetryLogic:
                                         timeout_subprocess=30,
                                         timeout_api=60,
                                         retries=2,
+                                        retry_delay=0,
                                     )
         assert result["verdict"] == "flaky_pass"
         assert len(result["attempts"]) == 2
@@ -405,6 +407,7 @@ class TestRetryLogic:
                             timeout_subprocess=30,
                             timeout_api=60,
                             retries=2,
+                            retry_delay=0,
                         )
         assert result["verdict"] == "solid_fail"
         assert len(result["attempts"]) == 3
