@@ -1,8 +1,9 @@
 //! Shared result type for conversion passes.
 //!
-//! Every pass (p1–p9) returns a `PassResult` containing the transformed schema
-//! and any codec metadata (transforms and dropped constraints) produced during
-//! the pass. This replaces the per-pass bespoke result structs.
+//! Passes p1–p7 return a `PassResult` directly. Passes p0 and p9 embed a
+//! `PassResult` within their own result types (`NormalizePassResult` and
+//! `ProviderCompatResult`) which carry additional pass-specific fields.
+//! This replaces the per-pass bespoke result structs.
 
 use serde_json::Value;
 
