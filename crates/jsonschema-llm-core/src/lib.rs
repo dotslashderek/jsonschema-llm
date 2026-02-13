@@ -82,8 +82,7 @@ pub fn convert(schema: &Value, options: &ConvertOptions) -> Result<ConvertResult
 
     // Pass 1: Composition (allOf merge)
     let p1 = passes::p1_composition::compile_composition(schema, options)?;
-    p1.merge_into_codec(&mut codec);
-    let schema = p1.schema;
+    let schema = p1.merge_into_codec(&mut codec);
 
     // Pass 2: Polymorphism (oneOf → anyOf)
     let p2 = passes::p2_polymorphism::simplify_polymorphism(schema, options)?;
@@ -91,40 +90,35 @@ pub fn convert(schema: &Value, options: &ConvertOptions) -> Result<ConvertResult
 
     // Pass 3: Dictionary (Map → Array)
     let p3 = passes::p3_dictionary::transpile_dictionaries(schema, options)?;
-    p3.merge_into_codec(&mut codec);
-    let schema = p3.schema;
+    let schema = p3.merge_into_codec(&mut codec);
 
     // Pass 4: Opaque (open objects → string)
     let p4 = passes::p4_opaque::stringify_opaque(schema, options)?;
-    p4.merge_into_codec(&mut codec);
-    let schema = p4.schema;
+    let schema = p4.merge_into_codec(&mut codec);
 
     // Pass 5: Recursion Breaking
     let p5 = passes::p5_recursion::break_recursion(schema, options)?;
-    p5.merge_into_codec(&mut codec);
-    let mut schema = p5.schema;
+    let mut schema = p5.merge_into_codec(&mut codec);
 
     // Pass 6: Strict enforcement
     if options.mode == Mode::Strict {
         let p6 = passes::p6_strict::enforce_strict(schema, options)?;
-        p6.merge_into_codec(&mut codec);
-        schema = p6.schema;
+        schema = p6.merge_into_codec(&mut codec);
     }
 
     // Pass 7: Constraint pruning
     let p7 = passes::p7_constraints::prune_constraints(schema, options)?;
-    p7.merge_into_codec(&mut codec);
-    let schema = p7.schema;
+    let schema = p7.merge_into_codec(&mut codec);
 
     // Pass 9: Provider compatibility checks (soft errors)
     let p9 = passes::p9_provider_compat::check_provider_compat(schema, options);
-    p9.pass.merge_into_codec(&mut codec);
-    let schema = p9.pass.schema;
+    let provider_compat_errors = p9.errors;
+    let schema = p9.pass.merge_into_codec(&mut codec);
 
     Ok(ConvertResult {
         schema,
         codec,
-        provider_compat_errors: p9.errors,
+        provider_compat_errors,
     })
 }
 

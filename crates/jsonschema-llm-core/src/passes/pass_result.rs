@@ -48,10 +48,12 @@ impl PassResult {
     }
 
     /// Merge this pass's codec metadata into a codec accumulator.
-    pub fn merge_into_codec(&self, codec: &mut Codec) {
-        codec.transforms.extend(self.transforms.iter().cloned());
-        codec
-            .dropped_constraints
-            .extend(self.dropped_constraints.iter().cloned());
+    ///
+    /// Consumes `self`, moves transforms/constraints into the codec, and
+    /// returns the schema for the next pass in the pipeline.
+    pub fn merge_into_codec(self, codec: &mut Codec) -> Value {
+        codec.transforms.extend(self.transforms);
+        codec.dropped_constraints.extend(self.dropped_constraints);
+        self.schema
     }
 }
