@@ -57,7 +57,7 @@ pub fn check_provider_compat(schema: Value, config: &ConvertOptions) -> Provider
             let mut transforms = Vec::new();
 
             // ── Check 1: Root type enforcement (#94) ──────────────────
-            let mut schema = check_root_type(&schema, config.target, &mut errors, &mut transforms);
+            let mut schema = check_root_type(schema, config.target, &mut errors, &mut transforms);
 
             // ── Checks 2–4: Single-pass mutating visitor (#95, #96, #97)
             {
@@ -95,12 +95,12 @@ pub fn check_provider_compat(schema: Value, config: &ConvertOptions) -> Provider
 ///   1. Have `type: "object"`
 ///   2. NOT have `anyOf`/`oneOf`/`allOf`/`not`/`enum` at the top level
 fn check_root_type(
-    schema: &Value,
+    schema: Value,
     target: Target,
     errors: &mut Vec<ProviderCompatError>,
     transforms: &mut Vec<Transform>,
 ) -> Value {
-    let root_types = extract_types(schema);
+    let root_types = extract_types(&schema);
     let is_object = root_types.len() == 1 && root_types[0] == "object";
 
     // Check for root-level combinators that OpenAI rejects
@@ -111,7 +111,7 @@ fn check_root_type(
 
     // Strict: only skip wrapping if type is exactly "object" AND no root combinators
     if is_object && !has_root_combinator {
-        return schema.clone();
+        return schema;
     }
 
     // Determine the reason for wrapping
