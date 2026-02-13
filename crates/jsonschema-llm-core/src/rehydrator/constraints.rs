@@ -905,8 +905,8 @@ mod tests {
     }
 
     #[test]
-    fn collect_data_paths_skip_single() {
-        // anyOf is a skip-single keyword
+    fn collect_data_paths_skip_pair() {
+        // anyOf is a skip-pair keyword, so it should skip anyOf + "0", landing on properties/x
         let data = json!({"x": 5});
         let segments: Vec<String> = ["anyOf", "0", "properties", "x"]
             .iter()
@@ -914,8 +914,6 @@ mod tests {
             .collect();
         let mut out = Vec::new();
         let cache = HashMap::new();
-        // anyOf is skip-pair (not skip-single). Let me check what SKIP_SINGLE vs SKIP_PAIR are:
-        // SKIP_PAIR includes anyOf, so it should skip anyOf + "0", landing on properties/x
         collect_data_paths(&data, &segments, 0, String::new(), &mut out, &cache);
         assert_eq!(out, vec!["/x"]);
     }
