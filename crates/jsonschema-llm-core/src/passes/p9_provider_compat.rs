@@ -511,19 +511,24 @@ impl CompatVisitor<'_> {
             }
         }
 
-        // ── #122: Strip conflicting `items` when mixed-type `prefixItems` ──
-        // LLMs see `items: {type: T}` and produce all-T arrays, ignoring
-        // positional `prefixItems` types. Remove `items` when it conflicts
-        // so the LLM respects each position's type.
+        // ── #122 / #140: Replace conflicting `items` with permissive union ──
+        // When `prefixItems` has mixed types and `items` declares a single
+        // conflicting type, OpenAI strict mode still *requires* `items` to be
+        // present on array schemas. Removing it (the original approach in
+        // b3f9414) broke structured output for all combo_array_tuple_* schemas.
+        //
+        // Fix: replace `items` with `anyOf` of the distinct types from
+        // `prefixItems`, so the schema satisfies OpenAI's structural
+        // requirement without contradicting positional types.
         //
         // Conservative: only compare entries that have an explicit `type` field.
         // Entries using `$ref`, combinators, or other constructs are ignored
         // to avoid false positives.
         {
-            let has_conflict = (|| {
+            let replacement = (|| {
                 let prefix_arr = schema.get("prefixItems")?.as_array()?;
                 if prefix_arr.is_empty() {
-                    return Some(false);
+                    return None;
                 }
                 let items_type = schema.get("items")?.get("type")?.as_str()?;
                 let typed_entries: Vec<&str> = prefix_arr
@@ -531,14 +536,25 @@ impl CompatVisitor<'_> {
                     .filter_map(|pi| pi.get("type").and_then(|t| t.as_str()))
                     .collect();
                 if typed_entries.is_empty() {
-                    return Some(false);
+                    return None;
                 }
-                Some(!typed_entries.iter().all(|t| *t == items_type))
-            })()
-            .unwrap_or(false);
-            if has_conflict {
+                let has_conflict = !typed_entries.iter().all(|t| *t == items_type);
+                if !has_conflict {
+                    return None;
+                }
+                // Build a deduplicated anyOf from the distinct types
+                let mut seen = std::collections::BTreeSet::new();
+                for t in &typed_entries {
+                    seen.insert(*t);
+                }
+                // Also include the original items type
+                seen.insert(items_type);
+                let variants: Vec<Value> = seen.iter().map(|t| json!({"type": *t})).collect();
+                Some(json!({"anyOf": variants}))
+            })();
+            if let Some(union_items) = replacement {
                 if let Some(obj) = schema.as_object_mut() {
-                    obj.remove("items");
+                    obj.insert("items".to_string(), union_items);
                 }
             }
         }
@@ -1524,9 +1540,9 @@ mod tests {
     // ── #122: Mixed-type prefixItems + conflicting items ───────────────
 
     #[test]
-    fn test_mixed_prefixitems_conflicting_items_removed() {
+    fn test_mixed_prefixitems_conflicting_items_replaced_with_union() {
         // prefixItems has mixed types (integer, boolean, string) but items says "string".
-        // The items declaration conflicts and should be stripped.
+        // items should be replaced with anyOf union of all distinct types.
         let schema = json!({
             "type": "array",
             "prefixItems": [
@@ -1538,14 +1554,18 @@ mod tests {
             "description": "Mixed tuple"
         });
         let r = check_provider_compat(schema, &opts());
-        // After p9, the root gets wrapped (it's an array, not object).
-        // Look inside the wrapper for the original array schema.
         let inner = &r.pass.schema["properties"]["result"];
-        assert!(
-            inner.get("items").is_none(),
-            "conflicting items should be removed when prefixItems has mixed types, but got: {:?}",
-            inner.get("items")
-        );
+        // items should be present (OpenAI requires it) but as anyOf union
+        let items = inner.get("items").expect("items must be preserved for OpenAI strict mode");
+        let any_of = items.get("anyOf").expect("items should be anyOf union");
+        let types: Vec<&str> = any_of
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|v| v.get("type").and_then(|t| t.as_str()))
+            .collect();
+        // BTreeSet ordering: boolean, integer, string
+        assert_eq!(types, vec!["boolean", "integer", "string"]);
         assert!(
             inner.get("prefixItems").is_some(),
             "prefixItems should be preserved"
