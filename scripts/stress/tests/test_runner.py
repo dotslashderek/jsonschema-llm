@@ -285,3 +285,278 @@ class TestStderrCapture:
             assert "return True, result.stderr" in source, (
                 "run_cli_conversion should return stderr on success, not empty string"
             )
+
+
+def _load_runner_module():
+    """Helper to load run_cli_test module with mocked OpenAI."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(
+        "run_cli_test",
+        Path(__file__).parent.parent / "run_cli_test.py",
+    )
+    mod = importlib.util.module_from_spec(spec)
+    mock_openai = MagicMock()
+    with patch.dict("sys.modules", {"openai": mock_openai}):
+        spec.loader.exec_module(mod)
+    return mod
+
+
+class TestRetryLogic:
+    """#116: Retry mechanism for non-deterministic results."""
+
+    def test_run_single_schema_exists(self):
+        """run_single_schema function must exist."""
+        mod = _load_runner_module()
+        assert hasattr(mod, "run_single_schema"), (
+            "run_cli_test must expose a run_single_schema function"
+        )
+
+    def test_run_single_schema_returns_structured_result(self):
+        """run_single_schema must return a dict with verdict and attempts."""
+        mod = _load_runner_module()
+        assert hasattr(mod, "run_single_schema")
+        # Verify function signature includes expected parameters
+        import inspect
+
+        sig = inspect.signature(mod.run_single_schema)
+        param_names = list(sig.parameters.keys())
+        assert "retries" in param_names, (
+            f"run_single_schema must accept 'retries' parameter. Has: {param_names}"
+        )
+
+    def test_solid_pass_on_first_attempt(self):
+        """Schema passing first try → verdict=solid_pass, 1 attempt."""
+        mod = _load_runner_module()
+        # Mock all pipeline stages to succeed
+        with patch.object(mod, "run_cli_conversion", return_value=(True, "")):
+            with patch.object(mod, "call_openai", return_value='{"key": "value"}'):
+                with patch.object(mod, "run_cli_rehydration", return_value=(True, "")):
+                    with patch.object(
+                        mod, "validate_original", return_value=(True, "")
+                    ):
+                        with patch("builtins.open", MagicMock()):
+                            with patch("json.load", return_value={"type": "object"}):
+                                with patch("json.dump"):
+                                    result = mod.run_single_schema(
+                                        binary_path="/fake/bin",
+                                        schema_file="test.json",
+                                        schemas_dir="/fake/schemas",
+                                        output_dir="/fake/output",
+                                        client=MagicMock(),
+                                        model="gpt-4o-mini",
+                                        timeout_subprocess=30,
+                                        timeout_api=60,
+                                        retries=2,
+                                    )
+        assert result["verdict"] == "solid_pass"
+        assert len(result["attempts"]) == 1
+
+    def test_flaky_pass_after_retry(self):
+        """Schema failing first, passing second → verdict=flaky_pass."""
+        mod = _load_runner_module()
+        call_count = {"n": 0}
+
+        def fake_openai(*args, **kwargs):
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                return "OPENAI_ERROR: flaky failure"
+            return '{"key": "value"}'
+
+        with patch.object(mod, "run_cli_conversion", return_value=(True, "")):
+            with patch.object(mod, "call_openai", side_effect=fake_openai):
+                with patch.object(mod, "run_cli_rehydration", return_value=(True, "")):
+                    with patch.object(
+                        mod, "validate_original", return_value=(True, "")
+                    ):
+                        with patch("builtins.open", MagicMock()):
+                            with patch("json.load", return_value={"type": "object"}):
+                                with patch("json.dump"):
+                                    result = mod.run_single_schema(
+                                        binary_path="/fake/bin",
+                                        schema_file="test.json",
+                                        schemas_dir="/fake/schemas",
+                                        output_dir="/fake/output",
+                                        client=MagicMock(),
+                                        model="gpt-4o-mini",
+                                        timeout_subprocess=30,
+                                        timeout_api=60,
+                                        retries=2,
+                                    )
+        assert result["verdict"] == "flaky_pass"
+        assert len(result["attempts"]) == 2
+
+    def test_solid_fail_all_retries_exhausted(self):
+        """Schema failing all attempts → verdict=solid_fail."""
+        mod = _load_runner_module()
+        with patch.object(mod, "run_cli_conversion", return_value=(True, "")):
+            with patch.object(
+                mod, "call_openai", return_value="OPENAI_ERROR: always fails"
+            ):
+                with patch("builtins.open", MagicMock()):
+                    with patch("json.load", return_value={"type": "object"}):
+                        result = mod.run_single_schema(
+                            binary_path="/fake/bin",
+                            schema_file="test.json",
+                            schemas_dir="/fake/schemas",
+                            output_dir="/fake/output",
+                            client=MagicMock(),
+                            model="gpt-4o-mini",
+                            timeout_subprocess=30,
+                            timeout_api=60,
+                            retries=2,
+                        )
+        assert result["verdict"] == "solid_fail"
+        assert len(result["attempts"]) == 3
+
+    def test_no_retries_default(self):
+        """With retries=0, only one attempt is made."""
+        mod = _load_runner_module()
+        with patch.object(mod, "run_cli_conversion", return_value=(True, "")):
+            with patch.object(
+                mod, "call_openai", return_value="OPENAI_ERROR: fail once"
+            ):
+                with patch("builtins.open", MagicMock()):
+                    with patch("json.load", return_value={"type": "object"}):
+                        result = mod.run_single_schema(
+                            binary_path="/fake/bin",
+                            schema_file="test.json",
+                            schemas_dir="/fake/schemas",
+                            output_dir="/fake/output",
+                            client=MagicMock(),
+                            model="gpt-4o-mini",
+                            timeout_subprocess=30,
+                            timeout_api=60,
+                            retries=0,
+                        )
+        assert result["verdict"] == "solid_fail"
+        assert len(result["attempts"]) == 1
+
+    def test_attempts_recorded_in_result(self):
+        """Each attempt should record stage and error info."""
+        mod = _load_runner_module()
+        with patch.object(
+            mod, "run_cli_conversion", return_value=(False, "conv error")
+        ):
+            with patch("builtins.open", MagicMock()):
+                with patch("json.load", return_value={"type": "object"}):
+                    result = mod.run_single_schema(
+                        binary_path="/fake/bin",
+                        schema_file="test.json",
+                        schemas_dir="/fake/schemas",
+                        output_dir="/fake/output",
+                        client=MagicMock(),
+                        model="gpt-4o-mini",
+                        timeout_subprocess=30,
+                        timeout_api=60,
+                        retries=0,
+                    )
+        assert len(result["attempts"]) == 1
+        attempt = result["attempts"][0]
+        assert "stage" in attempt
+        assert "passed" in attempt
+
+
+class TestExpectedFailures:
+    """#117: Expected failure classification."""
+
+    def test_load_expected_failures_function_exists(self):
+        """load_expected_failures function must exist."""
+        mod = _load_runner_module()
+        assert hasattr(mod, "load_expected_failures"), (
+            "run_cli_test must expose a load_expected_failures function"
+        )
+
+    def test_config_loading(self):
+        """Valid config file should load correctly."""
+        mod = _load_runner_module()
+        import json
+        import tempfile
+
+        config = {
+            "schemas": {
+                "edge_false": {"reason": "Unsatisfiable", "stage": "validation"},
+            }
+        }
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(config, f)
+            f.flush()
+            result = mod.load_expected_failures(f.name)
+        assert "edge_false" in result
+        assert result["edge_false"]["reason"] == "Unsatisfiable"
+
+    def test_classify_expected_fail(self):
+        """classify_result must exist and handle expected failures."""
+        mod = _load_runner_module()
+        assert hasattr(mod, "classify_result"), (
+            "run_cli_test must expose a classify_result function"
+        )
+        expected_failures = {
+            "edge_false": {"reason": "Unsatisfiable", "stage": "validation"},
+        }
+        # Schema that fails at expected stage → expected_fail
+        result = {
+            "verdict": "solid_fail",
+            "file": "edge_false.json",
+            "attempts": [{"passed": False, "stage": "validation", "error": "mismatch"}],
+        }
+        classified = mod.classify_result(result, expected_failures)
+        assert classified == "expected_fail"
+
+    def test_classify_unexpected_pass(self):
+        """Schema in config that passes → unexpected_pass."""
+        mod = _load_runner_module()
+        expected_failures = {
+            "edge_false": {"reason": "Unsatisfiable", "stage": "validation"},
+        }
+        result = {
+            "verdict": "solid_pass",
+            "file": "edge_false.json",
+            "attempts": [{"passed": True, "stage": None, "error": ""}],
+        }
+        classified = mod.classify_result(result, expected_failures)
+        assert classified == "unexpected_pass"
+
+    def test_stage_mismatch_is_solid_fail(self):
+        """Config says stage=validation but fails at convert → solid_fail (regression)."""
+        mod = _load_runner_module()
+        expected_failures = {
+            "edge_false": {"reason": "Unsatisfiable", "stage": "validation"},
+        }
+        # Fails at convert, not validation — this is a regression
+        result = {
+            "verdict": "solid_fail",
+            "file": "edge_false.json",
+            "attempts": [
+                {"passed": False, "stage": "convert", "error": "unexpected crash"}
+            ],
+        }
+        classified = mod.classify_result(result, expected_failures)
+        assert classified == "solid_fail"
+
+    def test_no_config_is_noop(self):
+        """Without expected-failures, classify_result returns verdict as-is."""
+        mod = _load_runner_module()
+        result = {
+            "verdict": "solid_fail",
+            "file": "test.json",
+            "attempts": [{"passed": False, "stage": "openai", "error": "api error"}],
+        }
+        classified = mod.classify_result(result, {})
+        assert classified == "solid_fail"
+
+    def test_no_stage_in_config_matches_any(self):
+        """Config without stage field should match any failure stage."""
+        mod = _load_runner_module()
+        expected_failures = {
+            "deep_nesting_50": {"reason": "Too deep"},
+        }
+        result = {
+            "verdict": "solid_fail",
+            "file": "deep_nesting_50.json",
+            "attempts": [
+                {"passed": False, "stage": "convert", "error": "depth exceeded"}
+            ],
+        }
+        classified = mod.classify_result(result, expected_failures)
+        assert classified == "expected_fail"
