@@ -84,7 +84,7 @@ pub fn normalize(
         visiting: HashSet::new(),
         recursive_refs: Vec::new(),
     };
-    let result = resolve_refs(&root, "#", 0, &mut ctx)?;
+    let result = resolve_refs(root, "#", 0, &mut ctx)?;
 
     // Phase 3: cleanup.
     let recursive_refs = ctx.recursive_refs;
@@ -173,7 +173,7 @@ fn normalize_items_recursive(value: &mut Value) {
 // ---------------------------------------------------------------------------
 
 fn resolve_refs(
-    node: &Value,
+    node: Value,
     path: &str,
     depth: usize,
     ctx: &mut RefContext<'_>,
@@ -185,17 +185,17 @@ fn resolve_refs(
         });
     }
 
-    let Some(obj) = node.as_object() else {
-        return Ok(node.clone());
+    let mut result = match node {
+        Value::Object(obj) => obj,
+        other => return Ok(other),
     };
 
     // Check for $ref.
-    if let Some(ref_val) = obj.get("$ref").and_then(Value::as_str) {
-        return resolve_single_ref(obj, ref_val, path, depth, ctx);
+    if let Some(ref_val) = result.get("$ref").and_then(Value::as_str).map(String::from) {
+        return resolve_single_ref(&result, &ref_val, path, depth, ctx);
     }
 
     // No $ref — recurse into children.
-    let mut result = obj.clone();
     recurse_children(&mut result, path, depth, ctx)?;
 
     Ok(Value::Object(result))
@@ -245,7 +245,7 @@ fn resolve_single_ref(
     ctx.visiting.insert(ref_str.to_string());
 
     // Recursively resolve the target (handles chained refs like A→B→C).
-    let resolved = resolve_refs(target, path, depth + 1, ctx)?;
+    let resolved = resolve_refs(target.clone(), path, depth + 1, ctx)?;
 
     // Unmark after resolution.
     ctx.visiting.remove(ref_str);
@@ -347,7 +347,7 @@ fn recurse_children(
         obj,
         path,
         depth,
-        &mut |val, child_path, child_depth| resolve_refs(&val, child_path, child_depth, ctx),
+        &mut |val, child_path, child_depth| resolve_refs(val, child_path, child_depth, ctx),
     )
 }
 
