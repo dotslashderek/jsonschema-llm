@@ -14,6 +14,7 @@ use crate::schema_utils::build_path;
 use serde_json::{Map, Value};
 use std::collections::HashSet;
 
+use super::pass_result::PassResult;
 use super::pass_utils::extract_type_strings;
 
 // ---------------------------------------------------------------------------
@@ -28,10 +29,10 @@ use super::pass_utils::extract_type_strings;
 pub fn compile_composition(
     schema: &Value,
     config: &ConvertOptions,
-) -> Result<(Value, Vec<DroppedConstraint>), ConvertError> {
+) -> Result<PassResult, ConvertError> {
     let mut dropped = Vec::new();
     let result = walk(schema.clone(), "#", 0, config, &mut dropped)?;
-    Ok((result, dropped))
+    Ok(PassResult::with_dropped(result, dropped))
 }
 
 // ---------------------------------------------------------------------------
@@ -604,7 +605,7 @@ mod tests {
     use super::*;
     use serde_json::json;
 
-    fn run(schema: Value) -> (Value, Vec<DroppedConstraint>) {
+    fn run(schema: Value) -> PassResult {
         let config = ConvertOptions::default();
         compile_composition(&schema, &config).expect("should not error")
     }
@@ -629,13 +630,16 @@ mod tests {
             ]
         });
 
-        let (output, _) = run(input);
+        let result = run(input);
 
-        assert_eq!(output["type"], "object");
-        assert_eq!(output["properties"]["id"], json!({"type": "string"}));
-        assert_eq!(output["properties"]["name"], json!({"type": "string"}));
+        assert_eq!(result.schema["type"], "object");
+        assert_eq!(result.schema["properties"]["id"], json!({"type": "string"}));
+        assert_eq!(
+            result.schema["properties"]["name"],
+            json!({"type": "string"})
+        );
 
-        let req: Vec<&str> = output["required"]
+        let req: Vec<&str> = result.schema["required"]
             .as_array()
             .unwrap()
             .iter()
@@ -643,7 +647,7 @@ mod tests {
             .collect();
         assert!(req.contains(&"id"));
         assert!(req.contains(&"name"));
-        assert!(output.get("allOf").is_none());
+        assert!(result.schema.get("allOf").is_none());
     }
 
     // -----------------------------------------------------------------------
@@ -659,12 +663,12 @@ mod tests {
             ]
         });
 
-        let (output, _) = run(input);
+        let result = run(input);
 
-        assert_eq!(output["properties"]["a"], json!({"type": "string"}));
-        assert_eq!(output["properties"]["b"], json!({"type": "integer"}));
-        assert_eq!(output["properties"]["c"], json!({"type": "boolean"}));
-        assert_eq!(output["required"], json!(["c"]));
+        assert_eq!(result.schema["properties"]["a"], json!({"type": "string"}));
+        assert_eq!(result.schema["properties"]["b"], json!({"type": "integer"}));
+        assert_eq!(result.schema["properties"]["c"], json!({"type": "boolean"}));
+        assert_eq!(result.schema["required"], json!(["c"]));
     }
 
     // -----------------------------------------------------------------------
@@ -689,9 +693,9 @@ mod tests {
             ]
         });
 
-        let (output, _) = run(input);
+        let result = run(input);
 
-        let age = &output["properties"]["age"];
+        let age = &result.schema["properties"]["age"];
         assert_eq!(age["type"], "integer");
         assert_eq!(age["minimum"], 0);
         assert_eq!(age["maximum"], 150);
@@ -728,9 +732,9 @@ mod tests {
             ]
         });
 
-        let (output, _) = run(input);
-        assert_eq!(output["type"], "integer");
-        assert_eq!(output["minimum"], 0);
+        let result = run(input);
+        assert_eq!(result.schema["type"], "integer");
+        assert_eq!(result.schema["minimum"], 0);
     }
 
     // -----------------------------------------------------------------------
@@ -750,9 +754,9 @@ mod tests {
             }
         });
 
-        let (output, _) = run(input);
+        let result = run(input);
 
-        let addr = &output["properties"]["address"];
+        let addr = &result.schema["properties"]["address"];
         assert_eq!(addr["properties"]["street"], json!({"type": "string"}));
         assert_eq!(addr["properties"]["city"], json!({"type": "string"}));
         assert!(addr.get("allOf").is_none());
@@ -777,14 +781,20 @@ mod tests {
             ]
         });
 
-        let (output, _) = run(input);
+        let result = run(input);
 
         // Description concatenated: "A person" + "with age"
-        let desc = output["description"].as_str().unwrap();
+        let desc = result.schema["description"].as_str().unwrap();
         assert!(desc.contains("A person"));
         assert!(desc.contains("with age"));
-        assert_eq!(output["properties"]["name"], json!({"type": "string"}));
-        assert_eq!(output["properties"]["age"], json!({"type": "integer"}));
+        assert_eq!(
+            result.schema["properties"]["name"],
+            json!({"type": "string"})
+        );
+        assert_eq!(
+            result.schema["properties"]["age"],
+            json!({"type": "integer"})
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -803,15 +813,19 @@ mod tests {
             ]
         });
 
-        let (output, dropped) = run(input);
+        let result = run(input);
 
         // if/then/else should be dropped
-        assert!(output.get("if").is_none());
-        assert!(output.get("then").is_none());
-        assert!(output.get("else").is_none());
+        assert!(result.schema.get("if").is_none());
+        assert!(result.schema.get("then").is_none());
+        assert!(result.schema.get("else").is_none());
 
         // Dropped constraints recorded
-        let constraints: Vec<&str> = dropped.iter().map(|d| d.constraint.as_str()).collect();
+        let constraints: Vec<&str> = result
+            .dropped_constraints
+            .iter()
+            .map(|d| d.constraint.as_str())
+            .collect();
         assert!(constraints.contains(&"if"));
         assert!(constraints.contains(&"then"));
         assert!(constraints.contains(&"else"));
@@ -829,10 +843,10 @@ mod tests {
             ]
         });
 
-        let (output, _) = run(input);
+        let result = run(input);
 
-        assert_eq!(output["minimum"], 10); // max of minima
-        assert_eq!(output["maximum"], 50); // min of maxima
+        assert_eq!(result.schema["minimum"], 10); // max of minima
+        assert_eq!(result.schema["maximum"], 50); // min of maxima
     }
 
     // -----------------------------------------------------------------------
@@ -855,10 +869,10 @@ mod tests {
             ]
         });
 
-        let (output, _) = run(input);
+        let result = run(input);
 
         // false should win (strictness intersection)
-        assert_eq!(output["additionalProperties"], json!(false));
+        assert_eq!(result.schema["additionalProperties"], json!(false));
     }
 
     // -----------------------------------------------------------------------
@@ -875,10 +889,10 @@ mod tests {
             "required": ["name"]
         });
 
-        let (output, dropped) = run(input.clone());
+        let result = run(input.clone());
 
-        assert_eq!(output, input);
-        assert!(dropped.is_empty());
+        assert_eq!(result.schema, input);
+        assert!(result.dropped_constraints.is_empty());
     }
 
     // -----------------------------------------------------------------------
@@ -893,8 +907,8 @@ mod tests {
             ]
         });
 
-        let (output, _) = run(input);
-        assert_eq!(output, json!(false));
+        let result = run(input);
+        assert_eq!(result.schema, json!(false));
     }
 
     // -----------------------------------------------------------------------
@@ -934,8 +948,11 @@ mod tests {
             ]
         });
 
-        let (output, _) = run(input);
-        assert_eq!(output["additionalProperties"], json!({"type": "integer"}));
+        let result = run(input);
+        assert_eq!(
+            result.schema["additionalProperties"],
+            json!({"type": "integer"})
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -950,8 +967,8 @@ mod tests {
             ]
         });
 
-        let (output, _) = run(input);
-        assert_eq!(output["type"], "string");
+        let result = run(input);
+        assert_eq!(result.schema["type"], "string");
     }
 
     // -----------------------------------------------------------------------
@@ -972,8 +989,11 @@ mod tests {
             ]
         });
 
-        let (output, _) = run(input);
-        assert_eq!(output["additionalProperties"], json!({"type": "string"}));
+        let result = run(input);
+        assert_eq!(
+            result.schema["additionalProperties"],
+            json!({"type": "string"})
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -988,8 +1008,8 @@ mod tests {
             ]
         });
 
-        let (output, _) = run(input);
-        assert_eq!(output["type"], "integer");
+        let result = run(input);
+        assert_eq!(result.schema["type"], "integer");
     }
 
     // -----------------------------------------------------------------------
@@ -1006,12 +1026,21 @@ mod tests {
             ]
         });
 
-        let (output, dropped) = run(input);
-        assert!(output.get("if").is_none());
-        assert!(output.get("then").is_none());
-        assert!(output.get("else").is_none());
-        assert!(dropped.iter().any(|d| d.constraint == "if"));
-        assert!(dropped.iter().any(|d| d.constraint == "then"));
-        assert!(dropped.iter().any(|d| d.constraint == "else"));
+        let result = run(input);
+        assert!(result.schema.get("if").is_none());
+        assert!(result.schema.get("then").is_none());
+        assert!(result.schema.get("else").is_none());
+        assert!(result
+            .dropped_constraints
+            .iter()
+            .any(|d| d.constraint == "if"));
+        assert!(result
+            .dropped_constraints
+            .iter()
+            .any(|d| d.constraint == "then"));
+        assert!(result
+            .dropped_constraints
+            .iter()
+            .any(|d| d.constraint == "else"));
     }
 }

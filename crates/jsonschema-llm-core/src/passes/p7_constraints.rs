@@ -12,14 +12,7 @@ use crate::config::{ConvertOptions, Target};
 use crate::error::ConvertError;
 use crate::schema_utils::recurse_into_children;
 
-/// Result of running the constraint pruning pass.
-#[derive(Debug)]
-pub struct ConstraintPassResult {
-    /// The transformed schema with unsupported constraints removed.
-    pub schema: Value,
-    /// Constraints that were dropped during this pass.
-    pub dropped_constraints: Vec<DroppedConstraint>,
-}
+use super::pass_result::PassResult;
 
 /// Prune unsupported constraints from a schema based on the target provider.
 ///
@@ -30,13 +23,10 @@ pub struct ConstraintPassResult {
 pub fn prune_constraints(
     schema: &Value,
     config: &ConvertOptions,
-) -> Result<ConstraintPassResult, ConvertError> {
+) -> Result<PassResult, ConvertError> {
     let mut dropped = Vec::new();
     let result = walk(schema, "#", 0, config, &mut dropped)?;
-    Ok(ConstraintPassResult {
-        schema: result,
-        dropped_constraints: dropped,
-    })
+    Ok(PassResult::with_dropped(result, dropped))
 }
 
 // ---------------------------------------------------------------------------

@@ -16,6 +16,7 @@ use crate::config::{ConvertOptions, Target};
 use crate::error::ConvertError;
 use crate::schema_utils::{build_path, recurse_into_children};
 
+use super::pass_result::PassResult;
 use super::pass_utils::is_typed_object;
 
 /// Field name for the map key in the transpiled array item.
@@ -24,15 +25,6 @@ const KEY_FIELD: &str = "key";
 const VALUE_FIELD: &str = "value";
 /// Default property name for extracted `additionalProperties` in mixed objects.
 const ADDITIONAL_PROPERTY: &str = "_additional";
-
-/// Result of running the dictionary transpilation pass.
-#[derive(Debug)]
-pub struct DictPassResult {
-    /// The transformed schema with maps converted to arrays.
-    pub schema: Value,
-    /// Codec transforms produced by this pass.
-    pub transforms: Vec<Transform>,
-}
 
 /// Apply dictionary transpilation to a schema.
 ///
@@ -45,21 +37,15 @@ pub struct DictPassResult {
 pub fn transpile_dictionaries(
     schema: &Value,
     config: &ConvertOptions,
-) -> Result<DictPassResult, ConvertError> {
+) -> Result<PassResult, ConvertError> {
     // Provider gate: Gemini supports additionalProperties natively.
     if config.target == Target::Gemini {
-        return Ok(DictPassResult {
-            schema: schema.clone(),
-            transforms: Vec::new(),
-        });
+        return Ok(PassResult::schema_only(schema.clone()));
     }
 
     let mut transforms = Vec::new();
     let result = walk(schema, "#", 0, config, &mut transforms)?;
-    Ok(DictPassResult {
-        schema: result,
-        transforms,
-    })
+    Ok(PassResult::with_transforms(result, transforms))
 }
 
 // ---------------------------------------------------------------------------

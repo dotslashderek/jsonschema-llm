@@ -4,6 +4,7 @@
 //! Passes are executed in order (0–9) and each assumes the output of previous passes.
 //! Shared cross-pass utilities live in `pass_utils`.
 
+pub mod pass_result;
 pub mod pass_utils;
 
 pub mod p0_normalize;

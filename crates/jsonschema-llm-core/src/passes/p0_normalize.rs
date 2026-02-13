@@ -23,6 +23,8 @@ use serde_json::{Map, Value};
 use crate::config::ConvertOptions;
 use crate::error::ConvertError;
 
+use super::pass_result::PassResult;
+
 /// Shared traversal context for $ref resolution, reducing argument count.
 struct RefContext<'a> {
     root: &'a Value,
@@ -34,8 +36,8 @@ struct RefContext<'a> {
 /// Result of running the schema normalization pass.
 #[derive(Debug)]
 pub struct NormalizePassResult {
-    /// The normalized schema with all non-recursive refs resolved.
-    pub schema: Value,
+    /// Shared pass result containing the normalized schema.
+    pub pass: PassResult,
     /// JSON Pointer paths where recursive $ref cycles were detected.
     /// These are left as `$ref` for Pass 5 to break.
     pub recursive_refs: Vec<String>,
@@ -89,7 +91,7 @@ pub fn normalize(
     let result = cleanup(result, &recursive_refs);
 
     Ok(NormalizePassResult {
-        schema: result,
+        pass: PassResult::schema_only(result),
         recursive_refs,
     })
 }
@@ -488,7 +490,7 @@ mod tests {
     fn run(schema: Value) -> (Value, Vec<String>) {
         let config = ConvertOptions::default();
         let result = normalize(&schema, &config).unwrap();
-        (result.schema, result.recursive_refs)
+        (result.pass.schema, result.recursive_refs)
     }
 
     fn run_err(schema: Value) -> ConvertError {
@@ -1106,11 +1108,11 @@ mod tests {
         // Top-level `true` schema → empty object
         let config = ConvertOptions::default();
         let result = normalize(&json!(true), &config).unwrap();
-        assert_eq!(result.schema, json!({}));
+        assert_eq!(result.pass.schema, json!({}));
 
         // Top-level `false` schema → { "not": {} }
         let result = normalize(&json!(false), &config).unwrap();
-        assert_eq!(result.schema, json!({ "not": {} }));
+        assert_eq!(result.pass.schema, json!({ "not": {} }));
     }
 
     #[test]

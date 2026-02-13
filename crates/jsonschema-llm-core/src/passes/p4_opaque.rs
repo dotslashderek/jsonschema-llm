@@ -23,6 +23,8 @@ use serde_json::{Map, Value};
 use crate::codec::Transform;
 use crate::config::ConvertOptions;
 use crate::error::ConvertError;
+
+use super::pass_result::PassResult;
 use crate::schema_utils::recurse_into_children;
 
 /// Default description for opaque objects that have no existing description.
@@ -33,15 +35,6 @@ const DEFAULT_OPAQUE_DESC: &str =
 const OPAQUE_DESC_SUFFIX: &str =
     "\n\n(Note: This field represents an opaque object. The value should be a JSON-encoded string. Parse with JSON.parse() after generation.)";
 
-/// Result of running the opaque type stringification pass.
-#[derive(Debug)]
-pub struct OpaquePassResult {
-    /// The transformed schema with opaque objects converted to strings.
-    pub schema: Value,
-    /// Codec transforms produced by this pass.
-    pub transforms: Vec<Transform>,
-}
-
 /// Apply opaque type stringification to a schema.
 ///
 /// Recursively walks every node. For opaque objects (type: object with no
@@ -50,13 +43,10 @@ pub struct OpaquePassResult {
 pub fn stringify_opaque(
     schema: &Value,
     config: &ConvertOptions,
-) -> Result<OpaquePassResult, ConvertError> {
+) -> Result<PassResult, ConvertError> {
     let mut transforms = Vec::new();
     let result = walk(schema, "#", 0, config, &mut transforms)?;
-    Ok(OpaquePassResult {
-        schema: result,
-        transforms,
-    })
+    Ok(PassResult::with_transforms(result, transforms))
 }
 
 // ---------------------------------------------------------------------------
