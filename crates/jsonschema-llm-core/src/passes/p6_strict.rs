@@ -14,32 +14,18 @@ use crate::config::ConvertOptions;
 use crate::error::ConvertError;
 use crate::schema_utils::recurse_into_children;
 
+use super::pass_result::PassResult;
 use super::pass_utils::{enforce_object_strict, is_typed_object};
-
-/// Result of running the strict enforcement pass.
-#[derive(Debug)]
-pub struct StrictPassResult {
-    /// The transformed schema with strict mode applied.
-    pub schema: Value,
-    /// Codec transforms produced by this pass (one per optional→nullable field).
-    pub transforms: Vec<Transform>,
-}
 
 /// Apply strict mode enforcement to a schema.
 ///
 /// Recursively walks every node. For `type: object` nodes with `properties`,
 /// seals them with `additionalProperties: false`, makes all properties required,
 /// and wraps optional properties with `anyOf: [T, {type: null}]`.
-pub fn enforce_strict(
-    schema: &Value,
-    config: &ConvertOptions,
-) -> Result<StrictPassResult, ConvertError> {
+pub fn enforce_strict(schema: &Value, config: &ConvertOptions) -> Result<PassResult, ConvertError> {
     let mut transforms = Vec::new();
     let result = walk(schema, "#", 0, config, &mut transforms)?;
-    Ok(StrictPassResult {
-        schema: result,
-        transforms,
-    })
+    Ok(PassResult::with_transforms(result, transforms))
 }
 
 // ---------------------------------------------------------------------------

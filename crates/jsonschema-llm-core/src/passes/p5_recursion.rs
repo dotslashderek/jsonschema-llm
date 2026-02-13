@@ -14,31 +14,15 @@ use crate::config::{ConvertOptions, Target};
 use crate::error::ConvertError;
 use crate::schema_utils::build_path;
 
-/// Result of Pass 5.
-pub struct RecursionPassResult {
-    /// Schema with recursion broken.
-    pub schema: Value,
-    /// Codec transforms emitted during recursion breaking.
-    pub transforms: Vec<Transform>,
-}
+use super::pass_result::PassResult;
 
-/// Break recursive `$ref` cycles in the schema.
-///
-/// Uses dynamic cycle detection: maintains a per-branch count of how many times
-/// each `$ref` target has been expanded. When the count reaches
-/// `config.recursion_limit`, the ref is replaced with an opaque string schema.
-///
-/// For `Target::Gemini`, returns the schema unchanged (native recursion support).
 pub fn break_recursion(
     schema: &Value,
     config: &ConvertOptions,
-) -> Result<RecursionPassResult, ConvertError> {
+) -> Result<PassResult, ConvertError> {
     // Gemini gate: native recursion support
     if config.target == Target::Gemini {
-        return Ok(RecursionPassResult {
-            schema: schema.clone(),
-            transforms: Vec::new(),
-        });
+        return Ok(PassResult::schema_only(schema.clone()));
     }
 
     // Extract $defs for ref resolution
@@ -60,10 +44,7 @@ pub fn break_recursion(
         strip_defs(result)
     };
 
-    Ok(RecursionPassResult {
-        schema: result,
-        transforms,
-    })
+    Ok(PassResult::with_transforms(result, transforms))
 }
 
 /// Recursively walk the schema, inlining `$ref` nodes and breaking cycles.

@@ -16,13 +16,7 @@ use crate::config::{ConvertOptions, PolymorphismStrategy, Target};
 use crate::error::ConvertError;
 use crate::schema_utils::recurse_into_children;
 
-/// Result of running the polymorphism simplification pass.
-#[derive(Debug)]
-pub struct PolyPassResult {
-    /// The transformed schema with `oneOf` rewritten to `anyOf`.
-    pub schema: Value,
-    // No transforms — codec-lossless keyword rename.
-}
+use super::pass_result::PassResult;
 
 /// Apply polymorphism simplification to a schema.
 ///
@@ -34,23 +28,19 @@ pub struct PolyPassResult {
 pub fn simplify_polymorphism(
     schema: &Value,
     config: &ConvertOptions,
-) -> Result<PolyPassResult, ConvertError> {
+) -> Result<PassResult, ConvertError> {
     // Provider gate: Gemini supports oneOf natively.
     if config.target == Target::Gemini {
-        return Ok(PolyPassResult {
-            schema: schema.clone(),
-        });
+        return Ok(PassResult::schema_only(schema.clone()));
     }
 
     // Strategy gate: Flatten is future work.
     if config.polymorphism == PolymorphismStrategy::Flatten {
-        return Ok(PolyPassResult {
-            schema: schema.clone(),
-        });
+        return Ok(PassResult::schema_only(schema.clone()));
     }
 
     let result = walk(schema, "#", 0, config)?;
-    Ok(PolyPassResult { schema: result })
+    Ok(PassResult::schema_only(result))
 }
 
 // ---------------------------------------------------------------------------
@@ -229,7 +219,7 @@ mod tests {
     // Test 6: No transforms in result (codec-lossless)
     #[test]
     fn test_no_transforms() {
-        // PolyPassResult has no transforms field — compile-time guarantee.
+        // PassResult has no transforms — codec-lossless keyword rename.
         // This test just verifies the pass succeeds on a non-trivial input.
         let input = json!({
             "oneOf": [{ "type": "string" }]

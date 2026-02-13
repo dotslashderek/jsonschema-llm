@@ -21,6 +21,7 @@ use crate::error::ProviderCompatError;
 use crate::schema_utils::build_path;
 use serde_json::{json, Value};
 
+use super::pass_result::PassResult;
 use super::pass_utils::{enforce_object_strict, extract_types};
 
 /// OpenAI Strict Mode maximum nesting depth.
@@ -39,10 +40,8 @@ const HARD_RECURSION_LIMIT: usize = 100;
 
 /// Result of provider compatibility checks.
 pub struct ProviderCompatResult {
-    /// The (possibly modified) schema — root may have been wrapped.
-    pub schema: Value,
-    /// New transforms produced (e.g. `RootObjectWrapper`).
-    pub transforms: Vec<Transform>,
+    /// Shared pass result containing the (possibly modified) schema and transforms.
+    pub pass: PassResult,
     /// Advisory errors for provider-incompatible constructs.
     pub errors: Vec<ProviderCompatError>,
 }
@@ -74,14 +73,12 @@ pub fn check_provider_compat(schema: &Value, config: &ConvertOptions) -> Provide
             // (#95 truncation emits per-path DepthBudgetExceeded errors inline)
 
             ProviderCompatResult {
-                schema,
-                transforms,
+                pass: PassResult::with_transforms(schema, transforms),
                 errors,
             }
         }
         _ => ProviderCompatResult {
-            schema: schema.clone(),
-            transforms: vec![],
+            pass: PassResult::schema_only(schema.clone()),
             errors: vec![],
         },
     }
@@ -738,7 +735,7 @@ mod tests {
     fn object_root_unchanged() {
         let schema = json!({"type": "object", "properties": {"x": {"type": "string"}}});
         let r = check_provider_compat(&schema, &opts());
-        assert!(r.transforms.is_empty());
+        assert!(r.pass.transforms.is_empty());
         assert!(r
             .errors
             .iter()
@@ -749,17 +746,17 @@ mod tests {
     fn array_root_wrapped() {
         let schema = json!({"type": "array", "items": {"type": "string"}});
         let r = check_provider_compat(&schema, &opts());
-        assert_eq!(r.transforms.len(), 1);
-        assert_eq!(r.schema.get("type").unwrap(), "object");
-        assert!(r.schema.pointer("/properties/result/type").unwrap() == "array");
+        assert_eq!(r.pass.transforms.len(), 1);
+        assert_eq!(r.pass.schema.get("type").unwrap(), "object");
+        assert!(r.pass.schema.pointer("/properties/result/type").unwrap() == "array");
     }
 
     #[test]
     fn string_root_wrapped() {
         let schema = json!({"type": "string"});
         let r = check_provider_compat(&schema, &opts());
-        assert_eq!(r.transforms.len(), 1);
-        assert!(r.schema.pointer("/properties/result/type").unwrap() == "string");
+        assert_eq!(r.pass.transforms.len(), 1);
+        assert!(r.pass.schema.pointer("/properties/result/type").unwrap() == "string");
     }
 
     #[test]
@@ -767,10 +764,10 @@ mod tests {
         let schema = json!({"description": "no type"});
         let r = check_provider_compat(&schema, &opts());
         // Root wrap + inner unconstrained → opaque string = 2 transforms
-        assert_eq!(r.transforms.len(), 2);
-        assert_eq!(r.schema.get("type").unwrap(), "object");
+        assert_eq!(r.pass.transforms.len(), 2);
+        assert_eq!(r.pass.schema.get("type").unwrap(), "object");
         // The inner schema should be an opaque string now
-        let result_schema = &r.schema["properties"]["result"];
+        let result_schema = &r.pass.schema["properties"]["result"];
         assert_eq!(result_schema["type"], "string");
     }
 
@@ -781,7 +778,7 @@ mod tests {
         let schema = json!({"type": "object", "properties": {"x": {"type": "string"}}});
         let r = check_provider_compat(&schema, &opts());
         assert!(
-            r.transforms.is_empty(),
+            r.pass.transforms.is_empty(),
             "exact 'object' root should not be wrapped"
         );
     }
@@ -792,7 +789,8 @@ mod tests {
         let schema = json!({"type": ["object", "null"], "properties": {"x": {"type": "string"}}});
         let r = check_provider_compat(&schema, &opts());
         assert!(
-            r.transforms
+            r.pass
+                .transforms
                 .iter()
                 .any(|t| matches!(t, Transform::RootObjectWrapper { .. })),
             "nullable object root should be wrapped"
@@ -824,7 +822,8 @@ mod tests {
         let schema = json!({"type": ["string", "null"]});
         let r = check_provider_compat(&schema, &opts());
         assert!(
-            r.transforms
+            r.pass
+                .transforms
                 .iter()
                 .any(|t| matches!(t, Transform::RootObjectWrapper { .. })),
             "non-object type array should be wrapped"
@@ -879,6 +878,7 @@ mod tests {
         );
         // #95: truncation should also produce transforms
         let parse_transforms: Vec<_> = r
+            .pass
             .transforms
             .iter()
             .filter(|t| matches!(t, Transform::JsonStringParse { .. }))
@@ -901,7 +901,7 @@ mod tests {
 
         // The sub-tree at depth >= 10 should be replaced with opaque string
         // Navigate to the deepening path and check for truncation
-        let mut cursor = &r.schema;
+        let mut cursor = &r.pass.schema;
         for i in 0..10 {
             cursor = &cursor["properties"][format!("l{i}")];
         }
@@ -935,7 +935,8 @@ mod tests {
 
         // Shallow branch should be untouched
         assert_eq!(
-            r.schema
+            r.pass
+                .schema
                 .pointer("/properties/shallow/type")
                 .and_then(|v| v.as_str()),
             Some("string"),
@@ -944,6 +945,7 @@ mod tests {
 
         // Deep branch should be truncated somewhere
         let truncate_transforms: Vec<_> = r
+            .pass
             .transforms
             .iter()
             .filter(|t| matches!(t, Transform::JsonStringParse { .. }))
@@ -1039,7 +1041,7 @@ mod tests {
         o.target = Target::Gemini;
         let r = check_provider_compat(&schema, &o);
         assert!(r.errors.is_empty());
-        assert!(r.transforms.is_empty());
+        assert!(r.pass.transforms.is_empty());
     }
 
     // ── Boolean false schema ──────────────────────────────────
@@ -1059,7 +1061,8 @@ mod tests {
         );
         // Should produce a JsonStringParse transform
         assert!(
-            r.transforms
+            r.pass
+                .transforms
                 .iter()
                 .any(|t| matches!(t, Transform::JsonStringParse { .. })),
             "false schema should produce JsonStringParse transform"
@@ -1072,7 +1075,7 @@ mod tests {
         // [1, "1"] should stringify to ["1"] (deduplicated), not ["1", "1"]
         let schema = json!({"type": "object", "properties": {"v": {"enum": [1, "1"]}}});
         let r = check_provider_compat(&schema, &opts());
-        let enum_vals = r.schema["properties"]["v"]["enum"]
+        let enum_vals = r.pass.schema["properties"]["v"]["enum"]
             .as_array()
             .expect("enum should be an array");
         assert_eq!(
@@ -1537,7 +1540,7 @@ mod tests {
         let r = check_provider_compat(&schema, &opts());
         // After p9, the root gets wrapped (it's an array, not object).
         // Look inside the wrapper for the original array schema.
-        let inner = &r.schema["properties"]["result"];
+        let inner = &r.pass.schema["properties"]["result"];
         assert!(
             inner.get("items").is_none(),
             "conflicting items should be removed when prefixItems has mixed types, but got: {:?}",
@@ -1562,7 +1565,7 @@ mod tests {
             "description": "Homogeneous tuple"
         });
         let r = check_provider_compat(&schema, &opts());
-        let inner = &r.schema["properties"]["result"];
+        let inner = &r.pass.schema["properties"]["result"];
         assert!(
             inner.get("items").is_some(),
             "items should be preserved when prefixItems types all match items type"
@@ -1578,7 +1581,7 @@ mod tests {
             "description": "Simple array"
         });
         let r = check_provider_compat(&schema, &opts());
-        let inner = &r.schema["properties"]["result"];
+        let inner = &r.pass.schema["properties"]["result"];
         assert!(
             inner.get("items").is_some(),
             "items should be preserved when there are no prefixItems"
