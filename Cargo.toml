@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/jsonschema-llm-core",
+    "crates/jsonschema-llm-java",
     "crates/jsonschema-llm-wasm",
     "crates/jsonschema-llm-python",
     "cli",
@@ -9,8 +10,8 @@ members = [
 # Build it explicitly via `cargo check -p jsonschema-llm-python` or `maturin develop`.
 default-members = [
     "crates/jsonschema-llm-core",
+    "crates/jsonschema-llm-java",
     "crates/jsonschema-llm-wasm",
     "cli",
 ]
 resolver = "2"
-

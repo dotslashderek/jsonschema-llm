@@ -44,6 +44,10 @@ venv/
 bindings/java/target/
 *.class
 *.jar
+!gradle-wrapper.jar
+.gradle/
+**/build/
+bindings/java/src/main/resources/native/
 
 # Test outputs
 *.llm.json

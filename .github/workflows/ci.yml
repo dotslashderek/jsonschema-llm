@@ -189,3 +189,34 @@ jobs:
           source .venv/bin/activate
           python -m pytest tests/ -v
         working-directory: crates/jsonschema-llm-python
+
+  java:
+    name: Java Bindings
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "22"
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build native library
+        run: cargo build --release -p jsonschema-llm-java
+
+      - name: Run Rust FFI tests
+        run: cargo test -p jsonschema-llm-java
+
+      - name: Run Java tests (Panama)
+        run: ./gradlew test
+        working-directory: bindings/java
+        env:
+          JAVA_TOOL_OPTIONS: "--enable-native-access=ALL-UNNAMED"
+
+      - name: Run Java tests (JNI Fallback)
+        run: ./gradlew testJni
+        working-directory: bindings/java
+        env:
+          JAVA_TOOL_OPTIONS: "--enable-native-access=ALL-UNNAMED"
