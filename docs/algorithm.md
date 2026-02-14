@@ -96,6 +96,14 @@ The algorithm targets **OpenAI Strict Mode** as the baseline compilation target 
 > [!TIP]
 > **Round 4 — Enum Default-First Sorting.** Before stripping `default`, reorder `enum` to place the default value at index 0. LLMs bias toward first options when context is weak.
 
+### Pass 8: Adaptive Opaque Stringification
+
+| Property       | Value                                                                           |
+| -------------- | ------------------------------------------------------------------------------- |
+| **Detects**    | `prefixItems` with `items: false`, `contains`, object-bearing `enum`            |
+| **Transforms** | → `{type: string, description: "JSON-encoded..."}` with `JsonStringParse` codec |
+| **Ordering**   | **Before Pass 7** (needs raw constraints); before Pass 9 (provider compat)      |
+
 ### Pass 9: Provider Compatibility Checks
 
 | Property       | Value                                                                                                                                              |
@@ -179,9 +187,10 @@ The algorithm targets **OpenAI Strict Mode** as the baseline compilation target 
 | 7        | Pass 0     | Normalization         | ✅ Implemented |
 | 8        | Pass 5     | Recursion Breaking    | ✅ Implemented |
 | 9        | Pass 7     | Constraint Pruning    | ✅ Implemented |
-| 10       | Pass 9     | Provider Compat       | ✅ Implemented |
-| 11       | Pipeline   | `convert()` wiring    | ✅ Implemented |
-| 12       | CLI        | `jsonschema-llm`      | ✅ Implemented |
+| 10       | Pass 8     | Adaptive Opaque       | ✅ Implemented |
+| 11       | Pass 9     | Provider Compat       | ✅ Implemented |
+| 12       | Pipeline   | `convert()` wiring    | ✅ Implemented |
+| 13       | CLI        | `jsonschema-llm`      | ✅ Implemented |
 
 > [!NOTE]
 > This table reflects the shipped v0.1 state. All passes and the CLI are implemented.
