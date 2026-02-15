@@ -331,9 +331,11 @@ class TestRetryLogic:
         """Schema passing first try → verdict=solid_pass, 1 attempt."""
         mod = _load_runner_module()
         # Mock all pipeline stages to succeed
-        with patch.object(mod, "run_cli_conversion", return_value=(True, "")):
+        with patch.object(mod, "run_cli_conversion", return_value=(True, "", False)):
             with patch.object(mod, "call_openai", return_value='{"key": "value"}'):
-                with patch.object(mod, "run_cli_rehydration", return_value=(True, "")):
+                with patch.object(
+                    mod, "run_cli_rehydration", return_value=(True, "", False)
+                ):
                     with patch.object(
                         mod, "validate_original", return_value=(True, "")
                     ):
@@ -366,9 +368,11 @@ class TestRetryLogic:
                 return "OPENAI_ERROR: flaky failure"
             return '{"key": "value"}'
 
-        with patch.object(mod, "run_cli_conversion", return_value=(True, "")):
+        with patch.object(mod, "run_cli_conversion", return_value=(True, "", False)):
             with patch.object(mod, "call_openai", side_effect=fake_openai):
-                with patch.object(mod, "run_cli_rehydration", return_value=(True, "")):
+                with patch.object(
+                    mod, "run_cli_rehydration", return_value=(True, "", False)
+                ):
                     with patch.object(
                         mod, "validate_original", return_value=(True, "")
                     ):
@@ -393,7 +397,7 @@ class TestRetryLogic:
     def test_solid_fail_all_retries_exhausted(self):
         """Schema failing all attempts → verdict=solid_fail."""
         mod = _load_runner_module()
-        with patch.object(mod, "run_cli_conversion", return_value=(True, "")):
+        with patch.object(mod, "run_cli_conversion", return_value=(True, "", False)):
             with patch.object(
                 mod, "call_openai", return_value="OPENAI_ERROR: always fails"
             ):
@@ -417,7 +421,7 @@ class TestRetryLogic:
     def test_no_retries_default(self):
         """With retries=0, only one attempt is made."""
         mod = _load_runner_module()
-        with patch.object(mod, "run_cli_conversion", return_value=(True, "")):
+        with patch.object(mod, "run_cli_conversion", return_value=(True, "", False)):
             with patch.object(
                 mod, "call_openai", return_value="OPENAI_ERROR: fail once"
             ):
@@ -441,7 +445,7 @@ class TestRetryLogic:
         """Each attempt should record stage and error info."""
         mod = _load_runner_module()
         with patch.object(
-            mod, "run_cli_conversion", return_value=(False, "conv error")
+            mod, "run_cli_conversion", return_value=(False, "conv error", False)
         ):
             with patch("builtins.open", MagicMock()):
                 with patch("json.load", return_value={"type": "object"}):
@@ -626,3 +630,218 @@ class TestExpectedFailuresValidation:
             mod.load_expected_failures(f.name)
         assert exc_info.value.code == 2
 
+
+class TestExponentialBackoff:
+    """#118: Exponential backoff with jitter on transient failures."""
+
+    def test_backoff_delays_increase(self):
+        """Retry delays should grow exponentially: base*1, base*2, base*4..."""
+        mod = _load_runner_module()
+        sleep_calls = []
+
+        def fake_openai(*args, **kwargs):
+            return "OPENAI_ERROR: rate limited"
+
+        with patch.object(mod, "run_cli_conversion", return_value=(True, "", False)):
+            with patch.object(mod, "call_openai", side_effect=fake_openai):
+                with patch("builtins.open", MagicMock()):
+                    with patch("json.load", return_value={"type": "object"}):
+                        with patch(
+                            "time.sleep", side_effect=lambda d: sleep_calls.append(d)
+                        ):
+                            with patch(
+                                "random.uniform", side_effect=lambda a, b: (a + b) / 2
+                            ):
+                                mod.run_single_schema(
+                                    binary_path="/fake/bin",
+                                    schema_file="test.json",
+                                    schemas_dir="/fake/schemas",
+                                    output_dir="/fake/output",
+                                    client=MagicMock(),
+                                    retries=3,
+                                    retry_delay=2,
+                                )
+
+        # With jitter at midpoint, delays should be approximately: 2, 4, 8
+        assert len(sleep_calls) == 3, f"Expected 3 sleep calls, got {len(sleep_calls)}"
+        assert sleep_calls[0] < sleep_calls[1] < sleep_calls[2], (
+            f"Delays should increase: {sleep_calls}"
+        )
+
+    def test_backoff_jitter_applied(self):
+        """Delays should have ±25% jitter applied."""
+        mod = _load_runner_module()
+        sleep_calls = []
+
+        def fake_openai(*args, **kwargs):
+            return "OPENAI_ERROR: rate limited"
+
+        with patch.object(mod, "run_cli_conversion", return_value=(True, "", False)):
+            with patch.object(mod, "call_openai", side_effect=fake_openai):
+                with patch("builtins.open", MagicMock()):
+                    with patch("json.load", return_value={"type": "object"}):
+                        with patch(
+                            "time.sleep", side_effect=lambda d: sleep_calls.append(d)
+                        ):
+                            mod.run_single_schema(
+                                binary_path="/fake/bin",
+                                schema_file="test.json",
+                                schemas_dir="/fake/schemas",
+                                output_dir="/fake/output",
+                                client=MagicMock(),
+                                retries=1,
+                                retry_delay=4,
+                            )
+
+        assert len(sleep_calls) == 1
+        # Base delay is 4, so with ±25% jitter: [3.0, 5.0]
+        assert 3.0 <= sleep_calls[0] <= 5.0, (
+            f"Delay {sleep_calls[0]} outside ±25% jitter range [3.0, 5.0]"
+        )
+
+    def test_backoff_capped_at_max_delay(self):
+        """Delays should never exceed max_delay even with many retries."""
+        mod = _load_runner_module()
+        sleep_calls = []
+
+        def fake_openai(*args, **kwargs):
+            return "OPENAI_ERROR: rate limited"
+
+        with patch.object(mod, "run_cli_conversion", return_value=(True, "", False)):
+            with patch.object(mod, "call_openai", side_effect=fake_openai):
+                with patch("builtins.open", MagicMock()):
+                    with patch("json.load", return_value={"type": "object"}):
+                        with patch(
+                            "time.sleep", side_effect=lambda d: sleep_calls.append(d)
+                        ):
+                            with patch("random.uniform", side_effect=lambda a, b: b):
+                                mod.run_single_schema(
+                                    binary_path="/fake/bin",
+                                    schema_file="test.json",
+                                    schemas_dir="/fake/schemas",
+                                    output_dir="/fake/output",
+                                    client=MagicMock(),
+                                    retries=10,
+                                    retry_delay=2,
+                                    max_delay=10,
+                                )
+
+        # Even with max jitter, no delay should exceed max_delay
+        for delay in sleep_calls:
+            assert delay <= 10, f"Delay {delay} exceeds max_delay=10"
+
+    def test_permanent_failure_skips_retry(self):
+        """Conversion failure (permanent) should not retry even with retries>0."""
+        mod = _load_runner_module()
+
+        with patch.object(
+            mod, "run_cli_conversion", return_value=(False, "bad schema", False)
+        ):
+            with patch("builtins.open", MagicMock()):
+                with patch("json.load", return_value={"type": "object"}):
+                    result = mod.run_single_schema(
+                        binary_path="/fake/bin",
+                        schema_file="test.json",
+                        schemas_dir="/fake/schemas",
+                        output_dir="/fake/output",
+                        client=MagicMock(),
+                        retries=3,
+                        retry_delay=0,
+                    )
+
+        # Should stop after 1 attempt — conversion_failed is permanent
+        assert len(result["attempts"]) == 1, (
+            f"Expected 1 attempt for permanent failure, got {len(result['attempts'])}"
+        )
+        assert result["verdict"] == "solid_fail"
+
+    def test_transient_failure_retries(self):
+        """API error (transient) should retry up to the limit."""
+        mod = _load_runner_module()
+
+        with patch.object(mod, "run_cli_conversion", return_value=(True, "", False)):
+            with patch.object(
+                mod, "call_openai", return_value="OPENAI_ERROR: 429 rate limit"
+            ):
+                with patch("builtins.open", MagicMock()):
+                    with patch("json.load", return_value={"type": "object"}):
+                        with patch("time.sleep"):
+                            result = mod.run_single_schema(
+                                binary_path="/fake/bin",
+                                schema_file="test.json",
+                                schemas_dir="/fake/schemas",
+                                output_dir="/fake/output",
+                                client=MagicMock(),
+                                retries=2,
+                                retry_delay=0,
+                            )
+
+        # Should exhaust all 3 attempts (1 + 2 retries)
+        assert len(result["attempts"]) == 3
+
+
+class TestTimeoutReasonCode:
+    """#118: Subprocess timeouts get distinct reason code."""
+
+    def test_subprocess_timeout_returns_timeout_reason(self):
+        """When subprocess times out, the attempt reason should be 'timeout'."""
+        mod = _load_runner_module()
+
+        # run_cli_conversion returns 3-tuple with is_timeout=True
+        with patch.object(
+            mod, "run_cli_conversion", return_value=(False, "Timed out after 30s", True)
+        ):
+            with patch("builtins.open", MagicMock()):
+                with patch("json.load", return_value={"type": "object"}):
+                    result = mod.run_single_schema(
+                        binary_path="/fake/bin",
+                        schema_file="test.json",
+                        schemas_dir="/fake/schemas",
+                        output_dir="/fake/output",
+                        client=MagicMock(),
+                        retries=0,
+                    )
+
+        attempt = result["attempts"][0]
+        assert attempt["reason"] == "timeout", (
+            f"Expected reason='timeout', got '{attempt['reason']}'"
+        )
+
+    def test_timeout_is_transient(self):
+        """_is_transient_failure should return True for timeout reason."""
+        mod = _load_runner_module()
+        assert hasattr(mod, "_is_transient_failure"), (
+            "run_cli_test must expose _is_transient_failure helper"
+        )
+        attempt = {
+            "passed": False,
+            "stage": "convert",
+            "reason": "timeout",
+            "error": "",
+        }
+        assert mod._is_transient_failure(attempt) is True
+
+    def test_conversion_error_is_not_transient(self):
+        """_is_transient_failure should return False for conversion_failed."""
+        mod = _load_runner_module()
+        attempt = {
+            "passed": False,
+            "stage": "convert",
+            "reason": "conversion_failed",
+            "error": "",
+        }
+        assert mod._is_transient_failure(attempt) is False
+
+
+class TestCLIFlags118:
+    """#118: New CLI flags for retry configuration."""
+
+    def test_retry_delay_cli_flag(self):
+        """Argparser should accept --retry-delay."""
+        source = (Path(__file__).parent.parent / "run_cli_test.py").read_text()
+        assert "--retry-delay" in source, "Runner must accept --retry-delay flag"
+
+    def test_max_delay_cli_flag(self):
+        """Argparser should accept --max-delay."""
+        source = (Path(__file__).parent.parent / "run_cli_test.py").read_text()
+        assert "--max-delay" in source, "Runner must accept --max-delay flag"
