@@ -95,7 +95,12 @@ async function testSchema(filename: string, model: string) {
         }
 
         // 5. Validate rehydrated output against original schema. Fixes Finding #2.
-        if (typeof originalSchema === 'object' && originalSchema !== null) {
+        if (originalSchema === true) {
+            console.log(' ✅ Boolean schema (true) — any data valid');
+        } else if (originalSchema === false) {
+            console.error(' ❌ Boolean schema (false) — no valid data possible');
+            return false;
+        } else if (typeof originalSchema === 'object' && originalSchema !== null) {
             const validate = ajv.compile(originalSchema);
             const valid = validate(rehydrated.data);
             if (!valid) {
@@ -132,6 +137,10 @@ async function main() {
     const count = countIdx >= 0 ? parseInt(args[countIdx + 1], 10) : 5;
     const seed = seedIdx >= 0 ? parseInt(args[seedIdx + 1], 10) : undefined;
     const model = modelIdx >= 0 ? args[modelIdx + 1] : 'gpt-4o-mini';
+    if (modelIdx >= 0 && (!model || model.startsWith('--'))) {
+        console.error('Error: --model requires a value');
+        process.exit(1);
+    }
 
     if (!Number.isInteger(count) || count < 1) {
         console.error(`Error: --count must be a positive integer, got '${args[countIdx + 1]}'`);
