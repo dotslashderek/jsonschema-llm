@@ -57,7 +57,10 @@ def _extract_verdicts(report):
     """
     verdicts = {}
     for entry in report.get("detailed_results", []):
-        base_name = os.path.splitext(entry["file"])[0]
+        file_name = entry.get("file")
+        if not file_name:
+            continue
+        base_name = os.path.splitext(file_name)[0]
         verdicts[base_name] = entry.get("classification", entry.get("verdict"))
     return verdicts
 
