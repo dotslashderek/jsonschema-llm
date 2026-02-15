@@ -523,7 +523,7 @@ def main():
                     print(f"✅ PASS {attempt_label}{separator}", end="", flush=True)
                 else:
                     print(f"❌ FAIL {attempt_label}{separator}", end="", flush=True)
-            print(end="")
+            print(" ", end="")
 
         # Classify with expected failures
         classification = classify_result(result, expected_failures)

@@ -266,9 +266,11 @@ class TestSchemaDialect:
         tmpdir, _ = generate_to_tmpdir
         for name in ["edge_true.json", "edge_false.json"]:
             fpath = os.path.join(tmpdir, name)
-            if os.path.exists(fpath):
-                with open(fpath) as fh:
-                    schema = json.load(fh)
-                assert isinstance(schema, bool), (
-                    f"{name} should be boolean, got {type(schema)}"
-                )
+            assert os.path.exists(fpath), (
+                f"Expected {name} to be generated, but not found in {tmpdir}"
+            )
+            with open(fpath) as fh:
+                schema = json.load(fh)
+            assert isinstance(schema, bool), (
+                f"{name} should be boolean, got {type(schema)}"
+            )
