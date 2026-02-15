@@ -13,20 +13,20 @@ public class JsonSchemaLlmTest {
     @Test
     public void testConvertSimpleSchema() throws Exception {
         String schemaJson = """
-            {
-                "type": "object",
-                "properties": {
-                    "name": { "type": "string" },
-                    "age": { "type": "integer" }
-                },
-                "required": ["name"]
-            }
-            """;
+                {
+                    "type": "object",
+                    "properties": {
+                        "name": { "type": "string" },
+                        "age": { "type": "integer" }
+                    },
+                    "required": ["name"]
+                }
+                """;
         JsonNode schema = mapper.readTree(schemaJson);
         ConvertOptions options = ConvertOptions.builder()
-            .target(ConvertOptions.Target.OPENAI_STRICT)
-            .mode(ConvertOptions.Mode.STRICT)
-            .build();
+                .target(ConvertOptions.Target.OPENAI_STRICT)
+                .mode(ConvertOptions.Mode.STRICT)
+                .build();
 
         ConvertResult result = JsonSchemaLlm.convert(schema, options);
 
@@ -34,7 +34,7 @@ public class JsonSchemaLlmTest {
         assertEquals("1.0", result.apiVersion());
         assertTrue(result.schema().isObject());
         assertTrue(result.codec().isObject());
-        
+
         // OpenAI strict mode requires additionalProperties: false
         assertTrue(result.schema().has("additionalProperties"));
         assertFalse(result.schema().get("additionalProperties").asBoolean());
@@ -43,13 +43,13 @@ public class JsonSchemaLlmTest {
     @Test
     public void testRehydrate() throws Exception {
         String schemaJson = """
-            {
-                "type": "object",
-                "properties": {
-                    "name": { "type": "string" }
+                {
+                    "type": "object",
+                    "properties": {
+                        "name": { "type": "string" }
+                    }
                 }
-            }
-            """;
+                """;
         JsonNode schema = mapper.readTree(schemaJson);
         ConvertOptions options = ConvertOptions.builder().build();
 
@@ -57,8 +57,8 @@ public class JsonSchemaLlmTest {
 
         // LLM output
         String llmOutputJson = """
-            { "name": "Alice" }
-            """;
+                { "name": "Alice" }
+                """;
         JsonNode llmOutput = mapper.readTree(llmOutputJson);
 
         RehydrateResult rehydrated = JsonSchemaLlm.rehydrate(llmOutput, result.codec(), schema);
@@ -72,10 +72,10 @@ public class JsonSchemaLlmTest {
     public void testInvalidSchemaError() throws Exception {
         // Invalid JSON schema (broken ref)
         String schemaJson = """
-            {
-                "$ref": "#/definitions/missing"
-            }
-            """;
+                {
+                    "$ref": "#/definitions/missing"
+                }
+                """;
         JsonNode schema = mapper.readTree(schemaJson);
         ConvertOptions options = ConvertOptions.builder().build();
 
@@ -83,7 +83,5 @@ public class JsonSchemaLlmTest {
         JsonSchemaLlmException exception = assertThrows(JsonSchemaLlmException.class, () -> {
             JsonSchemaLlm.convert(schema, options);
         });
-        
-        System.out.println("Caught expected exception: " + exception.getMessage());
     }
 }

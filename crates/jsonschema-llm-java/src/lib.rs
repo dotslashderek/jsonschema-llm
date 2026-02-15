@@ -196,17 +196,38 @@ pub extern "system" fn Java_com_jsonschema_llm_JniBinding_convert(
     options_json: JString,
 ) -> jstring {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        let schema: String = env
-            .get_string(&schema_json)
-            .expect("Couldn't get schema string")
-            .into();
-        let options: String = env
-            .get_string(&options_json)
-            .expect("Couldn't get options string")
-            .into();
+        let schema: String = match env.get_string(&schema_json) {
+            Ok(s) => s.into(),
+            Err(e) => {
+                let _ = env.throw_new(
+                    "com/jsonschema/llm/JsonSchemaLlmException",
+                    format!("Failed to get schema string: {e}"),
+                );
+                return JString::default();
+            }
+        };
+        let options: String = match env.get_string(&options_json) {
+            Ok(s) => s.into(),
+            Err(e) => {
+                let _ = env.throw_new(
+                    "com/jsonschema/llm/JsonSchemaLlmException",
+                    format!("Failed to get options string: {e}"),
+                );
+                return JString::default();
+            }
+        };
 
         match convert_json(&schema, &options) {
-            Ok(json) => env.new_string(json).expect("Couldn't create Java string"),
+            Ok(json) => match env.new_string(json) {
+                Ok(jstr) => jstr,
+                Err(e) => {
+                    let _ = env.throw_new(
+                        "com/jsonschema/llm/JsonSchemaLlmException",
+                        format!("Failed to create Java string: {e}"),
+                    );
+                    JString::default()
+                }
+            },
             Err(e) => {
                 let _ = env.throw_new("com/jsonschema/llm/JsonSchemaLlmException", &e);
                 JString::default()
@@ -238,21 +259,48 @@ pub extern "system" fn Java_com_jsonschema_llm_JniBinding_rehydrate(
     original_schema_json: JString,
 ) -> jstring {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        let data: String = env
-            .get_string(&data_json)
-            .expect("Couldn't get data string")
-            .into();
-        let codec: String = env
-            .get_string(&codec_json)
-            .expect("Couldn't get codec string")
-            .into();
-        let schema: String = env
-            .get_string(&original_schema_json)
-            .expect("Couldn't get schema string")
-            .into();
+        let data: String = match env.get_string(&data_json) {
+            Ok(s) => s.into(),
+            Err(e) => {
+                let _ = env.throw_new(
+                    "com/jsonschema/llm/JsonSchemaLlmException",
+                    format!("Failed to get data string: {e}"),
+                );
+                return JString::default();
+            }
+        };
+        let codec: String = match env.get_string(&codec_json) {
+            Ok(s) => s.into(),
+            Err(e) => {
+                let _ = env.throw_new(
+                    "com/jsonschema/llm/JsonSchemaLlmException",
+                    format!("Failed to get codec string: {e}"),
+                );
+                return JString::default();
+            }
+        };
+        let schema: String = match env.get_string(&original_schema_json) {
+            Ok(s) => s.into(),
+            Err(e) => {
+                let _ = env.throw_new(
+                    "com/jsonschema/llm/JsonSchemaLlmException",
+                    format!("Failed to get schema string: {e}"),
+                );
+                return JString::default();
+            }
+        };
 
         match rehydrate_json(&data, &codec, &schema) {
-            Ok(json) => env.new_string(json).expect("Couldn't create Java string"),
+            Ok(json) => match env.new_string(json) {
+                Ok(jstr) => jstr,
+                Err(e) => {
+                    let _ = env.throw_new(
+                        "com/jsonschema/llm/JsonSchemaLlmException",
+                        format!("Failed to create Java string: {e}"),
+                    );
+                    JString::default()
+                }
+            },
             Err(e) => {
                 let _ = env.throw_new("com/jsonschema/llm/JsonSchemaLlmException", &e);
                 JString::default()
@@ -277,9 +325,13 @@ pub extern "system" fn Java_com_jsonschema_llm_JniBinding_rehydrate(
 // ---------------------------------------------------------------------------
 
 fn string_to_ptr(s: String) -> *mut c_char {
-    CString::new(s)
-        .expect("String contained null byte")
-        .into_raw()
+    match CString::new(s) {
+        Ok(cstr) => cstr.into_raw(),
+        Err(_) => set_last_error(ffi_error_json(
+            "INTERNAL_ERROR",
+            "String contained null byte",
+        )),
+    }
 }
 
 fn ffi_error_json(code: &str, message: &str) -> String {

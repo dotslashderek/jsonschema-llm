@@ -15,5 +15,4 @@ include = [
     "jsonschema_llm_last_error",
     "jsonschema_llm_free_string",
 ]
-prefix = "jsonschema_llm_"
 item_types = ["functions"]

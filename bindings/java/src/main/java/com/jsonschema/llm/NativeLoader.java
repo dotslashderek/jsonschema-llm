@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.security.MessageDigest;
 import java.util.Locale;
 
 public class NativeLoader {
@@ -61,11 +60,11 @@ public class NativeLoader {
                 throw new IOException("Native library not found at: " + resourcePath);
             }
 
-            // Create a unique temporary file
-            // Use a hash of the resource path to avoid collisions but allow reuse if needed
+            // Create a temporary directory for this JVM instance.
+            // Only called once due to the volatile `loaded` guard above.
             Path tempDir = Files.createTempDirectory("jsonschema-llm-java");
             Path tempFile = tempDir.resolve(libName);
-            
+
             Files.copy(is, tempFile, StandardCopyOption.REPLACE_EXISTING);
             tempFile.toFile().deleteOnExit();
             tempDir.toFile().deleteOnExit();

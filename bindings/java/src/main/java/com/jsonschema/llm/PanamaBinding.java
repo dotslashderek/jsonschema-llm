@@ -53,10 +53,11 @@ class PanamaBinding implements Binding {
             // Safe: reinterpret to max size since we only read until the null terminator.
             // The FFI contract guarantees a valid, null-terminated C string.
             resultSeg = resultSeg.reinterpret(Long.MAX_VALUE);
-            String result = resultSeg.getString(0, StandardCharsets.UTF_8);
-            freeStringHandle.invokeExact(resultSeg);
-
-            return result;
+            try {
+                return resultSeg.getString(0, StandardCharsets.UTF_8);
+            } finally {
+                freeStringHandle.invokeExact(resultSeg);
+            }
         } catch (JsonSchemaLlmException e) {
             throw e;
         } catch (Throwable e) {
@@ -80,10 +81,11 @@ class PanamaBinding implements Binding {
             // Safe: reinterpret to max size since we only read until the null terminator.
             // The FFI contract guarantees a valid, null-terminated C string.
             resultSeg = resultSeg.reinterpret(Long.MAX_VALUE);
-            String result = resultSeg.getString(0, StandardCharsets.UTF_8);
-            freeStringHandle.invokeExact(resultSeg);
-
-            return result;
+            try {
+                return resultSeg.getString(0, StandardCharsets.UTF_8);
+            } finally {
+                freeStringHandle.invokeExact(resultSeg);
+            }
         } catch (JsonSchemaLlmException e) {
             throw e;
         } catch (Throwable e) {
