@@ -244,3 +244,31 @@ class TestCleanFlag:
             # But new files should exist
             new_files = [f for f in os.listdir(tmpdir) if f.endswith(".json")]
             assert len(new_files) > 0, "No new schemas generated after clean"
+
+
+class TestSchemaDialect:
+    """Finding #1: schemas should include $schema for consistent dialect selection."""
+
+    def test_object_schemas_have_schema_keyword(self, generate_to_tmpdir):
+        """All dict-form schemas should have $schema after generation."""
+        tmpdir, _ = generate_to_tmpdir
+        missing = []
+        for f in os.listdir(tmpdir):
+            if f.endswith(".json"):
+                with open(os.path.join(tmpdir, f)) as fh:
+                    schema = json.load(fh)
+                if isinstance(schema, dict) and "$schema" not in schema:
+                    missing.append(f)
+        assert missing == [], f"Schemas missing $schema: {missing}"
+
+    def test_boolean_schemas_unchanged(self, generate_to_tmpdir):
+        """Boolean schemas (true/false) must not be wrapped."""
+        tmpdir, _ = generate_to_tmpdir
+        for name in ["edge_true.json", "edge_false.json"]:
+            fpath = os.path.join(tmpdir, name)
+            if os.path.exists(fpath):
+                with open(fpath) as fh:
+                    schema = json.load(fh)
+                assert isinstance(schema, bool), (
+                    f"{name} should be boolean, got {type(schema)}"
+                )

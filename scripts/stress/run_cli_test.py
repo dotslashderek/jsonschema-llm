@@ -343,7 +343,14 @@ def load_expected_failures(config_path):
             file=sys.stderr,
         )
         sys.exit(2)
-    return config.get("schemas", {})
+    schemas = config.get("schemas", {})
+    if not isinstance(schemas, dict):
+        print(
+            f"Error: 'schemas' in {config_path} must be an object, got {type(schemas).__name__}",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    return schemas
 
 
 def classify_result(result, expected_failures):
@@ -449,7 +456,7 @@ def main():
         "timeout_subprocess": args.timeout_subprocess,
         "timeout_api": args.timeout_api,
         "retries": args.retries,
-        "expected_failures_config": args.expected_failures,
+        "expected_failures_config": ef_path if args.expected_failures else None,
     }
 
     # Backward-compat result structure + new detailed_results
@@ -503,7 +510,7 @@ def main():
                     print(f"✅ PASS {attempt_label}{separator}", end="", flush=True)
                 else:
                     print(f"❌ FAIL {attempt_label}{separator}", end="", flush=True)
-            print(" → ", end="", flush=True)
+            print(end="")
 
         # Classify with expected failures
         classification = classify_result(result, expected_failures)
