@@ -2,18 +2,18 @@
 name = "jsonschema-llm-java"
 version = "0.1.0"
 edition = "2021"
+description = "C FFI + JNI exports for jsonschema-llm (consumed by Java via Panama FFM or JNI)"
+license = "Apache-2.0"
+repository = "https://github.com/dotslashderek/jsonschema-llm"
 
 [lib]
-crate-type = ["cdylib", "rlib"]
 name = "jsonschema_llm_java"
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 jsonschema-llm-core = { path = "../jsonschema-llm-core" }
 jni = "0.21"
-libc = "0.2"
+serde_json = "1"
 
 [build-dependencies]
-cbindgen = "0.27"
-
-[dev-dependencies]
-serde_json = "1.0"
+cbindgen = "0.28"

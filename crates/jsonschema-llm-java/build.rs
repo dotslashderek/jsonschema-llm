@@ -5,7 +5,7 @@ use std::path::PathBuf;
 fn main() {
     let crate_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
     let out_dir = env::var("OUT_DIR").unwrap();
-    
+
     // Generate C bindings
     let bindings = cbindgen::Builder::new()
         .with_crate(crate_dir)
@@ -14,9 +14,8 @@ fn main() {
         .expect("Unable to generate bindings");
 
     let out_path = PathBuf::from(out_dir).join("jsonschema_llm.h");
-    bindings
-        .write_to_file(&out_path);
-        
+    bindings.write_to_file(&out_path);
+
     // Copy to target/include for Java binding
     let target_dir = PathBuf::from("../../target/include");
     fs::create_dir_all(&target_dir).unwrap();

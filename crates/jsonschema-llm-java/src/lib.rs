@@ -1,60 +1,104 @@
+//! C FFI + JNI exports for jsonschema-llm.
+//!
+//! Produces a single shared library (`libjsonschema_llm_java`) consumed by:
+//! - **Panama FFM** (Java 22+) via standard C symbols
+//! - **JNI** (Java 11+) via `Java_com_jsonschema_llm_JniBinding_*` symbols
+
 use jni::objects::{JClass, JString};
 use jni::sys::jstring;
 use jni::JNIEnv;
 use jsonschema_llm_core::{convert_json, rehydrate_json};
-use libc::c_char;
-use std::ffi::{CStr, CString};
+use std::cell::RefCell;
+use std::ffi::{c_char, CStr, CString};
 use std::ptr;
+
+// ---------------------------------------------------------------------------
+// Thread-local error storage
+// ---------------------------------------------------------------------------
+
+thread_local! {
+    static LAST_ERROR: RefCell<Option<CString>> = const { RefCell::new(None) };
+}
+
+/// Store an error message in thread-local storage and return null.
+fn set_last_error(msg: String) -> *mut c_char {
+    LAST_ERROR.with(|cell| {
+        *cell.borrow_mut() = CString::new(msg).ok();
+    });
+    ptr::null_mut()
+}
+
+/// Clear thread-local error (called on success).
+fn clear_last_error() {
+    LAST_ERROR.with(|cell| {
+        *cell.borrow_mut() = None;
+    });
+}
 
 // ---------------------------------------------------------------------------
 // C API (Panama FFM)
 // ---------------------------------------------------------------------------
 
-/// Convert a JSON Schema string to an LLM-compatible JSON Schema string.
+/// Convert a JSON Schema to an LLM-compatible schema.
+///
+/// Returns an owned `*mut c_char` JSON string on success (caller must free
+/// with `jsonschema_llm_free_string`), or `NULL` on error. On error, call
+/// `jsonschema_llm_last_error` to retrieve the error JSON.
 ///
 /// # Safety
 ///
-/// * `schema_json` and `options_json` must be valid, null-terminated UTF-8 C strings.
-/// * The returned pointer must be freed by `jsonschema_llm_free_string`.
-#[no_mangle]
+/// `schema_json` and `options_json` must be valid, null-terminated UTF-8 strings.
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn jsonschema_llm_convert(
     schema_json: *const c_char,
     options_json: *const c_char,
 ) -> *mut c_char {
     let result = std::panic::catch_unwind(|| {
         if schema_json.is_null() || options_json.is_null() {
-            return error_json("Null pointer argument");
+            return set_last_error(ffi_error_json("null_pointer", "Null pointer argument"));
         }
 
-        let schema_str = match CStr::from_ptr(schema_json).to_str() {
+        let schema_str = match unsafe { CStr::from_ptr(schema_json) }.to_str() {
             Ok(s) => s,
-            Err(_) => return error_json("Invalid UTF-8 in schema_json"),
+            Err(_) => {
+                return set_last_error(ffi_error_json("utf8_error", "Invalid UTF-8 in schema_json"))
+            }
         };
 
-        let options_str = match CStr::from_ptr(options_json).to_str() {
+        let options_str = match unsafe { CStr::from_ptr(options_json) }.to_str() {
             Ok(s) => s,
-            Err(_) => return error_json("Invalid UTF-8 in options_json"),
+            Err(_) => {
+                return set_last_error(ffi_error_json(
+                    "utf8_error",
+                    "Invalid UTF-8 in options_json",
+                ))
+            }
         };
 
         match convert_json(schema_str, options_str) {
-            Ok(json) => string_to_ptr(json),
-            Err(e) => string_to_ptr(e), // Error is already a JSON string
+            Ok(json) => {
+                clear_last_error();
+                string_to_ptr(json)
+            }
+            Err(e) => set_last_error(e),
         }
     });
 
     match result {
         Ok(ptr) => ptr,
-        Err(_) => error_json("Panic inside Rust FFI"),
+        Err(_) => set_last_error(ffi_error_json("panic", "Panic inside Rust FFI")),
     }
 }
 
-/// Rehydrate LLM output JSON string to original schema structure.
+/// Rehydrate LLM output back to the original schema structure.
+///
+/// Returns an owned `*mut c_char` JSON string on success (caller must free
+/// with `jsonschema_llm_free_string`), or `NULL` on error.
 ///
 /// # Safety
 ///
-/// * `data_json`, `codec_json`, and `original_schema_json` must be valid, null-terminated UTF-8 C strings.
-/// * The returned pointer must be freed by `jsonschema_llm_free_string`.
-#[no_mangle]
+/// All three arguments must be valid, null-terminated UTF-8 strings.
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn jsonschema_llm_rehydrate(
     data_json: *const c_char,
     codec_json: *const c_char,
@@ -62,56 +106,89 @@ pub unsafe extern "C" fn jsonschema_llm_rehydrate(
 ) -> *mut c_char {
     let result = std::panic::catch_unwind(|| {
         if data_json.is_null() || codec_json.is_null() || original_schema_json.is_null() {
-            return error_json("Null pointer argument");
+            return set_last_error(ffi_error_json("null_pointer", "Null pointer argument"));
         }
 
-        let data_str = match CStr::from_ptr(data_json).to_str() {
+        let data_str = match unsafe { CStr::from_ptr(data_json) }.to_str() {
             Ok(s) => s,
-            Err(_) => return error_json("Invalid UTF-8 in data_json"),
+            Err(_) => {
+                return set_last_error(ffi_error_json("utf8_error", "Invalid UTF-8 in data_json"))
+            }
         };
 
-        let codec_str = match CStr::from_ptr(codec_json).to_str() {
+        let codec_str = match unsafe { CStr::from_ptr(codec_json) }.to_str() {
             Ok(s) => s,
-            Err(_) => return error_json("Invalid UTF-8 in codec_json"),
+            Err(_) => {
+                return set_last_error(ffi_error_json("utf8_error", "Invalid UTF-8 in codec_json"))
+            }
         };
 
-        let schema_str = match CStr::from_ptr(original_schema_json).to_str() {
+        let schema_str = match unsafe { CStr::from_ptr(original_schema_json) }.to_str() {
             Ok(s) => s,
-            Err(_) => return error_json("Invalid UTF-8 in original_schema_json"),
+            Err(_) => {
+                return set_last_error(ffi_error_json(
+                    "utf8_error",
+                    "Invalid UTF-8 in original_schema_json",
+                ))
+            }
         };
 
         match rehydrate_json(data_str, codec_str, schema_str) {
-            Ok(json) => string_to_ptr(json),
-            Err(e) => string_to_ptr(e), // Error is already a JSON string
+            Ok(json) => {
+                clear_last_error();
+                string_to_ptr(json)
+            }
+            Err(e) => set_last_error(e),
         }
     });
 
     match result {
         Ok(ptr) => ptr,
-        Err(_) => error_json("Panic inside Rust FFI"),
+        Err(_) => set_last_error(ffi_error_json("panic", "Panic inside Rust FFI")),
     }
+}
+
+/// Return the last error as a JSON string, or `NULL` if no error.
+///
+/// The returned pointer is valid until the next FFI call on the same thread.
+/// Do **not** free this pointer.
+///
+/// # Safety
+///
+/// This function is safe to call from any thread.
+#[unsafe(no_mangle)]
+pub extern "C" fn jsonschema_llm_last_error() -> *const c_char {
+    LAST_ERROR.with(|cell| {
+        cell.borrow()
+            .as_ref()
+            .map(|s| s.as_ptr())
+            .unwrap_or(ptr::null())
+    })
 }
 
 /// Free a string returned by `jsonschema_llm_convert` or `jsonschema_llm_rehydrate`.
 ///
+/// Passing `NULL` is a no-op. The pointer must not be used after this call.
+///
 /// # Safety
 ///
-/// * `ptr` must be a pointer returned by one of the library functions.
-/// * `ptr` must not be used after this call.
-/// * Passing a null pointer is a no-op.
-#[no_mangle]
+/// `ptr` must be a pointer originally returned by one of the library functions,
+/// or `NULL`.
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn jsonschema_llm_free_string(ptr: *mut c_char) {
     if !ptr.is_null() {
-        // Take ownership of the pointer and drop it
-        let _ = CString::from_raw(ptr);
+        let _ = unsafe { CString::from_raw(ptr) };
     }
 }
 
 // ---------------------------------------------------------------------------
-// JNI API (Java 11+ Fallback)
+// JNI API (Java 11+ fallback)
 // ---------------------------------------------------------------------------
 
-#[no_mangle]
+/// JNI entry point for schema conversion.
+///
+/// Throws `com.jsonschema.llm.JsonSchemaLlmException` on error.
+#[unsafe(no_mangle)]
 pub extern "system" fn Java_com_jsonschema_llm_JniBinding_convert(
     mut env: JNIEnv,
     _class: JClass,
@@ -129,28 +206,30 @@ pub extern "system" fn Java_com_jsonschema_llm_JniBinding_convert(
             .into();
 
         match convert_json(&schema, &options) {
-            Ok(json) => env.new_string(json).expect("Couldn't create java string"),
-            Err(e) => env.new_string(e).expect("Couldn't create java string"),
+            Ok(json) => env.new_string(json).expect("Couldn't create Java string"),
+            Err(e) => {
+                let _ = env.throw_new("com/jsonschema/llm/JsonSchemaLlmException", &e);
+                JString::default()
+            }
         }
     }));
 
     match result {
         Ok(jstr) => jstr.into_raw(),
         Err(_) => {
-            // In case of panic, we should ideally throw a Java exception,
-            // but for now we return a JSON error string if possible, or null.
-            // Since we are inside a panic handler, interacting with JNI might be risky if the panic was JNI related.
-            // But we'll try to return a simple error string.
-            if let Ok(err_str) = env.new_string(r#"{"code": "Panic", "message": "Panic in Rust JNI"}"#) {
-                err_str.into_raw()
-            } else {
-                ptr::null_mut()
-            }
+            let _ = env.throw_new(
+                "com/jsonschema/llm/JsonSchemaLlmException",
+                "Panic in Rust JNI",
+            );
+            ptr::null_mut()
         }
     }
 }
 
-#[no_mangle]
+/// JNI entry point for data rehydration.
+///
+/// Throws `com.jsonschema.llm.JsonSchemaLlmException` on error.
+#[unsafe(no_mangle)]
 pub extern "system" fn Java_com_jsonschema_llm_JniBinding_rehydrate(
     mut env: JNIEnv,
     _class: JClass,
@@ -173,19 +252,22 @@ pub extern "system" fn Java_com_jsonschema_llm_JniBinding_rehydrate(
             .into();
 
         match rehydrate_json(&data, &codec, &schema) {
-            Ok(json) => env.new_string(json).expect("Couldn't create java string"),
-            Err(e) => env.new_string(e).expect("Couldn't create java string"),
+            Ok(json) => env.new_string(json).expect("Couldn't create Java string"),
+            Err(e) => {
+                let _ = env.throw_new("com/jsonschema/llm/JsonSchemaLlmException", &e);
+                JString::default()
+            }
         }
     }));
 
     match result {
         Ok(jstr) => jstr.into_raw(),
         Err(_) => {
-             if let Ok(err_str) = env.new_string(r#"{"code": "Panic", "message": "Panic in Rust JNI"}"#) {
-                err_str.into_raw()
-            } else {
-                ptr::null_mut()
-            }
+            let _ = env.throw_new(
+                "com/jsonschema/llm/JsonSchemaLlmException",
+                "Panic in Rust JNI",
+            );
+            ptr::null_mut()
         }
     }
 }
@@ -195,10 +277,15 @@ pub extern "system" fn Java_com_jsonschema_llm_JniBinding_rehydrate(
 // ---------------------------------------------------------------------------
 
 fn string_to_ptr(s: String) -> *mut c_char {
-    CString::new(s).unwrap().into_raw()
+    CString::new(s)
+        .expect("String contained null byte")
+        .into_raw()
 }
 
-fn error_json(msg: &str) -> *mut c_char {
-    let json = format!(r#"{{"code": "FFIError", "message": "{}"}}"#, msg);
-    string_to_ptr(json)
+fn ffi_error_json(code: &str, message: &str) -> String {
+    serde_json::json!({
+        "code": code,
+        "message": message,
+    })
+    .to_string()
 }
