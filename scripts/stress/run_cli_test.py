@@ -7,6 +7,7 @@ Results include per-stage classification with machine-readable reason codes.
 import argparse
 import json
 import os
+import random
 import re
 import subprocess
 import sys
@@ -38,10 +39,10 @@ def run_cli_conversion(binary_path, input_path, output_path, codec_path, timeout
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
         if result.returncode != 0:
-            return False, result.stderr
-        return True, result.stderr
+            return False, result.stderr, False
+        return True, result.stderr, False
     except subprocess.TimeoutExpired:
-        return False, f"Timed out after {timeout}s"
+        return False, f"Timed out after {timeout}s", True
 
 
 def run_cli_rehydration(
@@ -72,10 +73,10 @@ def run_cli_rehydration(
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
         if result.returncode != 0:
-            return False, result.stderr
-        return True, result.stderr
+            return False, result.stderr, False
+        return True, result.stderr, False
     except subprocess.TimeoutExpired:
-        return False, f"Timed out after {timeout}s"
+        return False, f"Timed out after {timeout}s", True
 
 
 def _sanitize_schema_name(name: str) -> str:
@@ -149,6 +150,15 @@ def validate_original(data, original_schema):
         return False, str(e)
 
 
+def _is_transient_failure(attempt):
+    """Check whether a failure is transient (worth retrying).
+
+    Transient reasons: api_error, null_content, timeout.
+    Permanent reasons: conversion_failed, rehydration_failed, schema_mismatch.
+    """
+    return attempt.get("reason") in ("api_error", "null_content", "timeout")
+
+
 def run_single_schema(
     binary_path,
     schema_file,
@@ -160,12 +170,18 @@ def run_single_schema(
     timeout_api=60,
     retries=0,
     retry_delay=2,
+    max_delay=60,
 ):
     """Run the full pipeline for a single schema, with optional retries.
 
+    Uses exponential backoff with jitter for transient failures.
+    Permanent failures (conversion_failed, rehydration_failed, schema_mismatch)
+    skip retries entirely.
+
     Args:
         retries: Number of additional attempts on failure (0 = no retries).
-        retry_delay: Seconds to wait between retry attempts (default 2).
+        retry_delay: Base delay in seconds for exponential backoff (default 2).
+        max_delay: Maximum delay cap in seconds (default 60).
 
     Returns:
         dict with keys: file, verdict, attempts.
@@ -184,7 +200,11 @@ def run_single_schema(
 
     for attempt_num in range(max_attempts):
         if attempt_num > 0:
-            time.sleep(retry_delay)
+            base = retry_delay * (2 ** (attempt_num - 1))
+            capped = min(max_delay, base)
+            delay = random.uniform(capped * 0.75, capped * 1.25)
+            delay = min(delay, max_delay)
+            time.sleep(delay)
 
         attempt = _run_pipeline_once(
             binary_path,
@@ -202,6 +222,10 @@ def run_single_schema(
         attempts.append(attempt)
 
         if attempt["passed"]:
+            break
+
+        # Skip retries for permanent failures
+        if not _is_transient_failure(attempt):
             break
 
     # Determine verdict
@@ -236,7 +260,7 @@ def _run_pipeline_once(
         dict with keys: passed, stage, reason, error.
     """
     # 1. Convert
-    success, err = run_cli_conversion(
+    success, err, is_timeout = run_cli_conversion(
         binary_path,
         input_path,
         converted_path,
@@ -247,7 +271,7 @@ def _run_pipeline_once(
         return {
             "passed": False,
             "stage": "convert",
-            "reason": "conversion_failed",
+            "reason": "timeout" if is_timeout else "conversion_failed",
             "error": err,
         }
 
@@ -283,7 +307,7 @@ def _run_pipeline_once(
         f.write(llm_response_str)
 
     # 3. Rehydrate
-    success, err = run_cli_rehydration(
+    success, err, is_timeout = run_cli_rehydration(
         binary_path,
         llm_output_path,
         codec_path,
@@ -295,7 +319,7 @@ def _run_pipeline_once(
         return {
             "passed": False,
             "stage": "rehydrate",
-            "reason": "rehydration_failed",
+            "reason": "timeout" if is_timeout else "rehydration_failed",
             "error": err,
         }
 
@@ -429,6 +453,18 @@ def main():
         help="Number of retries on failure (default: 0, recommended: 2)",
     )
     parser.add_argument(
+        "--retry-delay",
+        type=float,
+        default=2,
+        help="Base delay in seconds for exponential backoff (default: 2)",
+    )
+    parser.add_argument(
+        "--max-delay",
+        type=float,
+        default=60,
+        help="Maximum delay cap in seconds (default: 60)",
+    )
+    parser.add_argument(
         "--expected-failures",
         default=None,
         help="Path to expected-failures JSON config",
@@ -469,6 +505,8 @@ def main():
         "timeout_subprocess": args.timeout_subprocess,
         "timeout_api": args.timeout_api,
         "retries": args.retries,
+        "retry_delay": args.retry_delay,
+        "max_delay": args.max_delay,
         "expected_failures_config": ef_path if args.expected_failures else None,
     }
 
@@ -511,7 +549,8 @@ def main():
             timeout_subprocess=args.timeout_subprocess,
             timeout_api=args.timeout_api,
             retries=args.retries,
-            retry_delay=2,
+            retry_delay=args.retry_delay,
+            max_delay=args.max_delay,
         )
 
         # Print per-attempt progress for retries
