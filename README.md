@@ -353,13 +353,13 @@ See **[ROADMAP.md](ROADMAP.md)** for the full prioritized roadmap with epic prog
 
 | Epic                                                                                | Status         | Progress | Description                                                                |
 | ----------------------------------------------------------------------------------- | -------------- | :------: | -------------------------------------------------------------------------- |
-| [Core Improvements](https://github.com/dotslashderek/jsonschema-llm/issues/36)      | 🟡 Active      |   75%    | Walker unification, rehydrator decomposition, test hardening, docs cleanup |
+| [Core Improvements](https://github.com/dotslashderek/jsonschema-llm/issues/36)      | 🟡 Active      |    75%   | Walker unification, rehydrator decomposition, test hardening, docs cleanup |
 | [FFI Facade](https://github.com/dotslashderek/jsonschema-llm/issues/37)             | ✅ Complete    |   100%   | JSON-string bridge API, stable error codes, serde-ready types              |
 | [TypeScript / JS (WASM)](https://github.com/dotslashderek/jsonschema-llm/issues/38) | ✅ Complete    |   100%   | `wasm-pack` + `serde-wasm-bindgen`, npm package                            |
 | [Python (PyO3)](https://github.com/dotslashderek/jsonschema-llm/issues/39)          | ✅ Complete    |   100%   | `maturin` + `pythonize`, PyPI package                                      |
-| [Java (JNI)](https://github.com/dotslashderek/jsonschema-llm/issues/40)             | ⬜ Not started |    0%    | `jni-rs` + JSON string bridge, Maven Central                               |
-| [Conformance Suite](https://github.com/dotslashderek/jsonschema-llm/issues/76)      | ⬜ Not started |    0%    | Provider-specific test suites, OpenAPI/AsyncAPI support                    |
-| [Test Harness](https://github.com/dotslashderek/jsonschema-llm/issues/115)          | ⬜ Not started |    0%    | Retry logic, known-fail classification, regression tracking                |
+| [Java (JNI)](https://github.com/dotslashderek/jsonschema-llm/issues/40)             | 🟡 Active      |    80%   | `jni-rs` + JSON string bridge, Maven Central                               |
+| [Conformance Suite](https://github.com/dotslashderek/jsonschema-llm/issues/76)      | ⬜ Not started |     0%   | Provider-specific test suites, OpenAPI/AsyncAPI support                    |
+| [Test Harness](https://github.com/dotslashderek/jsonschema-llm/issues/115)          | ⬜ Not started |     0%   | Retry logic, known-fail classification, regression tracking                |
 
 ---
 
