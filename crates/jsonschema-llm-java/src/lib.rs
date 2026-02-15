@@ -328,7 +328,7 @@ fn string_to_ptr(s: String) -> *mut c_char {
     match CString::new(s) {
         Ok(cstr) => cstr.into_raw(),
         Err(_) => set_last_error(ffi_error_json(
-            "INTERNAL_ERROR",
+            "internal_error",
             "String contained null byte",
         )),
     }

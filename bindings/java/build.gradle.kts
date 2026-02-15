@@ -41,7 +41,10 @@ tasks.test {
 
 val testJni = tasks.register<Test>("testJni") {
     useJUnitPlatform()
-    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    // Only add --enable-native-access on JDK 22+ (JNI doesn't need it, JDK 17 doesn't support it)
+    if (hasPanama) {
+        jvmArgs("--enable-native-access=ALL-UNNAMED")
+    }
     systemProperty("com.jsonschema.llm.forceJni", "true")
     testClassesDirs = sourceSets["test"].output.classesDirs
     classpath = sourceSets["test"].runtimeClasspath

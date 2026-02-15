@@ -47,7 +47,7 @@ class PanamaBinding implements Binding {
             MemorySegment resultSeg = (MemorySegment) convertHandle.invokeExact(schemaSeg, optionsSeg);
 
             if (resultSeg.equals(MemorySegment.NULL)) {
-                throw new JsonSchemaLlmException(getLastError(), "ffi_error", null);
+                throw new JsonSchemaLlmException(getLastError());
             }
 
             // Safe: reinterpret to max size since we only read until the null terminator.
@@ -75,7 +75,7 @@ class PanamaBinding implements Binding {
             MemorySegment resultSeg = (MemorySegment) rehydrateHandle.invokeExact(dataSeg, codecSeg, schemaSeg);
 
             if (resultSeg.equals(MemorySegment.NULL)) {
-                throw new JsonSchemaLlmException(getLastError(), "ffi_error", null);
+                throw new JsonSchemaLlmException(getLastError());
             }
 
             // Safe: reinterpret to max size since we only read until the null terminator.
