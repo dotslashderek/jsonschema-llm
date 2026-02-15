@@ -598,3 +598,31 @@ class TestExpectedFailuresValidation:
                 mod.load_expected_failures(f.name)
             assert exc_info.value.code == 2
 
+    def test_toplevel_list_rejected(self):
+        """If top-level config is a list, should exit with error."""
+        mod = _load_runner_module()
+        import json
+        import tempfile
+
+        config = [{"schemas": {}}]
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(config, f)
+            f.flush()
+            with pytest.raises(SystemExit) as exc_info:
+                mod.load_expected_failures(f.name)
+            assert exc_info.value.code == 2
+
+    def test_entry_string_rejected(self):
+        """If a schemas entry value is a string, should exit with error."""
+        mod = _load_runner_module()
+        import json
+        import tempfile
+
+        config = {"schemas": {"edge_false": "just_a_reason"}}
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(config, f)
+            f.flush()
+            with pytest.raises(SystemExit) as exc_info:
+                mod.load_expected_failures(f.name)
+            assert exc_info.value.code == 2
+

@@ -343,6 +343,12 @@ def load_expected_failures(config_path):
             file=sys.stderr,
         )
         sys.exit(2)
+    if not isinstance(config, dict):
+        print(
+            f"Error: top-level config in {config_path} must be an object, got {type(config).__name__}",
+            file=sys.stderr,
+        )
+        sys.exit(2)
     schemas = config.get("schemas", {})
     if not isinstance(schemas, dict):
         print(
@@ -350,6 +356,13 @@ def load_expected_failures(config_path):
             file=sys.stderr,
         )
         sys.exit(2)
+    for name, entry in schemas.items():
+        if not isinstance(entry, dict):
+            print(
+                f"Error: schemas['{name}'] in {config_path} must be an object, got {type(entry).__name__}",
+                file=sys.stderr,
+            )
+            sys.exit(2)
     return schemas
 
 
