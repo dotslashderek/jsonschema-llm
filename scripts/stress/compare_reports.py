@@ -21,6 +21,7 @@ class ComparisonResult:
     new_flaky: list = field(default_factory=list)
     config_drift: list = field(default_factory=list)
     unchanged: list = field(default_factory=list)
+    other_transitions: list = field(default_factory=list)
     baseline_only: list = field(default_factory=list)
     current_only: list = field(default_factory=list)
     baseline_pass_rate: float = 0.0
@@ -69,11 +70,18 @@ _PASSING = frozenset({"solid_pass", "flaky_pass", "unexpected_pass"})
 
 
 def _pass_rate(verdicts):
-    """Compute pass rate as a percentage."""
+    """Compute pass rate as a percentage.
+
+    Expected failures are excluded from the denominator to match the
+    definition used by the CLI test runner.
+    """
     if not verdicts:
         return 0.0
-    passing = sum(1 for v in verdicts.values() if v in _PASSING)
-    return (passing / len(verdicts)) * 100.0
+    tested = {k: v for k, v in verdicts.items() if v != "expected_fail"}
+    if not tested:
+        return 0.0
+    passing = sum(1 for v in tested.values() if v in _PASSING)
+    return (passing / len(tested)) * 100.0
 
 
 def compare_reports(baseline, current):
@@ -125,7 +133,7 @@ def compare_reports(baseline, current):
             result.new_passes.append(schema)
         else:
             # Other transitions (e.g., solid_fail → expected_fail)
-            result.unchanged.append(schema)
+            result.other_transitions.append(schema)
 
     return result
 
@@ -226,8 +234,12 @@ def main():
     )
     args = parser.parse_args()
 
-    baseline = load_report(args.baseline)
-    current = load_report(args.current)
+    try:
+        baseline = load_report(args.baseline)
+        current = load_report(args.current)
+    except FileNotFoundError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(2)
 
     result = compare_reports(baseline, current)
     print(format_comparison(result, json_output=args.json))
