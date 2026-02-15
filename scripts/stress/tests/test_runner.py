@@ -7,6 +7,8 @@ without making real OpenAI API calls.
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 
 class TestNoneResponseHandling:
     """Finding #1: call_openai returning None must not crash."""
@@ -563,3 +565,36 @@ class TestExpectedFailures:
         }
         classified = mod.classify_result(result, expected_failures)
         assert classified == "expected_fail"
+
+
+class TestExpectedFailuresValidation:
+    """Finding #9: load_expected_failures must validate schemas is a dict."""
+
+    def test_schemas_list_rejected(self):
+        """If schemas is a list instead of dict, should exit with error."""
+        mod = _load_runner_module()
+        import json
+        import tempfile
+
+        config = {"schemas": ["edge_false", "edge_true"]}
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(config, f)
+            f.flush()
+            with pytest.raises(SystemExit) as exc_info:
+                mod.load_expected_failures(f.name)
+            assert exc_info.value.code == 2
+
+    def test_schemas_string_rejected(self):
+        """If schemas is a string, should exit with error."""
+        mod = _load_runner_module()
+        import json
+        import tempfile
+
+        config = {"schemas": "not_a_dict"}
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump(config, f)
+            f.flush()
+            with pytest.raises(SystemExit) as exc_info:
+                mod.load_expected_failures(f.name)
+            assert exc_info.value.code == 2
+

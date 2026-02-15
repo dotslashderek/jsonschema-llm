@@ -14,6 +14,9 @@ OUTPUT_DIR = "tests/schemas/stress"
 
 
 def write_schema(name, schema):
+    # Auto-inject $schema for dict schemas when absent (Finding #1)
+    if isinstance(schema, dict) and "$schema" not in schema:
+        schema = {"$schema": "https://json-schema.org/draft/2020-12/schema", **schema}
     filename = os.path.join(OUTPUT_DIR, f"{name}.json")
     with open(filename, "w") as f:
         json.dump(schema, f, indent=2)
