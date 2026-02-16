@@ -1,0 +1,65 @@
+# Docker Compose for running all WASI wrapper tests in isolated environments.
+# Each service builds from a language-specific Dockerfile and runs both
+# wrapper tests and stress test clients (where available).
+#
+# Prerequisites: WASI binary must be built first:
+#   cargo build --target wasm32-wasip1 --release -p jsonschema-llm-wasi
+#
+# Usage:
+#   docker compose -f docker-compose.test.yml up --build
+#   docker compose -f docker-compose.test.yml up --build go  # single service
+
+services:
+  go:
+    build:
+      context: .
+      dockerfile: docker/test-go.Dockerfile
+    volumes:
+      - ./target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm:/wasm/jsonschema_llm_wasi.wasm:ro
+    environment:
+      JSL_WASM_PATH: /wasm/jsonschema_llm_wasi.wasm
+
+  python:
+    build:
+      context: .
+      dockerfile: docker/test-python.Dockerfile
+    volumes:
+      - ./target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm:/wasm/jsonschema_llm_wasi.wasm:ro
+    environment:
+      JSL_WASM_PATH: /wasm/jsonschema_llm_wasi.wasm
+
+  ts:
+    build:
+      context: .
+      dockerfile: docker/test-ts.Dockerfile
+    volumes:
+      - ./target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm:/wasm/jsonschema_llm_wasi.wasm:ro
+    environment:
+      JSL_WASM_PATH: /wasm/jsonschema_llm_wasi.wasm
+
+  java:
+    build:
+      context: .
+      dockerfile: docker/test-java.Dockerfile
+    volumes:
+      - ./target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm:/wasm/jsonschema_llm_wasi.wasm:ro
+    environment:
+      JSL_WASM_PATH: /wasm/jsonschema_llm_wasi.wasm
+
+  ruby:
+    build:
+      context: .
+      dockerfile: docker/test-ruby.Dockerfile
+    volumes:
+      - ./target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm:/wasm/jsonschema_llm_wasi.wasm:ro
+    environment:
+      JSL_WASM_PATH: /wasm/jsonschema_llm_wasi.wasm
+
+  dotnet:
+    build:
+      context: .
+      dockerfile: docker/test-dotnet.Dockerfile
+    volumes:
+      - ./target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm:/wasm/jsonschema_llm_wasi.wasm:ro
+    environment:
+      JSL_WASM_PATH: /wasm/jsonschema_llm_wasi.wasm
