@@ -184,6 +184,60 @@ jobs:
       - name: Run WASI host verification
         run: python3 tests/wasi/host_verify.py
 
+      - name: Upload WASI binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasi-binary
+          path: target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm
+          retention-days: 1
+
+  wasi-wrappers:
+    name: WASI Wrappers (${{ matrix.lang }})
+    runs-on: ubuntu-latest
+    needs: wasi
+    strategy:
+      matrix:
+        lang: [go, python]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download WASI binary
+        uses: actions/download-artifact@v4
+        with:
+          name: wasi-binary
+          path: target/wasm32-wasip1/release
+
+      - name: Setup Go
+        if: matrix.lang == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Copy WASM for Go embed
+        if: matrix.lang == 'go'
+        run: cp target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm bindings/go/wasm/
+
+      - name: Run Go wrapper tests
+        if: matrix.lang == 'go'
+        run: go test -v ./...
+        working-directory: bindings/go
+
+      - name: Setup Python
+        if: matrix.lang == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python deps
+        if: matrix.lang == 'python'
+        run: pip install -r requirements.txt
+        working-directory: bindings/python-wasi
+
+      - name: Run Python WASI tests
+        if: matrix.lang == 'python'
+        run: python -m pytest -v test_wasi.py
+        working-directory: bindings/python-wasi
+
   python:
     name: Python Bindings
     runs-on: ${{ matrix.os }}
