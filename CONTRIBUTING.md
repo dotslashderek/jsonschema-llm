@@ -8,7 +8,7 @@ Thanks for your interest in contributing! This project is in early development a
 
 - [Rust](https://www.rust-lang.org/tools/install) (stable, latest)
 - [Node.js](https://nodejs.org/) 20+ and [pnpm](https://pnpm.io/) (for WASM contract tests)
-- [Python](https://www.python.org/) 3.9+ and [maturin](https://www.maturin.rs/) (for Python bindings)
+- [Docker](https://www.docker.com/) (for running WASI wrapper tests across all languages)
 
 ### Building
 
@@ -34,21 +34,25 @@ The project uses a multi-layer testing strategy:
 2. **E2E tests** — Full pipeline tests with real schemas in `crates/jsonschema-llm-core/tests/`
 3. **CLI tests** — End-to-end CLI integration tests in `cli/tests/`
 4. **WASM contract tests** — Node.js tests verifying WASM bindings in `tests/contract-node/`
-5. **Python acceptance tests** — pytest suite in `crates/jsonschema-llm-python/tests/`
-6. **Doc tests** — Examples in `lib.rs` and `schema_utils.rs`
-7. **Property tests** — `proptest` strategies in `crates/jsonschema-llm-core/tests/proptest_*.rs`
-8. **Fuzzing** — `cargo-fuzz` harness in `fuzz/` (requires nightly, not part of workspace)
+5. **WASI wrapper tests** — Docker-based tests for all 6 language wrappers
+6. **Conformance fixtures** — Cross-language fixtures in `tests/conformance/`
+7. **Doc tests** — Examples in `lib.rs` and `schema_utils.rs`
+8. **Property tests** — `proptest` strategies in `crates/jsonschema-llm-core/tests/proptest_*.rs`
+9. **Fuzzing** — `cargo-fuzz` harness in `fuzz/` (requires nightly, not part of workspace)
 
 ```bash
 # Core Rust tests (includes proptests)
 cargo test
 
-# Python bindings
-cd crates/jsonschema-llm-python && maturin develop && pytest tests/
-
 # WASM contract tests
 wasm-pack build crates/jsonschema-llm-wasm --target nodejs --out-dir ../../tests/contract-node/pkg
 cd tests/contract-node && pnpm test
+
+# WASI wrapper tests (all languages via Docker)
+./scripts/test-wrappers.sh
+
+# WASI wrapper tests (specific language)
+./scripts/test-wrappers.sh go python
 
 # Fuzzing (nightly only, not run in CI)
 cargo +nightly fuzz run fuzz_convert -- -max_total_time=60
@@ -66,11 +70,20 @@ jsonschema-llm/
 │   │       ├── codec.rs          # Codec builder
 │   │       ├── rehydrator.rs     # Reverse transforms
 │   │       └── schema_utils.rs   # Shared path/traversal utilities
-│   ├── jsonschema-llm-wasm/     # TypeScript/JS WASM bindings
-│   └── jsonschema-llm-python/   # Python PyO3 bindings
+│   ├── jsonschema-llm-wasi/     # WASI universal binary (wasm32-wasip1)
+│   └── jsonschema-llm-wasm/     # TypeScript/JS WASM bindings
+├── bindings/
+│   ├── go/                      # Go wrapper (wazero)
+│   ├── ts-wasi/                 # TypeScript wrapper (node:wasi)
+│   ├── python-wasi/             # Python wrapper (wasmtime)
+│   ├── java-wasi/               # Java wrapper (chicory)
+│   ├── ruby/                    # Ruby wrapper (wasmtime)
+│   └── dotnet/                  # C#/.NET wrapper (wasmtime-dotnet)
 ├── cli/                         # CLI binary
+├── docker/                      # Dockerfiles for wrapper testing
 ├── fuzz/                        # cargo-fuzz harness (standalone, nightly)
 ├── tests/
+│   ├── conformance/             # Cross-language conformance fixtures
 │   └── contract-node/           # WASM contract tests (Node.js)
 └── docs/
     └── algorithm.md             # Formal algorithm spec

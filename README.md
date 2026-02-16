@@ -312,26 +312,20 @@ rehydrated = rehydrate(llm_output, result["codec"], my_api_schema)
 │  │ (9 pass) │  │ Builder  │  │           │  │
 │  └──────────┘  └──────────┘  └───────────┘  │
 └──────┬───────────────────┬───────────────────┘
-       │ Native FFI         │ WASI (wasm32-wasip1)
-  ┌────┼──────────┐    ┌────▼──────────────────────────────┐
-  │    │          │    │       jsonschema-llm-wasi          │
-  │    │          │    │         (.wasm module)             │
-  │    │          │    └─┬────┬────┬─────┬─────┬─────┬─────┘
-┌─▼──┐ │          │      │    │    │     │     │     │
-│CLI │ │          │    ┌─▼──┐┌▼──┐┌▼───┐┌▼───┐┌▼───┐┌▼────┐
-│Rust│ │          │    │ Go ││TS ││Py  ││Java││Ruby││ C#  │
-└────┘ │          │    └────┘└───┘└────┘└────┘└────┘└─────┘
-  ┌────▼──────┐ ┌─▼────────┐ ┌─▼────────┐
-  │TypeScript │ │  Python   │ │   Java   │
-  │  (WASM)   │ │  (PyO3)   │ │(JNI/FFI) │
-  └───────────┘ └───────────┘ └──────────┘
+       │                   │ WASI (wasm32-wasip1)
+  ┌────┴──────────┐    ┌───┴──────────────────────────────┐
+  │  CLI (binary) │    │       jsonschema-llm-wasi          │
+  │    (Rust)     │    │         (.wasm module)             │
+  └───────────────┘    └─┬────┬────┬─────┬─────┬─────┬─────┘
+                         │    │    │     │     │     │
+                       ┌─┴──┐┌┴──┐┌┴───┐┌┴───┐┌┴───┐┌┴────┐
+                       │ Go ││TS ││Py  ││Java││Ruby││ C#  │
+                       └────┘└───┘└────┘└────┘└────┘└─────┘
 ```
 
 The core library is written in **Rust** using `serde_json::Value` for schema manipulation with recursive descent transformers.
 
-**Native bindings** ship per-language FFI: [TypeScript via WASM](https://github.com/dotslashderek/jsonschema-llm/issues/38) (✅ shipped), [Python via PyO3](https://github.com/dotslashderek/jsonschema-llm/issues/39) (✅ shipped), and [Java via JNI](https://github.com/dotslashderek/jsonschema-llm/issues/40) (✅ shipped).
-
-**WASI wrappers** compile the core into a single `.wasm` module (`wasm32-wasip1`) that any language with a WASM runtime can embed. Currently: Go (Wazero), TypeScript (node:wasi), Python (wasmtime), Java (Chicory), Ruby (Wasmtime), and C#/.NET (Wasmtime.NET).
+**WASI wrappers** compile the core into a single `.wasm` module (`wasm32-wasip1`) that any language with a WASM runtime can embed. Currently: Go (Wazero), TypeScript (node:wasi), Python (wasmtime), Java (Chicory), Ruby (Wasmtime), and C#/.NET (Wasmtime.NET). This WASM-first approach means one universal binary serves all languages — no per-language native compilation or FFI complexity.
 
 ---
 
@@ -366,8 +360,8 @@ See **[ROADMAP.md](ROADMAP.md)** for the full prioritized roadmap with epic prog
 | [Core Improvements](https://github.com/dotslashderek/jsonschema-llm/issues/36)       | 🟡 Active      |   75%    | Walker unification, rehydrator decomposition, test hardening, docs cleanup |
 | [FFI Facade](https://github.com/dotslashderek/jsonschema-llm/issues/37)              | ✅ Complete    |   100%   | JSON-string bridge API, stable error codes, serde-ready types              |
 | [TypeScript / JS (WASM)](https://github.com/dotslashderek/jsonschema-llm/issues/38)  | ✅ Complete    |   100%   | `wasm-pack` + `serde-wasm-bindgen`, npm package                            |
-| [Python (PyO3)](https://github.com/dotslashderek/jsonschema-llm/issues/39)           | ✅ Complete    |   100%   | `maturin` + `pythonize`, PyPI package                                      |
-| [Java (JNI)](https://github.com/dotslashderek/jsonschema-llm/issues/40)              | ✅ Complete    |   100%   | `jni-rs` + JSON string bridge, Maven Central                               |
+| [Python (PyO3)](https://github.com/dotslashderek/jsonschema-llm/issues/39)           | 🚨 Retired     |    —     | Replaced by WASI wrapper (`bindings/python-wasi`)                          |
+| [Java (JNI)](https://github.com/dotslashderek/jsonschema-llm/issues/40)              | 🚨 Retired     |    —     | Replaced by WASI wrapper (`bindings/java-wasi`)                            |
 | [WASI Language Wrappers](https://github.com/dotslashderek/jsonschema-llm/issues/148) | 🟡 Active      |   90%    | Single `.wasm` module with wrappers for Go, TS, Python, Java, Ruby, C#     |
 | [Conformance Suite](https://github.com/dotslashderek/jsonschema-llm/issues/76)       | ⬜ Not started |    0%    | Provider-specific test suites, OpenAPI/AsyncAPI support                    |
 | [Test Harness](https://github.com/dotslashderek/jsonschema-llm/issues/115)           | ✅ Complete    |   100%   | Retry logic, known-fail classification, regression tracking                |
