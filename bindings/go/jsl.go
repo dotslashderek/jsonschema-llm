@@ -38,8 +38,8 @@ const jslResultSize = 12
 type ConvertOptions struct {
 	Target         string `json:"target,omitempty"`
 	Polymorphism   string `json:"polymorphism,omitempty"`
-	MaxDepth       int    `json:"max_depth,omitempty"`
-	RecursionLimit int    `json:"recursion_limit,omitempty"`
+	MaxDepth       int    `json:"max-depth,omitempty"`
+	RecursionLimit int    `json:"recursion-limit,omitempty"`
 }
 
 // ConvertResult is the result of a convert operation.

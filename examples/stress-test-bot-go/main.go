@@ -171,7 +171,7 @@ func testSchema(
 					Type: openai.F(openai.ResponseFormatJSONSchemaTypeJSONSchema),
 					JSONSchema: openai.F(openai.ResponseFormatJSONSchemaJSONSchemaParam{
 						Name:   openai.F("response"),
-						Schema: openai.F(schemaParam),
+						Schema: openai.F(any(schemaParam)),
 						Strict: openai.F(true),
 					}),
 				},

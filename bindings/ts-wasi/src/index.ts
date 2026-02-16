@@ -85,7 +85,16 @@ export class Engine {
     options?: ConvertOptions
   ): Promise<ConvertResult> {
     const schemaJson = JSON.stringify(schema);
-    const optsJson = JSON.stringify(options ?? {});
+    // Transform snake_case keys to kebab-case for WASI binary compatibility
+    const wasiOpts: Record<string, unknown> = {};
+    if (options) {
+      for (const [key, value] of Object.entries(options)) {
+        if (value !== undefined) {
+          wasiOpts[key.replace(/_/g, "-")] = value;
+        }
+      }
+    }
+    const optsJson = JSON.stringify(wasiOpts);
     const payload = await this.callJsl("jsl_convert", schemaJson, optsJson);
     return payload as ConvertResult;
   }
