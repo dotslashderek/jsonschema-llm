@@ -63,7 +63,12 @@ class Engine:
     def convert(self, schema: Any, options: Optional[dict] = None) -> dict:
         """Convert a JSON Schema to LLM-compatible structured output schema."""
         schema_json = json.dumps(schema)
-        opts_json = json.dumps(options or {})
+        # Normalize snake_case keys to kebab-case for WASI binary compatibility
+        normalized = {}
+        if options:
+            for key, value in options.items():
+                normalized[key.replace("_", "-")] = value
+        opts_json = json.dumps(normalized)
         return self._call_jsl("jsl_convert", schema_json, opts_json)
 
     def rehydrate(self, data: Any, codec: Any, schema: Any) -> dict:

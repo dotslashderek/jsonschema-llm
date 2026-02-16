@@ -49,11 +49,25 @@ type ConvertResult struct {
 	Codec      any            `json:"codec"`
 }
 
+// WarningKind classifies rehydration warnings.
+type WarningKind struct {
+	Type       string `json:"type"`
+	Constraint string `json:"constraint,omitempty"`
+}
+
+// Warning represents a constraint violation detected during rehydration.
+type Warning struct {
+	DataPath   string      `json:"dataPath"`
+	SchemaPath string      `json:"schemaPath"`
+	Kind       WarningKind `json:"kind"`
+	Message    string      `json:"message"`
+}
+
 // RehydrateResult is the result of a rehydrate operation.
 type RehydrateResult struct {
-	APIVersion string   `json:"apiVersion"`
-	Data       any      `json:"data"`
-	Warnings   []string `json:"warnings,omitempty"`
+	APIVersion string    `json:"apiVersion"`
+	Data       any       `json:"data"`
+	Warnings   []Warning `json:"warnings,omitempty"`
 }
 
 // Error represents a structured error from the WASI binary.

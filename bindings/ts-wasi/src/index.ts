@@ -40,10 +40,17 @@ export interface ConvertResult {
   codec: unknown;
 }
 
+export interface Warning {
+  dataPath: string;
+  schemaPath: string;
+  kind: { type: string; constraint?: string };
+  message: string;
+}
+
 export interface RehydrateResult {
   apiVersion: string;
   data: unknown;
-  warnings?: string[];
+  warnings?: Warning[];
 }
 
 export class JslError extends Error {
