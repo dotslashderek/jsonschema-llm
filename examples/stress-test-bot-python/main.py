@@ -13,7 +13,7 @@ import time
 from typing import Optional
 
 # Add WASI wrapper to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "bindings", "python-wasi"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "bindings", "python"))
 from jsonschema_llm_wasi import Engine, JslError  # noqa: E402
 from openai import OpenAI
 import jsonschema

@@ -224,9 +224,9 @@ jsonschema-llm/
 │   └── jsonschema-llm-wasm/     # TypeScript/JS WASM bindings
 ├── bindings/
 │   ├── go/                      # Go wrapper (Wazero)
-│   ├── ts-wasi/                 # TypeScript wrapper (node:wasi)
-│   ├── python-wasi/             # Python wrapper (wasmtime)
-│   ├── java-wasi/               # Java wrapper (Chicory)
+│   ├── ts/                      # TypeScript wrapper (node:wasi)
+│   ├── python/                  # Python wrapper (wasmtime)
+│   ├── java/                    # Java wrapper (Chicory)
 │   ├── ruby/                    # Ruby wrapper (Wasmtime)
 │   └── dotnet/                  # C#/.NET wrapper (Wasmtime.NET)
 ├── cli/                         # CLI binary

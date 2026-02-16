@@ -360,8 +360,8 @@ See **[ROADMAP.md](ROADMAP.md)** for the full prioritized roadmap with epic prog
 | [Core Improvements](https://github.com/dotslashderek/jsonschema-llm/issues/36)       | 🟡 Active      |   75%    | Walker unification, rehydrator decomposition, test hardening, docs cleanup |
 | [FFI Facade](https://github.com/dotslashderek/jsonschema-llm/issues/37)              | ✅ Complete    |   100%   | JSON-string bridge API, stable error codes, serde-ready types              |
 | [TypeScript / JS (WASM)](https://github.com/dotslashderek/jsonschema-llm/issues/38)  | ✅ Complete    |   100%   | `wasm-pack` + `serde-wasm-bindgen`, npm package                            |
-| [Python (PyO3)](https://github.com/dotslashderek/jsonschema-llm/issues/39)           | 🚨 Retired     |    —     | Replaced by WASI wrapper (`bindings/python-wasi`)                          |
-| [Java (JNI)](https://github.com/dotslashderek/jsonschema-llm/issues/40)              | 🚨 Retired     |    —     | Replaced by WASI wrapper (`bindings/java-wasi`)                            |
+| [Python (PyO3)](https://github.com/dotslashderek/jsonschema-llm/issues/39)           | 🚨 Retired     |    —     | Replaced by WASI wrapper (`bindings/python`)                               |
+| [Java (JNI)](https://github.com/dotslashderek/jsonschema-llm/issues/40)              | 🚨 Retired     |    —     | Replaced by WASI wrapper (`bindings/java`)                                 |
 | [WASI Language Wrappers](https://github.com/dotslashderek/jsonschema-llm/issues/148) | ✅ Complete    |   100%   | Single `.wasm` module with wrappers for Go, TS, Python, Java, Ruby, C#     |
 | [Conformance Fixtures](https://github.com/dotslashderek/jsonschema-llm/issues/154)   | ✅ Complete    |   100%   | Cross-language fixture execution for Go + Python WASI wrappers             |
 | [Conformance Suite](https://github.com/dotslashderek/jsonschema-llm/issues/76)       | ⬜ Not started |    0%    | Provider-specific test suites, OpenAPI/AsyncAPI support                    |

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jsonschema-llm-wasi"
+version = "0.1.0"
+description = "WASI wrapper for jsonschema-llm"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "wasmtime>=21.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+]
+
+[tool.setuptools]
+py-modules = ["jsonschema_llm_wasi"]
