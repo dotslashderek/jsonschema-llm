@@ -1,0 +1,22 @@
+{
+  "description": "Simple schema converts successfully with apiVersion, schema, and codec",
+  "input": {
+    "schema": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "age": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["name", "age"]
+    },
+    "options": {}
+  },
+  "expected": {
+    "status": 0,
+    "payload": {
+      "apiVersion": "1.0",
+      "has_schema": true,
+      "has_codec": true
+    }
+  }
+}

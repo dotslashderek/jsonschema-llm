@@ -9,11 +9,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "Stress test bot for jsonschema-llm JS/TS bindings",
+  "description": "Stress test bot for jsonschema-llm WASI wrapper",
   "dependencies": {
     "ajv": "^8.17.0",
     "ajv-formats": "^3.0.0",
-    "jsonschema-llm": "file:../../dist",
     "openai": "^6.19.0"
   },
   "devDependencies": {

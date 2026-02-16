@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stress test bot for jsonschema-llm Python (PyO3) bindings.
+"""Stress test bot for jsonschema-llm WASI wrapper.
 
 Mirrors the TS reference client (examples/stress-test-bot/src/index.ts).
 Pipeline: convert → OpenAI structured output → rehydrate → validate.
@@ -12,7 +12,9 @@ import sys
 import time
 from typing import Optional
 
-from jsonschema_llm import JsonSchemaLlmError, convert, rehydrate
+# Add WASI wrapper to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "bindings", "python-wasi"))
+from jsonschema_llm_wasi import Engine, JslError  # noqa: E402
 from openai import OpenAI
 import jsonschema
 from jsonschema import Draft202012Validator
@@ -150,6 +152,7 @@ def sanitize_schema_name(name: str) -> str:
 
 
 def test_schema(
+    engine: Engine,
     filename: str,
     schemas_dir: str,
     client: OpenAI,
@@ -164,9 +167,9 @@ def test_schema(
         original_schema = json.load(f)
 
     try:
-        # 1. Convert (PyO3 binding)
+        # 1. Convert (WASI wrapper)
         print("  converting...")
-        result = convert(
+        result = engine.convert(
             original_schema,
             {
                 "target": "openai-strict",
@@ -208,9 +211,9 @@ def test_schema(
 
         llm_data = json.loads(raw_content)
 
-        # 3. Rehydrate (PyO3 binding)
+        # 3. Rehydrate (WASI wrapper)
         print("  rehydrating...")
-        rh_result = rehydrate(llm_data, codec, original_schema)
+        rh_result = engine.rehydrate(llm_data, codec, original_schema)
 
         if rh_result.get("warnings"):
             print(f"  Warnings: {rh_result['warnings']}")
@@ -236,7 +239,7 @@ def test_schema(
         print(f"  ⏱  {elapsed:.2f}s")
         return True, elapsed
 
-    except JsonSchemaLlmError as e:
+    except JslError as e:
         elapsed = time.monotonic() - start_time
         print(f"  ❌ FAIL: {e.message}")
         if e.code:
@@ -283,11 +286,12 @@ def main() -> None:
 
     passed = 0
     total_time = 0.0
-    for f in test_files:
-        ok, elapsed = test_schema(f, schemas_dir, client, args.model)
-        total_time += elapsed
-        if ok:
-            passed += 1
+    with Engine() as engine:
+        for f in test_files:
+            ok, elapsed = test_schema(engine, f, schemas_dir, client, args.model)
+            total_time += elapsed
+            if ok:
+                passed += 1
 
     print(f"\n\nSummary: {passed}/{len(test_files)} passed ({total_time:.2f}s total).")
     if passed < len(test_files):

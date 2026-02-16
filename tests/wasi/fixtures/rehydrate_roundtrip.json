@@ -1,0 +1,21 @@
+{
+  "description": "Convert + rehydrate round-trip preserves data shape and values",
+  "input": {
+    "schema": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "age": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["name", "age"]
+    },
+    "data": { "name": "Ada", "age": 36 }
+  },
+  "expected": {
+    "status": 0,
+    "payload": {
+      "apiVersion": "1.0",
+      "data": { "name": "Ada", "age": 36 }
+    }
+  }
+}

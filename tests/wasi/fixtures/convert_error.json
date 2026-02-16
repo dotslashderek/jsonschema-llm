@@ -1,0 +1,14 @@
+{
+  "description": "Invalid JSON input produces a status=1 error with structured error payload",
+  "input": {
+    "schema": "NOT VALID JSON",
+    "options": "{}"
+  },
+  "expected": {
+    "status": 1,
+    "payload": {
+      "code": "json_parse_error",
+      "has_message": true
+    }
+  }
+}

@@ -161,7 +161,7 @@ pub unsafe extern "C" fn jsl_result_free(result_ptr: u32) {
     if result.ptr != 0 && result.len != 0 {
         // Payload was created via `leak_string` which uses `into_boxed_slice()`,
         // guaranteeing capacity == len. Reconstruct as boxed slice for dealloc.
-        let _ = Box::from_raw(std::slice::from_raw_parts_mut(
+        let _ = Box::from_raw(std::ptr::slice_from_raw_parts_mut(
             result.ptr as *mut u8,
             result.len as usize,
         ));

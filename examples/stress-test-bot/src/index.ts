@@ -4,7 +4,7 @@ import * as path from 'path';
 import OpenAI from 'openai';
 import Ajv2020 from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
-import { convert, rehydrate } from 'jsonschema-llm';
+import { Engine } from '../../../bindings/ts-wasi/src/index';
 import type { ResponseFormatJSONSchema } from 'openai/resources/shared';
 
 // Initialize clients
@@ -41,7 +41,7 @@ function describeData(data: unknown): string {
     return `${typeof data}: ${String(data).slice(0, 50)}`;
 }
 
-async function testSchema(filename: string, model: string) {
+async function testSchema(engine: Engine, filename: string, model: string) {
     console.log(`\n=== Testing ${filename} ===`);
 
     // 1. Load Schema
@@ -49,13 +49,13 @@ async function testSchema(filename: string, model: string) {
     const originalSchema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'));
 
     try {
-        // 2. Convert Schema (JS Binding)
+        // 2. Convert Schema (WASI wrapper)
         console.log(' converting...');
-        const result = convert(originalSchema, {
+        const result = await engine.convert(originalSchema, {
             target: 'openai-strict',
             polymorphism: 'any-of',
-            maxDepth: 50,
-            recursionLimit: 3,
+            max_depth: 50,
+            recursion_limit: 3,
         });
 
         // Proper typing for OpenAI SDK. Fixes Finding #12.
@@ -86,9 +86,9 @@ async function testSchema(filename: string, model: string) {
 
         const llmData = JSON.parse(rawContent);
 
-        // 4. Rehydrate (JS Binding)
+        // 4. Rehydrate (WASI wrapper)
         console.log(' rehydrating...');
-        const rehydrated = rehydrate(llmData, result.codec, originalSchema);
+        const rehydrated = await engine.rehydrate(llmData, result.codec, originalSchema);
 
         if (rehydrated.warnings && rehydrated.warnings.length > 0) {
             console.warn(' Warnings:', rehydrated.warnings);
@@ -161,11 +161,18 @@ async function main() {
 
     console.log(`Testing ${testFiles.length}/${allFiles.length} schemas (model=${model}, seed=${seed ?? 'random'})`);
 
+    // Initialize WASI engine
+    const engine = new Engine();
+
     let passed = 0;
-    for (const file of testFiles) {
-        if (await testSchema(file, model)) {
-            passed++;
+    try {
+        for (const file of testFiles) {
+            if (await testSchema(engine, file, model)) {
+                passed++;
+            }
         }
+    } finally {
+        engine.close();
     }
 
     console.log(`\n\nSummary: ${passed}/${testFiles.length} passed.`);
