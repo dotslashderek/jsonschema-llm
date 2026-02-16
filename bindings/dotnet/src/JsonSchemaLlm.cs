@@ -47,10 +47,18 @@ public sealed class JsonSchemaLlmEngine : IDisposable
         _engine.Dispose();
     }
 
+    private static readonly JsonSerializerOptions KebabCaseOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower,
+    };
+
     public JsonElement Convert(object schema, object? options = null)
     {
         var schemaJson = JsonSerializer.Serialize(schema);
-        var optsJson = JsonSerializer.Serialize(options ?? new { });
+        // Normalize PascalCase/camelCase option keys to kebab-case for WASI binary
+        var optsJson = options != null
+            ? JsonSerializer.Serialize(options, KebabCaseOptions)
+            : "{}";
         return CallJsl("jsl_convert", schemaJson, optsJson);
     }
 

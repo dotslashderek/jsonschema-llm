@@ -39,7 +39,9 @@ module JsonSchemaLlm
 
     def convert(schema, options = {})
       schema_json = JSON.generate(schema)
-      opts_json = JSON.generate(options)
+      # Normalize snake_case keys to kebab-case for WASI binary compatibility
+      normalized = options.transform_keys { |k| k.to_s.tr("_", "-") }
+      opts_json = JSON.generate(normalized)
       call_jsl("jsl_convert", schema_json, opts_json)
     end
 

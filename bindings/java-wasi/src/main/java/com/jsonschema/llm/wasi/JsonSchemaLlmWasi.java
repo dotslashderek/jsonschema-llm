@@ -57,11 +57,17 @@ public class JsonSchemaLlmWasi implements AutoCloseable {
         return convert(schema, null);
     }
 
+    private static final ObjectMapper KEBAB_MAPPER = new ObjectMapper()
+            .setPropertyNamingStrategy(
+                    com.fasterxml.jackson.databind.PropertyNamingStrategies.KEBAB_CASE);
+
     public JsonNode convert(Object schema, Object options) throws JslException {
         try {
             String schemaJson = MAPPER.writeValueAsString(schema);
-            String optsJson = MAPPER.writeValueAsString(
-                    options != null ? options : Collections.emptyMap());
+            // Normalize camelCase/snake_case option keys to kebab-case for WASI binary
+            String optsJson = options != null
+                    ? KEBAB_MAPPER.writeValueAsString(options)
+                    : "{}";
             return callJsl("jsl_convert", schemaJson, optsJson);
         } catch (JslException e) {
             throw e;
