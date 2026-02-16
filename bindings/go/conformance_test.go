@@ -46,13 +46,19 @@ func loadFixtures(t *testing.T) fixtureFile {
 
 // fixtureOptionsToConvertOptions maps fixture options (kebab-case JSON) to the
 // Go ConvertOptions struct, which is how real users interact with the library.
-func fixtureOptionsToConvertOptions(opts map[string]any) *ConvertOptions {
+func fixtureOptionsToConvertOptions(t *testing.T, opts map[string]any) *ConvertOptions {
+	t.Helper()
 	if len(opts) == 0 {
 		return nil
 	}
-	b, _ := json.Marshal(opts)
+	b, err := json.Marshal(opts)
+	if err != nil {
+		t.Fatalf("fixtureOptionsToConvertOptions: marshal failed: %v", err)
+	}
 	co := &ConvertOptions{}
-	_ = json.Unmarshal(b, co)
+	if err := json.Unmarshal(b, co); err != nil {
+		t.Fatalf("fixtureOptionsToConvertOptions: unmarshal failed: %v", err)
+	}
 	return co
 }
 
@@ -97,7 +103,7 @@ func TestConformance_Convert(t *testing.T) {
 			}
 
 			// Normal convert: use the high-level Convert() API with ConvertOptions
-			opts := fixtureOptionsToConvertOptions(fx.Input.Options)
+			opts := fixtureOptionsToConvertOptions(t, fx.Input.Options)
 			result, err := eng.Convert(fx.Input.Schema, opts)
 			if err != nil {
 				t.Fatalf("Convert() failed: %v", err)
@@ -123,7 +129,7 @@ func TestConformance_Roundtrip(t *testing.T) {
 			expected := fx.Expected
 
 			// Convert via the high-level API
-			opts := fixtureOptionsToConvertOptions(fx.Input.Options)
+			opts := fixtureOptionsToConvertOptions(t, fx.Input.Options)
 			convertResult, err := eng.Convert(fx.Input.Schema, opts)
 			if err != nil {
 				t.Fatalf("Convert() failed: %v", err)
@@ -187,8 +193,9 @@ func TestConformance_Roundtrip(t *testing.T) {
 
 			// Assert warnings_is_array
 			if _, ok := expected["warnings_is_array"]; ok {
-				// In Go, Warnings is typed as []Warning — always a slice
-				_ = rehydrateResult.Warnings
+				if rehydrateResult.Warnings == nil {
+					t.Error("warnings is nil, expected non-nil array")
+				}
 			}
 		})
 	}

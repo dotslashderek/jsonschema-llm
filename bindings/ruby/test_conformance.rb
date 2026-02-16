@@ -116,8 +116,8 @@ class ConformanceRoundtripTest < Minitest::Test
       end
 
       if expected.key?("warnings_is_array")
-        warnings = rehydrate_result.fetch("warnings", [])
-        assert_kind_of Array, warnings
+        assert rehydrate_result.key?("warnings"), "result missing 'warnings' key"
+        assert_kind_of Array, rehydrate_result["warnings"]
       end
     end
   end

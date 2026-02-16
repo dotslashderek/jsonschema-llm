@@ -156,7 +156,8 @@ def test_conformance_roundtrip(engine, fixtures, fixture_id):
         assert rehydrate_result["data"]["value"] == expected["data_value"]
 
     if "warnings_is_array" in expected:
-        assert isinstance(rehydrate_result.get("warnings", []), list)
+        assert "warnings" in rehydrate_result, "result missing 'warnings' key"
+        assert isinstance(rehydrate_result["warnings"], list)
 
 
 # ---------------------------------------------------------------------------
