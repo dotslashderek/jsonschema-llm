@@ -35,7 +35,7 @@ module JsonSchemaLlm
       @engine = Wasmtime::Engine.new
       @module = Wasmtime::Module.from_file(@engine, path)
       @linker = Wasmtime::Linker.new(@engine)
-      @linker.define_wasi
+      Wasmtime::WASI::P1.add_to_linker_sync(@linker)
     end
 
     def convert(schema, options = {})
@@ -59,11 +59,11 @@ module JsonSchemaLlm
 
     def call_jsl(func_name, *json_args)
       # Fresh store + instance per call
-      wasi_config = Wasmtime::WasiCtxBuilder.new
+      wasi_config = Wasmtime::WasiConfig.new
                       .set_stdin_string("")
                       .inherit_stdout
                       .inherit_stderr
-      store = Wasmtime::Store.new(@engine, wasi_ctx: wasi_config)
+      store = Wasmtime::Store.new(@engine, wasi_p1_config: wasi_config)
       instance = @linker.instantiate(store, @module)
 
       memory = instance.export("memory").to_memory
