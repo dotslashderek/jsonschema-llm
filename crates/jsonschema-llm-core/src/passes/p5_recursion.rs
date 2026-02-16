@@ -127,7 +127,7 @@ fn resolve_ref(
         let example = lookup_def(ref_str, defs)
             .as_ref()
             .map(|def| build_example_from_def(def, &type_name))
-            .unwrap_or_else(|| format!("{{\\\"key\\\": \\\"value\\\"}}"));
+            .unwrap_or_else(|| "{\\\"key\\\": \\\"value\\\"}".to_string());
 
         return Ok(serde_json::json!({
             "type": "string",
