@@ -2,6 +2,7 @@
 members = [
     "crates/jsonschema-llm-core",
     "crates/jsonschema-llm-java",
+    "crates/jsonschema-llm-wasi",
     "crates/jsonschema-llm-wasm",
     "crates/jsonschema-llm-python",
     "cli",
