@@ -14,6 +14,7 @@ module JsonSchemaLlm
   JSL_RESULT_SIZE = 12 # 3 × u32 (LE)
   STATUS_OK = 0
   STATUS_ERROR = 1
+  EXPECTED_ABI_VERSION = 1
 
   class JslError < StandardError
     attr_reader :code, :path
@@ -35,6 +36,7 @@ module JsonSchemaLlm
       @engine = Wasmtime::Engine.new
       @module = Wasmtime::Module.from_file(@engine, path)
       @linker = Wasmtime::Linker.new(@engine, wasi: true)
+      @abi_verified = false
     end
 
     def convert(schema, options = {})
@@ -69,6 +71,19 @@ module JsonSchemaLlm
       instance = @linker.instantiate(store, @module)
 
       memory = instance.export("memory").to_memory
+
+      # ABI version handshake (once per Engine lifetime)
+      unless @abi_verified
+        abi_fn = instance.export("jsl_abi_version")&.to_func
+        if abi_fn
+          version = abi_fn.call
+          unless version == EXPECTED_ABI_VERSION
+            raise "ABI version mismatch: binary=#{version}, expected=#{EXPECTED_ABI_VERSION}"
+          end
+        end
+        @abi_verified = true
+      end
+
       jsl_alloc = instance.export("jsl_alloc").to_func
       jsl_free = instance.export("jsl_free").to_func
       jsl_result_free = instance.export("jsl_result_free").to_func

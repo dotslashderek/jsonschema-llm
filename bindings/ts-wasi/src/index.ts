@@ -15,6 +15,7 @@ import { join } from "node:path";
 const JSL_RESULT_SIZE = 12; // 3 × u32 (LE)
 const STATUS_OK = 0;
 const STATUS_ERROR = 1;
+const EXPECTED_ABI_VERSION = 1;
 
 const DEFAULT_WASM_PATH = join(
   __dirname,
@@ -67,6 +68,7 @@ export class JslError extends Error {
 export class Engine {
   private wasmBytes: Uint8Array;
   private compiledModule: WebAssembly.Module | null = null;
+  private abiVerified = false;
 
   constructor(wasmPath?: string) {
     const path =
@@ -138,6 +140,21 @@ export class Engine {
     wasi.initialize(instance);
 
     const exports = instance.exports as Record<string, any>;
+
+    // ABI version handshake (once per Engine lifetime)
+    if (!this.abiVerified) {
+      const abiVersionFn = exports.jsl_abi_version as (() => number) | undefined;
+      if (abiVersionFn) {
+        const version = abiVersionFn();
+        if (version !== EXPECTED_ABI_VERSION) {
+          throw new Error(
+            `ABI version mismatch: binary=${version}, expected=${EXPECTED_ABI_VERSION}`
+          );
+        }
+      }
+      this.abiVerified = true;
+    }
+
     const memory = exports.memory as WebAssembly.Memory;
     const jslAlloc = exports.jsl_alloc as (len: number) => number;
     const jslFree = exports.jsl_free as (ptr: number, len: number) => void;

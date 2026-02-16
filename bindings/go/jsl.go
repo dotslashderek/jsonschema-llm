@@ -27,8 +27,9 @@ import (
 
 // Status codes matching the JslResult protocol.
 const (
-	statusOK    = 0
-	statusError = 1
+	statusOK           = 0
+	statusError        = 1
+	expectedABIVersion = 1
 )
 
 // jslResultSize is the size of the JslResult struct (3 × u32 = 12 bytes).
@@ -87,9 +88,10 @@ func (e *Error) Error() string {
 // Engine wraps a wazero runtime and compiled WASI module.
 // Create with New(), use Convert/Rehydrate, and defer Close().
 type Engine struct {
-	runtime wazero.Runtime
-	mod     wazero.CompiledModule
-	ctx     context.Context
+	runtime     wazero.Runtime
+	mod         wazero.CompiledModule
+	ctx         context.Context
+	abiVerified bool
 }
 
 // New creates a new Engine by compiling the embedded WASI binary.
@@ -194,6 +196,18 @@ func (e *Engine) callJsl(funcName string, jsonArgs ...[]byte) ([]byte, error) {
 
 	if jslAlloc == nil || jslFree == nil || jslResultFree == nil || fn == nil {
 		return nil, fmt.Errorf("missing export: %s", funcName)
+	}
+
+	// ABI version handshake (once per Engine lifetime)
+	if !e.abiVerified {
+		abiFn := mod.ExportedFunction("jsl_abi_version")
+		if abiFn != nil {
+			results, err := abiFn.Call(e.ctx)
+			if err == nil && len(results) > 0 && results[0] != expectedABIVersion {
+				return nil, fmt.Errorf("ABI version mismatch: binary=%d, expected=%d", results[0], expectedABIVersion)
+			}
+		}
+		e.abiVerified = true
 	}
 
 	// Allocate and write each argument into guest memory.
