@@ -3,6 +3,11 @@
 debug/
 release/
 
+# Example project lockfiles (standalone demos — deps are ephemeral)
+examples/**/pnpm-lock.yaml
+examples/**/package-lock.json
+examples/**/yarn.lock
+
 # Rust
 **/*.rs.bk
 Cargo.lock
