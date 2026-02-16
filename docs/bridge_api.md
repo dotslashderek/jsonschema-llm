@@ -15,9 +15,9 @@ When input versioning becomes necessary, a `version` field will be added to `Con
 ### ABI Version Handshake
 
 The WASI binary exports `jsl_abi_version() -> u32` which returns the current ABI version
-(currently `1`). Language wrappers **must** call this on first use and compare against
-their expected version. A mismatch indicates a binary/wrapper skew and should be treated
-as a fatal error.
+(currently `1`). This is a **required** export — language wrappers **must** verify its
+presence and value on first use. If the export is missing or returns an unexpected version,
+wrappers must raise a fatal error to prevent silent binary/wrapper skew.
 
 | ABI Version | Introduced | Breaking Change |
 | ----------- | ---------- | --------------- |
