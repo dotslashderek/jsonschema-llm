@@ -1,0 +1,19 @@
+{
+  "description": "Rehydrate with invalid codec produces structured error",
+  "input": {
+    "schema": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "string" }
+      }
+    },
+    "data": { "x": "hello" },
+    "codec": "NOT VALID JSON"
+  },
+  "expected": {
+    "status": 1,
+    "payload": {
+      "has_code": true
+    }
+  }
+}

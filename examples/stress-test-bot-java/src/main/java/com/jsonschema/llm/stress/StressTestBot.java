@@ -2,11 +2,7 @@ package com.jsonschema.llm.stress;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jsonschema.llm.ConvertOptions;
-import com.jsonschema.llm.ConvertResult;
-import com.jsonschema.llm.JsonSchemaLlm;
-import com.jsonschema.llm.JsonSchemaLlmException;
-import com.jsonschema.llm.RehydrateResult;
+import com.jsonschema.llm.wasi.JsonSchemaLlmWasi;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
@@ -26,7 +22,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 /**
- * Stress test bot for jsonschema-llm Java bindings.
+ * Stress test bot for jsonschema-llm WASI wrapper.
  *
  * <p>
  * Mirrors the TS reference client (examples/stress-test-bot/src/index.ts).
@@ -80,11 +76,13 @@ public class StressTestBot {
 
         int passed = 0;
         double totalTime = 0;
-        for (String file : testFiles) {
-            TestResult result = testSchema(file, schemaPath, client, model);
-            totalTime += result.elapsedSeconds;
-            if (result.passed) {
-                passed++;
+        try (var engine = new JsonSchemaLlmWasi()) {
+            for (String file : testFiles) {
+                TestResult result = testSchema(engine, file, schemaPath, client, model);
+                totalTime += result.elapsedSeconds;
+                if (result.passed) {
+                    passed++;
+                }
             }
         }
 
@@ -96,6 +94,7 @@ public class StressTestBot {
     }
 
     private static TestResult testSchema(
+            JsonSchemaLlmWasi engine,
             String filename, Path schemasDir, OpenAIClient client, String model) {
         System.out.printf("%n=== Testing %s ===%n", filename);
         long startTime = System.nanoTime();
@@ -105,14 +104,16 @@ public class StressTestBot {
             JsonNode originalSchema = MAPPER.readTree(Files.readString(schemaPath));
 
             System.out.println("  converting...");
-            ConvertOptions options = ConvertOptions.builder()
-                    .target(ConvertOptions.Target.OPENAI_STRICT)
-                    .polymorphism(ConvertOptions.PolymorphismStrategy.ANY_OF)
-                    .maxDepth(50)
-                    .recursionLimit(3)
-                    .build();
+            Map<String, Object> options = Map.of(
+                    "target", "openai-strict",
+                    "polymorphism", "any-of",
+                    "max_depth", 50,
+                    "recursion_limit", 3);
 
-            ConvertResult convertResult = JsonSchemaLlm.convert(originalSchema, options);
+            JsonNode convertResult = engine.convert(originalSchema, options);
+
+            JsonNode convertedSchema = convertResult.get("schema");
+            JsonNode codec = convertResult.get("codec");
 
             String schemaName = "stress_test";
 
@@ -131,7 +132,7 @@ public class StressTestBot {
                                     .name(schemaName)
                                     .schema(ResponseFormatJsonSchema.JsonSchema.Schema.builder()
                                             .putAllAdditionalProperties(
-                                                    jsonNodeToMap(convertResult.schema()))
+                                                    jsonNodeToMap(convertedSchema))
                                             .build())
                                     .strict(true)
                                     .build())
@@ -148,14 +149,17 @@ public class StressTestBot {
             JsonNode llmData = MAPPER.readTree(rawContent);
 
             System.out.println("  rehydrating...");
-            RehydrateResult rehydrateResult = JsonSchemaLlm.rehydrate(llmData, convertResult.codec(), originalSchema);
+            JsonNode rehydrateResult = engine.rehydrate(llmData, codec, originalSchema);
 
-            if (rehydrateResult.warnings() != null && !rehydrateResult.warnings().isEmpty()) {
-                System.out.printf("  Warnings: %s%n", rehydrateResult.warnings());
+            JsonNode rehydratedData = rehydrateResult.get("data");
+            JsonNode warnings = rehydrateResult.get("warnings");
+
+            if (warnings != null && warnings.isArray() && warnings.size() > 0) {
+                System.out.printf("  Warnings: %s%n", warnings);
             }
 
             JsonSchema validator = SCHEMA_FACTORY.getSchema(originalSchema);
-            Set<ValidationMessage> errors = validator.validate(rehydrateResult.data());
+            Set<ValidationMessage> errors = validator.validate(rehydratedData);
 
             double elapsed = (System.nanoTime() - startTime) / 1_000_000_000.0;
 
@@ -167,11 +171,11 @@ public class StressTestBot {
 
             System.out.println("  ✅ Validated against original schema");
             System.out.printf(
-                    "  ✅ Success! Rehydrated data: %s%n", describeData(rehydrateResult.data()));
+                    "  ✅ Success! Rehydrated data: %s%n", describeData(rehydratedData));
             System.out.printf("  ⏱  %.2fs%n", elapsed);
             return new TestResult(true, elapsed);
 
-        } catch (JsonSchemaLlmException e) {
+        } catch (JsonSchemaLlmWasi.JslException e) {
             double elapsed = (System.nanoTime() - startTime) / 1_000_000_000.0;
             System.out.printf("  ❌ FAIL: %s%n", e.getMessage());
             if (e.getCode() != null)
