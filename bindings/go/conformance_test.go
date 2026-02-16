@@ -153,8 +153,9 @@ func TestConformance_Roundtrip(t *testing.T) {
 				}
 				for _, k := range keys {
 					key := k.(string)
-					if _, exists := resultMap[key]; !exists {
-						t.Errorf("result missing key %q", key)
+					val, exists := resultMap[key]
+					if !exists || val == nil {
+						t.Errorf("result missing key %q (or value is nil)", key)
 					}
 				}
 			}

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using JsonSchemaLlm;
 using Xunit;
 
@@ -218,9 +219,10 @@ public class ConformanceTests : IDisposable
         if (expected.TryGetProperty("data", out var expectedData))
         {
             var actualData = rehydrateResult.GetProperty("data");
-            Assert.Equal(
-                JsonSerializer.Serialize(JsonSerializer.Deserialize<object>(expectedData.GetRawText())),
-                JsonSerializer.Serialize(JsonSerializer.Deserialize<object>(actualData.GetRawText())));
+            var expectedNode = JsonNode.Parse(expectedData.GetRawText());
+            var actualNode = JsonNode.Parse(actualData.GetRawText());
+            Assert.True(JsonNode.DeepEquals(expectedNode, actualNode),
+                $"Data mismatch.\nExpected: {expectedData.GetRawText()}\nActual:   {actualData.GetRawText()}");
         }
 
         if (expected.TryGetProperty("data_user_name", out var userName))
