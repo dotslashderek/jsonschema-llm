@@ -7,8 +7,10 @@ members = [
     "crates/jsonschema-llm-python",
     "cli",
 ]
-# PyO3 crate requires Python dev headers — exclude from default workspace builds.
-# Build it explicitly via `cargo check -p jsonschema-llm-python` or `maturin develop`.
+# PyO3 crate requires Python dev headers; WASI crate requires wasm32-wasip1 target.
+# Both are excluded from default workspace builds — build explicitly via:
+#   cargo check -p jsonschema-llm-python   (or maturin develop)
+#   cargo check -p jsonschema-llm-wasi --target wasm32-wasip1
 default-members = [
     "crates/jsonschema-llm-core",
     "crates/jsonschema-llm-java",

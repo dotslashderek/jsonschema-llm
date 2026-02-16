@@ -24,7 +24,6 @@ import wasmtime
 # ---------------------------------------------------------------------------
 STATUS_OK = 0
 STATUS_ERROR = 1
-STATUS_PANIC = 2
 
 # JslResult is 12 bytes: 3 × u32 (status, ptr, len)
 JSL_RESULT_SIZE = 12
@@ -77,6 +76,7 @@ def call_jsl(store, instance, memory, func_name: str, *json_args: str) -> dict:
 
     # Call the function
     result_ptr = func(store, *flat_args)
+    assert result_ptr != 0, f"{func_name} returned null result pointer"
 
     # Read the JslResult struct (12 bytes)
     result_bytes = memory.read(store, result_ptr, result_ptr + JSL_RESULT_SIZE)
@@ -95,6 +95,41 @@ def call_jsl(store, instance, memory, func_name: str, *json_args: str) -> dict:
         jsl_free(store, ptr, length)
 
     return {"status": status, "payload": payload}
+
+
+def call_jsl_with_null_opts(store, instance, memory) -> dict:
+    """
+    Call jsl_convert with opts_ptr=0, opts_len=0 to test default options path.
+    """
+    exports = instance.exports(store)
+    jsl_alloc = exports["jsl_alloc"]
+    jsl_free = exports["jsl_free"]
+    jsl_result_free = exports["jsl_result_free"]
+    jsl_convert = exports["jsl_convert"]
+
+    schema = json.dumps({"type": "object", "properties": {"x": {"type": "string"}}})
+    data = schema.encode("utf-8")
+    schema_ptr = jsl_alloc(store, len(data))
+    memory.write(store, data, schema_ptr)
+
+    # Pass 0/0 for options
+    result_ptr = jsl_convert(store, schema_ptr, len(data), 0, 0)
+    assert result_ptr != 0, "jsl_convert returned null result pointer"
+
+    result_bytes = memory.read(store, result_ptr, result_ptr + JSL_RESULT_SIZE)
+    status, payload_ptr, payload_len = struct.unpack("<III", result_bytes)
+    payload_str = memory.read(store, payload_ptr, payload_ptr + payload_len).decode("utf-8")
+    payload = json.loads(payload_str)
+
+    jsl_result_free(store, result_ptr)
+    jsl_free(store, schema_ptr, len(data))
+
+    return {"status": status, "payload": payload}
+
+
+# ---------------------------------------------------------------------------
+# Test functions
+# ---------------------------------------------------------------------------
 
 
 def test_convert_simple(store, instance, memory):
@@ -161,6 +196,233 @@ def test_convert_error(store, instance, memory):
     print(f"  ✅ convert(invalid JSON) → error code={payload['code']}")
 
 
+def test_convert_null_options(store, instance, memory):
+    """Test: passing opts_ptr=0, opts_len=0 uses defaults (no crash)."""
+    result = call_jsl_with_null_opts(store, instance, memory)
+
+    assert result["status"] == STATUS_OK, f"Expected OK, got status {result['status']}: {result['payload']}"
+    payload = result["payload"]
+    assert payload["apiVersion"] == "1.0"
+
+    print(f"  ✅ convert(null options) → uses defaults, apiVersion={payload['apiVersion']}")
+
+
+def test_convert_empty_whitespace_options(store, instance, memory):
+    """Test: passing '{ }' (whitespace-padded empty object) uses defaults."""
+    schema = json.dumps({"type": "object", "properties": {"x": {"type": "string"}}})
+    result = call_jsl(store, instance, memory, "jsl_convert", schema, "{  }")
+
+    assert result["status"] == STATUS_OK, f"Expected OK, got status {result['status']}: {result['payload']}"
+    print(f"  ✅ convert(whitespace empty options) → uses defaults")
+
+
+def test_convert_null_pointer_error(store, instance, memory):
+    """Test: passing schema_ptr=0 with schema_len>0 returns invalid_pointer error."""
+    exports = instance.exports(store)
+    jsl_result_free = exports["jsl_result_free"]
+    jsl_convert = exports["jsl_convert"]
+
+    # Pass ptr=0, len=1 — should trigger invalid_pointer error, not a crash
+    result_ptr = jsl_convert(store, 0, 1, 0, 0)
+    assert result_ptr != 0, "jsl_convert returned null result pointer for null-pointer test"
+
+    result_bytes = memory.read(store, result_ptr, result_ptr + JSL_RESULT_SIZE)
+    status, payload_ptr, payload_len = struct.unpack("<III", result_bytes)
+    payload_str = memory.read(store, payload_ptr, payload_ptr + payload_len).decode("utf-8")
+    payload = json.loads(payload_str)
+
+    assert status == STATUS_ERROR, f"Expected ERROR, got status {status}"
+    assert payload["code"] == "invalid_pointer", f"Wrong error code: {payload['code']}"
+
+    jsl_result_free(store, result_ptr)
+    print(f"  ✅ convert(null ptr, len=1) → error code={payload['code']}")
+
+
+def test_convert_invalid_utf8_schema(store, instance, memory):
+    """Test: invalid UTF-8 bytes in schema produce invalid_utf8 error."""
+    exports = instance.exports(store)
+    jsl_alloc = exports["jsl_alloc"]
+    jsl_free = exports["jsl_free"]
+    jsl_result_free = exports["jsl_result_free"]
+    jsl_convert = exports["jsl_convert"]
+
+    # Write invalid UTF-8 bytes (0xFF 0xFE are never valid in UTF-8)
+    bad_bytes = b'\xff\xfe{"type":"object"}'
+    schema_ptr = jsl_alloc(store, len(bad_bytes))
+    memory.write(store, bad_bytes, schema_ptr)
+
+    result_ptr = jsl_convert(store, schema_ptr, len(bad_bytes), 0, 0)
+    assert result_ptr != 0, "jsl_convert returned null for invalid UTF-8 test"
+
+    result_bytes = memory.read(store, result_ptr, result_ptr + JSL_RESULT_SIZE)
+    status, payload_ptr, payload_len = struct.unpack("<III", result_bytes)
+    payload = json.loads(memory.read(store, payload_ptr, payload_ptr + payload_len).decode("utf-8"))
+
+    assert status == STATUS_ERROR, f"Expected ERROR, got {status}"
+    assert payload["code"] == "invalid_utf8", f"Wrong code: {payload['code']}"
+    assert "byte offset" in payload["message"], f"Missing offset info: {payload['message']}"
+
+    jsl_result_free(store, result_ptr)
+    jsl_free(store, schema_ptr, len(bad_bytes))
+    print(f"  ✅ convert(invalid UTF-8 schema) → {payload['code']}, {payload['message']}")
+
+
+def test_convert_invalid_utf8_options(store, instance, memory):
+    """Test: invalid UTF-8 bytes in options produce invalid_utf8 error."""
+    exports = instance.exports(store)
+    jsl_alloc = exports["jsl_alloc"]
+    jsl_free = exports["jsl_free"]
+    jsl_result_free = exports["jsl_result_free"]
+    jsl_convert = exports["jsl_convert"]
+
+    # Valid schema, invalid UTF-8 options
+    schema = json.dumps({"type": "object"}).encode("utf-8")
+    schema_ptr = jsl_alloc(store, len(schema))
+    memory.write(store, schema, schema_ptr)
+
+    bad_opts = b'\xff\xfe{}'
+    opts_ptr = jsl_alloc(store, len(bad_opts))
+    memory.write(store, bad_opts, opts_ptr)
+
+    result_ptr = jsl_convert(store, schema_ptr, len(schema), opts_ptr, len(bad_opts))
+    assert result_ptr != 0
+
+    result_bytes = memory.read(store, result_ptr, result_ptr + JSL_RESULT_SIZE)
+    status, payload_ptr, payload_len = struct.unpack("<III", result_bytes)
+    payload = json.loads(memory.read(store, payload_ptr, payload_ptr + payload_len).decode("utf-8"))
+
+    assert status == STATUS_ERROR, f"Expected ERROR, got {status}"
+    assert payload["code"] == "invalid_utf8"
+
+    jsl_result_free(store, result_ptr)
+    jsl_free(store, schema_ptr, len(schema))
+    jsl_free(store, opts_ptr, len(bad_opts))
+    print(f"  ✅ convert(invalid UTF-8 options) → {payload['code']}")
+
+
+def test_convert_invalid_options_json(store, instance, memory):
+    """Test: syntactically invalid JSON options produce an error (not crash)."""
+    schema = json.dumps({"type": "object", "properties": {"x": {"type": "string"}}})
+    result = call_jsl(store, instance, memory, "jsl_convert", schema, "NOT JSON AT ALL")
+
+    assert result["status"] == STATUS_ERROR, f"Expected ERROR, got {result['status']}"
+    print(f"  ✅ convert(invalid options JSON) → error code={result['payload'].get('code', 'N/A')}")
+
+
+def test_convert_partial_options(store, instance, memory):
+    """Test: valid JSON options missing required 'target' field produce error."""
+    schema = json.dumps({"type": "object", "properties": {"x": {"type": "string"}}})
+    partial_opts = json.dumps({"max_depth": 5})  # missing 'target'
+    result = call_jsl(store, instance, memory, "jsl_convert", schema, partial_opts)
+
+    # Should produce a deserialization error from core, not crash
+    assert result["status"] == STATUS_ERROR, f"Expected ERROR, got {result['status']}"
+    print(f"  ✅ convert(partial options, missing target) → error code={result['payload'].get('code', 'N/A')}")
+
+
+def test_convert_empty_schema(store, instance, memory):
+    """Test: empty string schema produces an error (not crash)."""
+    # read_guest_str returns Ok("") for len=0, then convert_json gets ""
+    exports = instance.exports(store)
+    jsl_convert = exports["jsl_convert"]
+    jsl_result_free = exports["jsl_result_free"]
+
+    # ptr=0, len=0 for schema → read_guest_str returns Ok("")
+    result_ptr = jsl_convert(store, 0, 0, 0, 0)
+    assert result_ptr != 0, "jsl_convert returned null for empty schema test"
+
+    result_bytes = memory.read(store, result_ptr, result_ptr + JSL_RESULT_SIZE)
+    status, payload_ptr, payload_len = struct.unpack("<III", result_bytes)
+    payload = json.loads(memory.read(store, payload_ptr, payload_ptr + payload_len).decode("utf-8"))
+
+    # Empty schema string should cause a parse error
+    assert status == STATUS_ERROR, f"Expected ERROR for empty schema, got {status}"
+
+    jsl_result_free(store, result_ptr)
+    print(f"  ✅ convert(empty schema '') → error code={payload.get('code', 'N/A')}")
+
+
+def test_rehydrate_error(store, instance, memory):
+    """Test: rehydrate with invalid codec produces structured error."""
+    schema = json.dumps({"type": "object", "properties": {"x": {"type": "string"}}})
+    data = json.dumps({"x": "hello"})
+    bad_codec = "NOT VALID JSON"
+
+    result = call_jsl(store, instance, memory, "jsl_rehydrate", data, bad_codec, schema)
+
+    assert result["status"] == STATUS_ERROR, f"Expected ERROR, got {result['status']}"
+    payload = result["payload"]
+    assert "code" in payload, f"Missing error code: {payload}"
+
+    print(f"  ✅ rehydrate(invalid codec) → error code={payload['code']}")
+
+
+def test_rehydrate_roundtrip_real_world(store, instance, memory):
+    """Test: convert + rehydrate round-trip with a real-world schema."""
+    project_root = Path(__file__).resolve().parent.parent.parent
+    rw_dir = project_root / "tests" / "schemas" / "real-world"
+
+    if not rw_dir.exists():
+        print("  ⏭️  rehydrate(real-world) → skipped, no real-world schemas dir")
+        return
+
+    # Pick first schema alphabetically for determinism
+    schema_file = sorted(rw_dir.glob("*.json"))[0]
+    schema = schema_file.read_text()
+    options = json.dumps({})
+
+    # Step 1: Convert
+    convert_result = call_jsl(store, instance, memory, "jsl_convert", schema, options)
+    assert convert_result["status"] == STATUS_OK, f"Convert failed: {convert_result['payload']}"
+
+    codec = json.dumps(convert_result["payload"]["codec"])
+    converted_schema = convert_result["payload"]["schema"]
+
+    # Step 2: Create minimal valid data matching converted schema
+    # Use empty object as data — rehydrate should handle it even if not fully valid
+    data = json.dumps({})
+
+    # Step 3: Rehydrate
+    rh_result = call_jsl(store, instance, memory, "jsl_rehydrate", data, codec, schema)
+    # We accept both OK (valid round-trip) and ERROR (data doesn't match schema)
+    # The point is: it must not crash
+    assert rh_result["status"] in (STATUS_OK, STATUS_ERROR), f"Unexpected status: {rh_result['status']}"
+
+    name = schema_file.stem
+    status_label = "OK" if rh_result["status"] == STATUS_OK else "ERROR (expected — empty data)"
+    print(f"  ✅ rehydrate({name}) round-trip → {status_label}")
+
+
+def test_alloc_zero(store, instance, memory):
+    """Test: jsl_alloc(0) doesn't crash (Vec::with_capacity(0) is valid)."""
+    exports = instance.exports(store)
+    jsl_alloc = exports["jsl_alloc"]
+    jsl_free = exports["jsl_free"]
+
+    # Should not crash — Vec::with_capacity(0) returns a valid non-null pointer
+    ptr = jsl_alloc(store, 0)
+    # ptr may or may not be 0 depending on allocator, but it should not trap
+    print(f"  ✅ alloc(0) → ptr={ptr} (no crash)")
+
+    # Free should handle 0-length gracefully (hits the len==0 guard)
+    jsl_free(store, ptr, 0)
+    print(f"  ✅ free(ptr, 0) → no crash")
+
+
+def test_free_null_guards(store, instance, memory):
+    """Test: jsl_free(0,0), jsl_free(0,1), and jsl_result_free(0) don't crash."""
+    exports = instance.exports(store)
+    jsl_free = exports["jsl_free"]
+    jsl_result_free = exports["jsl_result_free"]
+
+    # All of these should hit guards and return safely
+    jsl_free(store, 0, 0)
+    jsl_free(store, 0, 1)  # ptr=0 guard
+    jsl_result_free(store, 0)  # result_ptr=0 guard
+
+    print(f"  ✅ free(0,0), free(0,1), result_free(0) → all no-crash")
+
+
 def test_convert_real_world(store, instance, memory, schema_path: str):
     """Test: convert a real-world schema from the test corpus."""
     with open(schema_path) as f:
@@ -207,6 +469,21 @@ def main():
     convert_payload = test_convert_simple(store, instance, memory)
     test_rehydrate_simple(store, instance, memory, convert_payload)
     test_convert_error(store, instance, memory)
+    test_convert_null_options(store, instance, memory)
+    test_convert_empty_whitespace_options(store, instance, memory)
+    test_convert_null_pointer_error(store, instance, memory)
+
+    # ---- Edge case / boundary tests ----
+    print("\nEdge Case Tests:")
+    test_convert_invalid_utf8_schema(store, instance, memory)
+    test_convert_invalid_utf8_options(store, instance, memory)
+    test_convert_invalid_options_json(store, instance, memory)
+    test_convert_partial_options(store, instance, memory)
+    test_convert_empty_schema(store, instance, memory)
+    test_rehydrate_error(store, instance, memory)
+    test_rehydrate_roundtrip_real_world(store, instance, memory)
+    test_alloc_zero(store, instance, memory)
+    test_free_null_guards(store, instance, memory)
 
     # ---- Real-world schema tests ----
     schemas_dir = project_root / "tests" / "schemas"
