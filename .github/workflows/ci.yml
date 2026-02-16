@@ -38,16 +38,16 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Clippy lints
-        run: cargo clippy --workspace --exclude jsonschema-llm-python --all-targets -- -D warnings
+        run: cargo clippy --workspace --exclude jsonschema-llm-python --exclude jsonschema-llm-wasi --all-targets -- -D warnings
 
       - name: Run tests
         run: |
           echo "::group::Unit & Integration Tests"
-          cargo test --workspace --exclude jsonschema-llm-python --all-targets
+          cargo test --workspace --exclude jsonschema-llm-python --exclude jsonschema-llm-wasi --all-targets
           echo "::endgroup::"
 
           echo "::group::Doc Tests"
-          cargo test --workspace --exclude jsonschema-llm-python --doc
+          cargo test --workspace --exclude jsonschema-llm-python --exclude jsonschema-llm-wasi --doc
           echo "::endgroup::"
 
       - name: Build release binary
@@ -141,6 +141,48 @@ jobs:
           echo "::endgroup::"
 
           echo "✅ npm package validation passed"
+
+  wasi:
+    name: WASI Universal Binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip1
+
+      - name: Cache cargo registry & build
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build WASI binary
+        run: cargo build --target wasm32-wasip1 --release -p jsonschema-llm-wasi
+
+      - name: Check binary size (must be ≤3 MB)
+        run: |
+          SIZE=$(stat --format=%s target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm)
+          SIZE_MB=$(echo "scale=2; $SIZE / 1048576" | bc)
+          echo "Binary size: ${SIZE_MB} MB"
+          if [ "$SIZE" -gt 3145728 ]; then
+            echo "❌ Binary exceeds 3 MB gate"
+            exit 1
+          fi
+          echo "✅ Binary size within gate"
+
+      - name: Clippy (WASI target)
+        run: cargo clippy -p jsonschema-llm-wasi --target wasm32-wasip1 -- -D warnings
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install wasmtime Python package
+        run: pip install wasmtime
+
+      - name: Run WASI host verification
+        run: python3 tests/wasi/host_verify.py
 
   python:
     name: Python Bindings
