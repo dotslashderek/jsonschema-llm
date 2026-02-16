@@ -144,13 +144,16 @@ export class Engine {
     // ABI version handshake (once per Engine lifetime)
     if (!this.abiVerified) {
       const abiVersionFn = exports.jsl_abi_version as (() => number) | undefined;
-      if (abiVersionFn) {
-        const version = abiVersionFn();
-        if (version !== EXPECTED_ABI_VERSION) {
-          throw new Error(
-            `ABI version mismatch: binary=${version}, expected=${EXPECTED_ABI_VERSION}`
-          );
-        }
+      if (!abiVersionFn) {
+        throw new Error(
+          "Incompatible WASM module: missing required 'jsl_abi_version' export"
+        );
+      }
+      const version = abiVersionFn();
+      if (version !== EXPECTED_ABI_VERSION) {
+        throw new Error(
+          `ABI version mismatch: binary=${version}, expected=${EXPECTED_ABI_VERSION}`
+        );
       }
       this.abiVerified = true;
     }

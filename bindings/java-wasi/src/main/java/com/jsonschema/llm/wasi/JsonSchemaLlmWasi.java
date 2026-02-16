@@ -59,10 +59,6 @@ public class JsonSchemaLlmWasi implements AutoCloseable {
         return convert(schema, null);
     }
 
-    private static final ObjectMapper KEBAB_MAPPER = new ObjectMapper()
-            .setPropertyNamingStrategy(
-                    com.fasterxml.jackson.databind.PropertyNamingStrategies.KEBAB_CASE);
-
     private String normalizeOptionsJson(Object options) throws com.fasterxml.jackson.core.JsonProcessingException {
         if (options == null)
             return "{}";
@@ -133,6 +129,10 @@ public class JsonSchemaLlmWasi implements AutoCloseable {
             if (!abiVerified) {
                 try {
                     ExportFunction abiFn = instance.export("jsl_abi_version");
+                    if (abiFn == null) {
+                        throw new RuntimeException(
+                                "Incompatible WASM module: missing required 'jsl_abi_version' export");
+                    }
                     Value[] abiResult = abiFn.apply();
                     int version = abiResult[0].asInt();
                     if (version != EXPECTED_ABI_VERSION) {
@@ -140,9 +140,9 @@ public class JsonSchemaLlmWasi implements AutoCloseable {
                                 "ABI version mismatch: binary=" + version + ", expected=" + EXPECTED_ABI_VERSION);
                     }
                 } catch (RuntimeException e) {
-                    throw e; // Propagate ABI mismatch and other runtime errors
-                } catch (Exception ignored) {
-                    // If export doesn't exist (e.g. older binary), skip version check
+                    throw e;
+                } catch (Exception e) {
+                    throw new RuntimeException("ABI handshake failed", e);
                 }
                 abiVerified = true;
             }

@@ -1,6 +1,6 @@
 # Docker Compose for running all WASI wrapper tests in isolated environments.
-# Each service builds from a language-specific Dockerfile and runs both
-# wrapper tests and stress test clients (where available).
+# Each service builds from a language-specific Dockerfile and runs the
+# wrapper test suite for that language.
 #
 # Prerequisites: WASI binary must be built first:
 #   cargo build --target wasm32-wasip1 --release -p jsonschema-llm-wasi

@@ -87,14 +87,13 @@ public sealed class JsonSchemaLlmEngine : IDisposable
         // ABI version handshake (once per engine lifetime)
         if (!_abiVerified)
         {
-            var abiFn = instance.GetFunction<int>("jsl_abi_version");
-            if (abiFn != null)
-            {
-                var version = abiFn();
-                if (version != ExpectedAbiVersion)
-                    throw new InvalidOperationException(
-                        $"ABI version mismatch: binary={version}, expected={ExpectedAbiVersion}");
-            }
+            var abiFn = instance.GetFunction<int>("jsl_abi_version")
+                ?? throw new InvalidOperationException(
+                    "Incompatible WASM module: missing required 'jsl_abi_version' export");
+            var version = abiFn();
+            if (version != ExpectedAbiVersion)
+                throw new InvalidOperationException(
+                    $"ABI version mismatch: binary={version}, expected={ExpectedAbiVersion}");
             _abiVerified = true;
         }
 

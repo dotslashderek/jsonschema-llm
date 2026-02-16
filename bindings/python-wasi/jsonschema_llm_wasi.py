@@ -92,13 +92,15 @@ class Engine:
             exports = instance.exports(store)
             try:
                 abi_fn = exports["jsl_abi_version"]
-                version = abi_fn(store)
-                if version != EXPECTED_ABI_VERSION:
-                    raise RuntimeError(
-                        f"ABI version mismatch: binary={version}, expected={EXPECTED_ABI_VERSION}"
-                    )
             except KeyError:
-                pass  # Older binary without jsl_abi_version export
+                raise RuntimeError(
+                    "Incompatible WASM module: missing required 'jsl_abi_version' export"
+                )
+            version = abi_fn(store)
+            if version != EXPECTED_ABI_VERSION:
+                raise RuntimeError(
+                    f"ABI version mismatch: binary={version}, expected={EXPECTED_ABI_VERSION}"
+                )
             self._abi_verified = True
 
         memory = instance.exports(store)["memory"]

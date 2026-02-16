@@ -75,11 +75,12 @@ module JsonSchemaLlm
       # ABI version handshake (once per Engine lifetime)
       unless @abi_verified
         abi_fn = instance.export("jsl_abi_version")&.to_func
-        if abi_fn
-          version = abi_fn.call
-          unless version == EXPECTED_ABI_VERSION
-            raise "ABI version mismatch: binary=#{version}, expected=#{EXPECTED_ABI_VERSION}"
-          end
+        unless abi_fn
+          raise "Incompatible WASM module: missing required 'jsl_abi_version' export"
+        end
+        version = abi_fn.call
+        unless version == EXPECTED_ABI_VERSION
+          raise "ABI version mismatch: binary=#{version}, expected=#{EXPECTED_ABI_VERSION}"
         end
         @abi_verified = true
       end

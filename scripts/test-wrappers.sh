@@ -46,6 +46,7 @@ for svc in "${SERVICES[@]}"; do
     echo "❌ $svc failed"
     FAILED+=("$svc")
   fi
+  docker compose -f "$PROJECT_ROOT/docker-compose.test.yml" down --remove-orphans 2>/dev/null
   echo ""
 done
 

@@ -201,17 +201,18 @@ func (e *Engine) callJsl(funcName string, jsonArgs ...[]byte) ([]byte, error) {
 	// ABI version handshake (once per Engine lifetime)
 	if !e.abiVerified {
 		abiFn := mod.ExportedFunction("jsl_abi_version")
-		if abiFn != nil {
-			results, err := abiFn.Call(e.ctx)
-			if err != nil {
-				return nil, fmt.Errorf("jsl_abi_version call failed: %w", err)
-			}
-			if len(results) != 1 {
-				return nil, fmt.Errorf("jsl_abi_version returned %d values, expected 1", len(results))
-			}
-			if results[0] != expectedABIVersion {
-				return nil, fmt.Errorf("ABI version mismatch: binary=%d, expected=%d", results[0], expectedABIVersion)
-			}
+		if abiFn == nil {
+			return nil, fmt.Errorf("incompatible WASM module: missing required 'jsl_abi_version' export")
+		}
+		results, err := abiFn.Call(e.ctx)
+		if err != nil {
+			return nil, fmt.Errorf("jsl_abi_version call failed: %w", err)
+		}
+		if len(results) != 1 {
+			return nil, fmt.Errorf("jsl_abi_version returned %d values, expected 1", len(results))
+		}
+		if results[0] != expectedABIVersion {
+			return nil, fmt.Errorf("ABI version mismatch: binary=%d, expected=%d", results[0], expectedABIVersion)
 		}
 		e.abiVerified = true
 	}
