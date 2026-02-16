@@ -1,8 +1,8 @@
 FROM node:22-bookworm-slim
 RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
-COPY bindings/ts-wasi/ ./bindings/ts-wasi/
+COPY bindings/ts /app/bindings/ts/
 COPY tests/ ./tests/
-WORKDIR /app/bindings/ts-wasi
+WORKDIR /app/bindings/ts
 RUN pnpm install --frozen-lockfile
 CMD ["pnpm", "test"]

@@ -4,7 +4,7 @@ import * as path from 'path';
 import OpenAI from 'openai';
 import Ajv2020 from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
-import { Engine } from '../../../bindings/ts-wasi/src/index';
+import { Engine } from '../../../bindings/ts/src/index';
 import type { ResponseFormatJSONSchema } from 'openai/resources/shared';
 
 // Initialize clients

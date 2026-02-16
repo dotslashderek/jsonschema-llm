@@ -1,2 +1,2 @@
 rootProject.name = "stress-test-bot-java"
-includeBuild("../../bindings/java-wasi")
+includeBuild("../../bindings/java")
