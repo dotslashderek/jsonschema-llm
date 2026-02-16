@@ -66,7 +66,7 @@ jsonschema-llm/
 │   ├── jsonschema-llm-core/     # Core Rust library
 │   │   └── src/
 │   │       ├── lib.rs            # Public API
-│   │       ├── passes/           # One module per pass (p0–p7)
+│   │       ├── passes/           # One module per pass (p0–p9)
 │   │       ├── codec.rs          # Codec builder
 │   │       ├── rehydrator.rs     # Reverse transforms
 │   │       └── schema_utils.rs   # Shared path/traversal utilities
@@ -81,6 +81,10 @@ jsonschema-llm/
 │   └── dotnet/                  # C#/.NET wrapper (wasmtime-dotnet)
 ├── cli/                         # CLI binary
 ├── docker/                      # Dockerfiles for wrapper testing
+├── examples/
+│   ├── stress-test-bot/         # TypeScript stress test client
+│   ├── stress-test-bot-python/  # Python stress test client
+│   └── stress-test-bot-java/    # Java stress test client
 ├── fuzz/                        # cargo-fuzz harness (standalone, nightly)
 ├── tests/
 │   ├── conformance/             # Cross-language conformance fixtures

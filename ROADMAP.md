@@ -1,19 +1,23 @@
 # jsonschema-llm Roadmap
 
-> **Status:** Alpha · Last updated: 2026-02-12 · Tracking issue: [#100](https://github.com/dotslashderek/jsonschema-llm/issues/100)
+> **Status:** Alpha · Last updated: 2026-02-16 · Tracking issue: [#100](https://github.com/dotslashderek/jsonschema-llm/issues/100)
 
 ---
 
 ## Epic Progress
 
-| Epic                                                                               | Status         | Open | Closed | Progress |
-| ---------------------------------------------------------------------------------- | -------------- | :--: | :----: | :------: |
-| [#39 Python PyO3](https://github.com/dotslashderek/jsonschema-llm/issues/39)       | ✅ Done        |  0   |   5    |   100%   |
-| [#77 Strict Mode](https://github.com/dotslashderek/jsonschema-llm/issues/77)       | ✅ Done        |  0   |   4    |   100%   |
-| [#36 Core Improvements](https://github.com/dotslashderek/jsonschema-llm/issues/36) | 🟡 Active      |  3   |   9    |   75%    |
-| [#40 Java Binding](https://github.com/dotslashderek/jsonschema-llm/issues/40)      | ⬜ Not started |  5   |   0    |    0%    |
-| [#76 Conformance Suite](https://github.com/dotslashderek/jsonschema-llm/issues/76) | ⬜ Not started |  10  |   0    |    0%    |
-| [#115 Test Harness](https://github.com/dotslashderek/jsonschema-llm/issues/115)    | ⬜ Not started |  4   |   0    |    0%    |
+| Epic                                                                                    | Status         | Open | Closed | Progress |
+| --------------------------------------------------------------------------------------- | -------------- | :--: | :----: | :------: |
+| [#77 Strict Mode](https://github.com/dotslashderek/jsonschema-llm/issues/77)            | ✅ Done        |  0   |   4    |   100%   |
+| [#37 FFI Facade](https://github.com/dotslashderek/jsonschema-llm/issues/37)             | ✅ Done        |  0   |   5    |   100%   |
+| [#38 TypeScript WASM](https://github.com/dotslashderek/jsonschema-llm/issues/38)        | ✅ Done        |  0   |   4    |   100%   |
+| [#115 Test Harness](https://github.com/dotslashderek/jsonschema-llm/issues/115)         | ✅ Done        |  0   |   7    |   100%   |
+| [#148 WASI Wrappers](https://github.com/dotslashderek/jsonschema-llm/issues/148)        | ✅ Done        |  0   |   4    |   100%   |
+| [#154 Conformance Fixtures](https://github.com/dotslashderek/jsonschema-llm/issues/154) | ✅ Done        |  0   |   1    |   100%   |
+| [#39 Python PyO3](https://github.com/dotslashderek/jsonschema-llm/issues/39)            | 🚨 Retired     |  —   |   —    |    —     |
+| [#40 Java JNI](https://github.com/dotslashderek/jsonschema-llm/issues/40)               | 🚨 Retired     |  —   |   —    |    —     |
+| [#36 Core Improvements](https://github.com/dotslashderek/jsonschema-llm/issues/36)      | 🟡 Active      |  3   |   9    |   75%    |
+| [#76 Conformance Suite](https://github.com/dotslashderek/jsonschema-llm/issues/76)      | ⬜ Not started |  10  |   0    |    0%    |
 
 ---
 
@@ -21,27 +25,25 @@
 
 ### 🔴 Bucket 1: Alpha Release Prerequisites
 
-Ship language bindings as `0.1.0-alpha` with honest documentation.
+Ship the library with honest documentation.
 
-| PR                                    | Issues                     | Effort   | Status               |
-| ------------------------------------- | -------------------------- | -------- | -------------------- |
-| ~~Ship PR #114~~                      | ~~#41, #95, #112~~         | ~~Done~~ | ✅ Shipped           |
-| ~~1a: Alpha docs + default coercion~~ | ~~#121, #123, #125, #126~~ | ~~S~~    | ✅ Shipped (PR #128) |
-| ~~1b: Python binding finish~~         | ~~#63, #64~~               | ~~S~~    | ✅ Shipped (PR #130) |
-| **1c: Java JNI binding**              | #65, #66, #67, #68, #69    | L        | Queued               |
-| **1d: Registry publishing**           | #131                       | S        | Queued               |
+| Item                          | Issues                     | Effort   | Status                      |
+| ----------------------------- | -------------------------- | -------- | --------------------------- |
+| ~~Ship PR #114~~              | ~~#41, #95, #112~~         | ~~Done~~ | ✅ Shipped                  |
+| ~~1a: Alpha docs + coercion~~ | ~~#121, #123, #125, #126~~ | ~~S~~    | ✅ Shipped (PR #128)        |
+| ~~1b: Python binding finish~~ | ~~#63, #64~~               | ~~S~~    | ✅ Shipped (PR #130)        |
+| ~~1c: Java JNI binding~~      | ~~#65~~                    | ~~L~~    | 🚨 Retired → WASI (PR #155) |
+| **1d: Registry publishing**   | #131                       | S        | Queued                      |
 
 ### 🟡 Bucket 2: Architectural Fixes (Post-Alpha, Pre-1.0)
 
-Address fundamental robustness gaps.
-
-| PR                                      | Issues        | Effort  | Status               |
+| Item                                    | Issues        | Effort  | Status               |
 | --------------------------------------- | ------------- | ------- | -------------------- |
 | ~~2a: Root-cause type-safety~~          | ~~#122~~      | ~~M~~   | ✅ Shipped (PR #129) |
 | ~~2b: Recursive transform composition~~ | ~~#120~~      | ~~M-L~~ | ✅ Shipped (PR #129) |
+| ~~2e: p9 inner-schema strict mode~~     | ~~#110~~      | ~~S~~   | ✅ Shipped (PR #138) |
 | **2c: Multi-provider validation**       | #124, #83     | L       | Queued               |
 | **2d: Conformance suite foundation**    | #78, #79, #87 | M-L     | Queued               |
-| **2e: p9 inner-schema strict mode**     | #110          | S       | 🔥 In progress       |
 
 ### 🔵 Bucket 3: Core Refactors (Quality)
 
@@ -56,16 +58,16 @@ From Epic #36 — good engineering, not blocking alpha.
 
 ### ⚪ Bucket 4: Test & Quality Infrastructure
 
-| Issues | Title                                           | Effort |
-| ------ | ----------------------------------------------- | ------ |
-| #47    | Property-based testing with proptest/fuzz       | L      |
-| #105   | Code quality fixes from Copilot review          | S      |
-| #106   | Pin Python dependency version bounds            | S      |
-| #116   | Retry logic for non-deterministic stress tests  | S      |
-| #117   | Classify known-fail schemas as expected         | S      |
-| #118   | Timeout/retry/error handling for stress harness | S      |
-| #119   | Report diffing / regression tracking            | M      |
-| #132   | Stress test clients                             | S      |
+| Issues   | Title                                       | Effort | Status               |
+| -------- | ------------------------------------------- | ------ | -------------------- |
+| ~~#105~~ | ~~Code quality fixes from Copilot review~~  | ~~S~~  | ✅ Shipped (PR #143) |
+| ~~#106~~ | ~~Pin Python dependency version bounds~~    | ~~S~~  | ✅ Shipped (PR #143) |
+| ~~#116~~ | ~~Retry logic for non-deterministic tests~~ | ~~S~~  | ✅ Shipped (PR #138) |
+| ~~#117~~ | ~~Classify known-fail schemas~~             | ~~S~~  | ✅ Shipped (PR #138) |
+| ~~#118~~ | ~~Timeout/retry/error handling~~            | ~~S~~  | ✅ Shipped (PR #144) |
+| ~~#119~~ | ~~Report diffing / regression tracking~~    | ~~M~~  | ✅ Shipped (PR #144) |
+| ~~#132~~ | ~~Stress test clients (Python + Java)~~     | ~~S~~  | ✅ Shipped (PR #145) |
+| #47      | Property-based testing with proptest/fuzz   | L      | Queued               |
 
 ### 🟣 Bucket 5: Future Conformance (Post-1.0)
 
@@ -85,12 +87,16 @@ From Epic #36 — good engineering, not blocking alpha.
 ```
 ✅ Ship PR #114 (depth budget, walker unification, coercion, constraints)
 ✅ PR 1a (alpha docs + default coercion) — PR #128
-✅ PR 2a (root-cause type-safety) — PR #129
-✅ PR 2b (recursive transform composition) — PR #129
+✅ PR 2a/2b (type-safety + recursive composition) — PR #129
 ✅ PR 1b (Python binding finish) — PR #130
-  → PR 2e (p9 inner-schema strict mode) ← 🔥 YOU ARE HERE
-  → PR 1c (Java JNI binding)
-  → PR 1d (Registry publishing)
+✅ PR 2e (p9 inner-schema strict mode) — PR #138
+✅ Java JNI binding (shipped then retired) — PR #142
+✅ Test harness complete (#105, #106, #116–#119, #132) — PRs #138, #143, #144, #145
+✅ WASI universal binary spike — PR #151
+✅ WASI 6-language wrappers — PR #152
+✅ Native binding retirement + ABI handshake — PR #155
+✅ Conformance fixture execution — PR #156
+  → PR 1d (Registry publishing) ← 🔥 YOU ARE HERE
   → 🚀 Alpha Release 0.1.0-alpha
   → PR 2c/2d (multi-provider + conformance)
   → 🎯 Beta / 1.0 path
@@ -109,13 +115,15 @@ From Epic #36 — good engineering, not blocking alpha.
 
 ## Recently Shipped
 
+- ~~#147, #148, #149, #153~~ ✅ WASI universal binary, 6 language wrappers, native binding retirement (PRs #151, #152, #155)
+- ~~#154~~ ✅ Conformance fixture execution for Go + Python (PR #156)
+- ~~#132~~ ✅ Python + Java stress test clients (PR #145)
+- ~~#118, #119~~ ✅ Timeout/retry/error handling + report diffing (PR #144)
+- ~~#105, #106~~ ✅ Stress code quality fixes + dep pinning (PR #143)
+- ~~#65~~ ✅ Java C FFI + JNI bindings (PR #142, later retired)
+- ~~#110~~ ✅ p9 inner-schema strict mode (PR #138)
+- ~~#116, #117~~ ✅ Retry logic + known-fail classification (PR #138)
 - ~~#63, #64~~ ✅ Python PyO3 binding + contract tests (PR #130)
-- ~~#121~~ ✅ Default coercion to nearest valid (PR #128)
-- ~~#123~~ ✅ Constraint ordering consistency (PR #128)
-- ~~#125~~ ✅ Alpha documentation (PR #128)
-- ~~#126~~ ✅ Coercion + constraint integration tests (PR #128)
-- ~~#120~~ ✅ Mixed-type container fix (PR #129)
-- ~~#122~~ ✅ Recursive rehydrator expansion fix (PR #129)
-- ~~#94~~ ✅ Root schema must be `type: object` (PR #108)
-- ~~#96~~ ✅ Heterogeneous enums unsupported (PR #108)
-- ~~#77~~ ✅ Mode Flag (PR #108)
+- ~~#121, #123, #125, #126~~ ✅ Alpha docs + coercion + constraints (PR #128)
+- ~~#120, #122~~ ✅ Mixed-type container fix + recursive rehydrator (PR #129)
+- ~~#94, #96, #77~~ ✅ Root object, heterogeneous enums, mode flag (PR #108)

@@ -213,20 +213,28 @@ The algorithm targets **OpenAI Strict Mode** as the baseline compilation target 
 ```
 jsonschema-llm/
 ├── crates/
-│   └── jsonschema-llm-core/   # Rust core library
-│       └── src/
-│           ├── lib.rs          # Public API (convert + rehydrate)
-│           ├── passes/         # One module per pass (p0–p9)
-│           ├── codec.rs        # Codec builder
-│           ├── rehydrator.rs   # Reverse transforms
-│           └── schema_utils.rs # Shared path/traversal utilities
-├── cli/                       # Rust CLI binary (stub)
-├── bindings/                  # Language bindings (not yet implemented)
-│   ├── typescript/            # WASM (planned)
-│   ├── java/                  # JNI (planned)
-│   └── python/                # PyO3 (planned)
+│   ├── jsonschema-llm-core/     # Rust core library
+│   │   └── src/
+│   │       ├── lib.rs            # Public API (convert + rehydrate)
+│   │       ├── passes/           # One module per pass (p0–p9)
+│   │       ├── codec.rs          # Codec builder
+│   │       ├── rehydrator.rs     # Reverse transforms
+│   │       └── schema_utils.rs   # Shared path/traversal utilities
+│   ├── jsonschema-llm-wasi/     # WASI universal binary (wasm32-wasip1)
+│   └── jsonschema-llm-wasm/     # TypeScript/JS WASM bindings
+├── bindings/
+│   ├── go/                      # Go wrapper (Wazero)
+│   ├── ts-wasi/                 # TypeScript wrapper (node:wasi)
+│   ├── python-wasi/             # Python wrapper (wasmtime)
+│   ├── java-wasi/               # Java wrapper (Chicory)
+│   ├── ruby/                    # Ruby wrapper (Wasmtime)
+│   └── dotnet/                  # C#/.NET wrapper (Wasmtime.NET)
+├── cli/                         # CLI binary
+├── tests/
+│   ├── conformance/             # Cross-language conformance fixtures
+│   └── contract-node/           # WASM contract tests (Node.js)
 ├── docs/
-│   └── algorithm.md           # This specification
+│   └── algorithm.md             # This specification
 └── README.md
 ```
 

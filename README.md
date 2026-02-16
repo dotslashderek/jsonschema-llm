@@ -362,7 +362,8 @@ See **[ROADMAP.md](ROADMAP.md)** for the full prioritized roadmap with epic prog
 | [TypeScript / JS (WASM)](https://github.com/dotslashderek/jsonschema-llm/issues/38)  | ✅ Complete    |   100%   | `wasm-pack` + `serde-wasm-bindgen`, npm package                            |
 | [Python (PyO3)](https://github.com/dotslashderek/jsonschema-llm/issues/39)           | 🚨 Retired     |    —     | Replaced by WASI wrapper (`bindings/python-wasi`)                          |
 | [Java (JNI)](https://github.com/dotslashderek/jsonschema-llm/issues/40)              | 🚨 Retired     |    —     | Replaced by WASI wrapper (`bindings/java-wasi`)                            |
-| [WASI Language Wrappers](https://github.com/dotslashderek/jsonschema-llm/issues/148) | 🟡 Active      |   90%    | Single `.wasm` module with wrappers for Go, TS, Python, Java, Ruby, C#     |
+| [WASI Language Wrappers](https://github.com/dotslashderek/jsonschema-llm/issues/148) | ✅ Complete    |   100%   | Single `.wasm` module with wrappers for Go, TS, Python, Java, Ruby, C#     |
+| [Conformance Fixtures](https://github.com/dotslashderek/jsonschema-llm/issues/154)   | ✅ Complete    |   100%   | Cross-language fixture execution for Go + Python WASI wrappers             |
 | [Conformance Suite](https://github.com/dotslashderek/jsonschema-llm/issues/76)       | ⬜ Not started |    0%    | Provider-specific test suites, OpenAPI/AsyncAPI support                    |
 | [Test Harness](https://github.com/dotslashderek/jsonschema-llm/issues/115)           | ✅ Complete    |   100%   | Retry logic, known-fail classification, regression tracking                |
 
