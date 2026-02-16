@@ -85,7 +85,10 @@ func TestConformance_Convert(t *testing.T) {
 
 				optsJSON := "{}"
 				if fx.Input.Options != nil {
-					b, _ := json.Marshal(fx.Input.Options)
+					b, err := json.Marshal(fx.Input.Options)
+					if err != nil {
+						t.Fatalf("failed to marshal options: %v", err)
+					}
 					optsJSON = string(b)
 				}
 				_, err := eng.callJsl("jsl_convert", []byte(fx.Input.SchemaRaw), []byte(optsJSON))
@@ -165,8 +168,14 @@ func TestConformance_Roundtrip(t *testing.T) {
 
 			// Assert data deep-equals
 			if expectedData, ok := expected["data"]; ok {
-				actualJSON, _ := json.Marshal(rehydrateResult.Data)
-				expectedJSON, _ := json.Marshal(expectedData)
+				actualJSON, err := json.Marshal(rehydrateResult.Data)
+				if err != nil {
+					t.Fatalf("data: failed to marshal actual: %v", err)
+				}
+				expectedJSON, err := json.Marshal(expectedData)
+				if err != nil {
+					t.Fatalf("data: failed to marshal expected: %v", err)
+				}
 				if string(actualJSON) != string(expectedJSON) {
 					t.Errorf("data mismatch:\n  got:  %s\n  want: %s", actualJSON, expectedJSON)
 				}
@@ -174,8 +183,14 @@ func TestConformance_Roundtrip(t *testing.T) {
 
 			// Assert data_user_name
 			if name, ok := expected["data_user_name"].(string); ok {
-				dataMap, _ := rehydrateResult.Data.(map[string]any)
-				userMap, _ := dataMap["user"].(map[string]any)
+				dataMap, ok := rehydrateResult.Data.(map[string]any)
+				if !ok {
+					t.Fatalf("data_user_name: expected data to be map[string]any, got %T", rehydrateResult.Data)
+				}
+				userMap, ok := dataMap["user"].(map[string]any)
+				if !ok {
+					t.Fatalf("data_user_name: expected data[\"user\"] to be map[string]any, got %T", dataMap["user"])
+				}
 				if userMap["name"] != name {
 					t.Errorf("data.user.name: got %v, want %q", userMap["name"], name)
 				}
@@ -183,9 +198,18 @@ func TestConformance_Roundtrip(t *testing.T) {
 
 			// Assert data_value
 			if val, ok := expected["data_value"]; ok {
-				dataMap, _ := rehydrateResult.Data.(map[string]any)
-				actualJSON, _ := json.Marshal(dataMap["value"])
-				expectedJSON, _ := json.Marshal(val)
+				dataMap, ok := rehydrateResult.Data.(map[string]any)
+				if !ok {
+					t.Fatalf("data_value: expected data to be map[string]any, got %T", rehydrateResult.Data)
+				}
+				actualJSON, err := json.Marshal(dataMap["value"])
+				if err != nil {
+					t.Fatalf("data_value: failed to marshal actual: %v", err)
+				}
+				expectedJSON, err := json.Marshal(val)
+				if err != nil {
+					t.Fatalf("data_value: failed to marshal expected: %v", err)
+				}
 				if string(actualJSON) != string(expectedJSON) {
 					t.Errorf("data.value: got %s, want %s", actualJSON, expectedJSON)
 				}
@@ -215,8 +239,14 @@ func TestConformance_RehydrateError(t *testing.T) {
 
 			expected := fx.Expected
 
-			dataBytes, _ := json.Marshal(fx.Input.Data)
-			schemaBytes, _ := json.Marshal(fx.Input.Schema)
+			dataBytes, err := json.Marshal(fx.Input.Data)
+			if err != nil {
+				t.Fatalf("failed to marshal input data: %v", err)
+			}
+			schemaBytes, err := json.Marshal(fx.Input.Schema)
+			if err != nil {
+				t.Fatalf("failed to marshal input schema: %v", err)
+			}
 
 			var codecArg []byte
 			if fx.Input.CodecRaw != "" {
