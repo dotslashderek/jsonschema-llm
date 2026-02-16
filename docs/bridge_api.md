@@ -12,6 +12,17 @@ bindings (WASM/TypeScript, Python, Java, etc.).
 
 When input versioning becomes necessary, a `version` field will be added to `ConvertOptions`.
 
+### ABI Version Handshake
+
+The WASI binary exports `jsl_abi_version() -> u32` which returns the current ABI version
+(currently `1`). Language wrappers **must** call this on first use and compare against
+their expected version. A mismatch indicates a binary/wrapper skew and should be treated
+as a fatal error.
+
+| ABI Version | Introduced | Breaking Change |
+| ----------- | ---------- | --------------- |
+| 1           | v0.2       | Initial ABI     |
+
 ## Convert Response
 
 ```json
