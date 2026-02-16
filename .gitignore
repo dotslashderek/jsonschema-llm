@@ -63,3 +63,17 @@ stress_results/
 fuzz/target/
 fuzz/corpus/
 fuzz/artifacts/
+
+# Go WASI wrapper — embedded binary is copied at build time
+bindings/go/wasm/jsonschema_llm_wasi.wasm
+
+# Ruby
+bindings/ruby/Gemfile.lock
+
+# .NET
+bindings/dotnet/**/bin/
+bindings/dotnet/**/obj/
+
+# Java WASI
+bindings/java-wasi/.gradle/
+bindings/java-wasi/build/
