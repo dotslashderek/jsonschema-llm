@@ -331,7 +331,7 @@ The core library is written in **Rust** using `serde_json::Value` for schema man
 
 **Native bindings** ship per-language FFI: [TypeScript via WASM](https://github.com/dotslashderek/jsonschema-llm/issues/38) (✅ shipped), [Python via PyO3](https://github.com/dotslashderek/jsonschema-llm/issues/39) (✅ shipped), and [Java via JNI](https://github.com/dotslashderek/jsonschema-llm/issues/40) (✅ shipped).
 
-**WASI wrappers** compile the core into a single `.wasm` module (`wasm32-wasip1`) that any language with a WASM runtime can embed. Currently: Go (Wazero), TypeScript (node:wasi), Python (wasmtime), Java (Chicory), Ruby (Wasmer), and C#/.NET (Wasmtime.NET).
+**WASI wrappers** compile the core into a single `.wasm` module (`wasm32-wasip1`) that any language with a WASM runtime can embed. Currently: Go (Wazero), TypeScript (node:wasi), Python (wasmtime), Java (Chicory), Ruby (Wasmtime), and C#/.NET (Wasmtime.NET).
 
 ---
 

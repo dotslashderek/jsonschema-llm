@@ -4,7 +4,8 @@
  * Uses Node.js built-in WASI support to load the universal WASI binary
  * and exposes convert() and rehydrate() as TypeScript functions.
  *
- * Concurrency: Each Engine owns its own WASM instance. NOT thread-safe.
+ * Concurrency: Each call creates a fresh WASI + WASM instance from a
+ * cached compiled module. Engine itself is NOT thread-safe.
  */
 
 import { readFileSync } from "node:fs";
@@ -58,11 +59,25 @@ export class JslError extends Error {
 
 export class Engine {
   private wasmBytes: Uint8Array;
+  private compiledModule: WebAssembly.Module | null = null;
 
   constructor(wasmPath?: string) {
     const path =
       wasmPath ?? process.env.JSL_WASM_PATH ?? DEFAULT_WASM_PATH;
     this.wasmBytes = new Uint8Array(readFileSync(path));
+  }
+
+  /**
+   * Compile the WASM module once and cache it. Subsequent calls reuse the
+   * compiled module, only creating a fresh WASI + instance per call.
+   */
+  private async getCompiledModule(): Promise<WebAssembly.Module> {
+    if (!this.compiledModule) {
+      this.compiledModule = await WebAssembly.compile(
+        this.wasmBytes as BufferSource
+      );
+    }
+    return this.compiledModule;
   }
 
   async convert(
@@ -96,10 +111,10 @@ export class Engine {
     funcName: string,
     ...jsonArgs: string[]
   ): Promise<unknown> {
-    // Fresh WASI instance per call
+    // Fresh WASI instance per call, reuse compiled module
     const wasi = new WASI({ version: "preview1" });
     const wasiImports = wasi.getImportObject() as WebAssembly.Imports;
-    const module = await WebAssembly.compile(this.wasmBytes as BufferSource);
+    const module = await this.getCompiledModule();
     const instance = await WebAssembly.instantiate(
       module,
       wasiImports
@@ -119,62 +134,68 @@ export class Engine {
     const allocs: Array<{ ptr: number; len: number }> = [];
     const flatArgs: number[] = [];
     const encoder = new TextEncoder();
+    let resultPtr = 0;
 
-    for (const arg of jsonArgs) {
-      const bytes = encoder.encode(arg);
-      const ptr = jslAlloc(bytes.length);
-      if (ptr === 0 && bytes.length > 0) {
-        throw new Error(`jsl_alloc returned null for ${bytes.length} bytes`);
+    try {
+      for (const arg of jsonArgs) {
+        const bytes = encoder.encode(arg);
+        const ptr = jslAlloc(bytes.length);
+        if (ptr === 0 && bytes.length > 0) {
+          throw new Error(`jsl_alloc returned null for ${bytes.length} bytes`);
+        }
+        new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
+        allocs.push({ ptr, len: bytes.length });
+        flatArgs.push(ptr, bytes.length);
       }
-      new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
-      allocs.push({ ptr, len: bytes.length });
-      flatArgs.push(ptr, bytes.length);
-    }
 
-    // Call function
-    const resultPtr = func(...flatArgs);
-    if (resultPtr === 0) throw new Error(`${funcName} returned null`);
+      // Call function
+      resultPtr = func(...flatArgs);
+      if (resultPtr === 0) throw new Error(`${funcName} returned null`);
 
-    // Read JslResult (12 bytes: 3 × LE u32)
-    const view = new DataView(memory.buffer, resultPtr, JSL_RESULT_SIZE);
-    const status = view.getUint32(0, true);
-    const payloadPtr = view.getUint32(4, true);
-    const payloadLen = view.getUint32(8, true);
+      // Read JslResult (12 bytes: 3 × LE u32)
+      const view = new DataView(memory.buffer, resultPtr, JSL_RESULT_SIZE);
+      const status = view.getUint32(0, true);
+      const payloadPtr = view.getUint32(4, true);
+      const payloadLen = view.getUint32(8, true);
 
-    // Validate payload bounds before reading
-    if (payloadPtr + payloadLen > memory.buffer.byteLength) {
-      throw new Error(
-        `payload out of bounds: ptr=${payloadPtr} len=${payloadLen} memSize=${memory.buffer.byteLength}`
+      // Validate payload bounds before reading
+      if (payloadPtr + payloadLen > memory.buffer.byteLength) {
+        throw new Error(
+          `payload out of bounds: ptr=${payloadPtr} len=${payloadLen} memSize=${memory.buffer.byteLength}`
+        );
+      }
+
+      // Read and parse payload
+      const payloadBytes = new Uint8Array(
+        memory.buffer,
+        payloadPtr,
+        payloadLen
       );
+      const payloadStr = new TextDecoder().decode(payloadBytes.slice());
+      const payload = JSON.parse(payloadStr);
+
+      if (status === STATUS_ERROR) {
+        throw new JslError(
+          payload.code ?? "unknown",
+          payload.message ?? "unknown error",
+          payload.path ?? ""
+        );
+      }
+
+      return payload;
+    } finally {
+      // Always free allocated guest memory
+      if (resultPtr !== 0) {
+        jslResultFree(resultPtr);
+      }
+      for (const { ptr, len } of allocs) {
+        jslFree(ptr, len);
+      }
     }
-
-    // Read and parse payload
-    const payloadBytes = new Uint8Array(
-      memory.buffer,
-      payloadPtr,
-      payloadLen
-    );
-    const payloadStr = new TextDecoder().decode(payloadBytes.slice());
-    const payload = JSON.parse(payloadStr);
-
-    // Free
-    jslResultFree(resultPtr);
-    for (const { ptr, len } of allocs) {
-      jslFree(ptr, len);
-    }
-
-    if (status === STATUS_ERROR) {
-      throw new JslError(
-        payload.code ?? "unknown",
-        payload.message ?? "unknown error",
-        payload.path ?? ""
-      );
-    }
-
-    return payload;
   }
 
   close(): void {
-    // No persistent resources — placeholder for API symmetry
+    // Release cached module reference
+    this.compiledModule = null;
   }
 }

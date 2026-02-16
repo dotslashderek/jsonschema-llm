@@ -26,7 +26,8 @@ import java.util.List;
  * Uses Chicory (pure Java, zero native deps) to load the universal WASI binary.
  *
  * <p>
- * Concurrency: Each Engine owns its own Module. NOT thread-safe.
+ * Concurrency: Builds a new Module/Instance per call. NOT thread-safe; use one
+ * JsonSchemaLlmWasi per thread or synchronize externally.
  */
 public class JsonSchemaLlmWasi implements AutoCloseable {
 

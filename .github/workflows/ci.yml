@@ -197,7 +197,7 @@ jobs:
     needs: wasi
     strategy:
       matrix:
-        lang: [go, python, ts, java]
+        lang: [go, python, ts, java, ruby, dotnet]
     steps:
       - uses: actions/checkout@v4
 
@@ -271,6 +271,34 @@ jobs:
         if: matrix.lang == 'java'
         run: ./gradlew test
         working-directory: bindings/java-wasi
+
+      - name: Setup Ruby
+        if: matrix.lang == 'ruby'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: bindings/ruby
+
+      - name: Run Ruby wrapper tests
+        if: matrix.lang == 'ruby'
+        run: bundle exec rake test
+        working-directory: bindings/ruby
+        env:
+          JSL_WASM_PATH: ${{ github.workspace }}/target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm
+
+      - name: Setup .NET
+        if: matrix.lang == 'dotnet'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0"
+
+      - name: Run .NET wrapper tests
+        if: matrix.lang == 'dotnet'
+        run: dotnet test test/JsonSchemaLlmTests.csproj -v normal
+        working-directory: bindings/dotnet
+        env:
+          JSL_WASM_PATH: ${{ github.workspace }}/target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm
 
   python:
     name: Python Bindings

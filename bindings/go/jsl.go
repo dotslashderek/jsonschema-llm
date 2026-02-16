@@ -9,9 +9,9 @@
 //	read JslResult (12-byte LE struct: status/ptr/len) →
 //	parse JSON → free
 //
-// Concurrency: Each Engine owns its own wazero Runtime and Module instance.
-// Engines are NOT thread-safe — callers must synchronize access or create
-// per-goroutine instances.
+// Concurrency: Each Engine owns its own wazero Runtime and compiled Module.
+// Each call creates a fresh module instance. Engines are NOT thread-safe —
+// callers must synchronize access or create per-goroutine instances.
 package jsl
 
 import (
@@ -183,9 +183,10 @@ func (e *Engine) callJsl(funcName string, jsonArgs ...[]byte) ([]byte, error) {
 	}
 
 	// Allocate and write each argument into guest memory.
-	// Note: if alloc fails mid-loop, earlier allocations are not explicitly freed.
-	// This is safe because each call gets a fresh module instance (defer mod.Close
-	// above), so the entire linear memory is discarded on return.
+	// Safety: if alloc or fn.Call fails, we return early without explicit jslFree
+	// calls. This is intentional — defer mod.Close(e.ctx) above closes the entire
+	// wazero instance, discarding all linear memory. Explicit free on error paths
+	// would be redundant.
 	type ptrLen struct {
 		ptr uint32
 		len uint32
