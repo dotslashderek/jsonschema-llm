@@ -13,7 +13,7 @@ public class ConformanceTests : IDisposable
 {
     private static readonly string FixturesPath = Path.Combine(
         AppDomain.CurrentDomain.BaseDirectory,
-        "..", "..", "..", "..", "..", "tests", "conformance", "fixtures.json");
+        "..", "..", "..", "..", "..", "..", "tests", "conformance", "fixtures.json");
 
     private readonly JsonSchemaLlmEngine _engine;
     private static readonly JsonDocument Fixtures;
@@ -217,8 +217,10 @@ public class ConformanceTests : IDisposable
 
         if (expected.TryGetProperty("data", out var expectedData))
         {
-            Assert.Equal(expectedData.GetRawText(),
-                rehydrateResult.GetProperty("data").GetRawText());
+            var actualData = rehydrateResult.GetProperty("data");
+            Assert.Equal(
+                JsonSerializer.Serialize(JsonSerializer.Deserialize<object>(expectedData.GetRawText())),
+                JsonSerializer.Serialize(JsonSerializer.Deserialize<object>(actualData.GetRawText())));
         }
 
         if (expected.TryGetProperty("data_user_name", out var userName))
