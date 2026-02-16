@@ -28,17 +28,6 @@ def fixtures():
         return json.load(f)
 
 
-def _convert_fixture_ids(fixtures):
-    return [fx["id"] for fx in fixtures["suites"]["convert"]["fixtures"]]
-
-
-def _roundtrip_fixture_ids(fixtures):
-    return [fx["id"] for fx in fixtures["suites"]["roundtrip"]["fixtures"]]
-
-
-def _rehydrate_error_fixture_ids(fixtures):
-    return [fx["id"] for fx in fixtures["suites"]["rehydrate_error"]["fixtures"]]
-
 
 def _get_fixture(fixtures, suite, fixture_id):
     for fx in fixtures["suites"][suite]["fixtures"]:
@@ -52,42 +41,29 @@ def _get_fixture(fixtures, suite, fixture_id):
 # ---------------------------------------------------------------------------
 
 
-class TestConformanceConvert:
-    @pytest.fixture(autouse=True)
-    def _load(self, fixtures):
-        self.fixtures = fixtures
+def _run_convert(engine, fixtures, fixture_id):
+    fx = _get_fixture(fixtures, "convert", fixture_id)
+    inp = fx["input"]
+    expected = fx["expected"]
 
-    def _ids(self):
-        return _convert_fixture_ids(self.fixtures)
+    # Error case: schema_raw → raw FFI
+    if "schema_raw" in inp:
+        assert expected.get("is_error") is True
+        opts_json = json.dumps(inp.get("options", {}))
+        with pytest.raises(JslError) as exc_info:
+            engine._call_jsl("jsl_convert", inp["schema_raw"], opts_json)
 
-    @pytest.fixture(params=None)
-    def fixture_id(self, request, fixtures):
-        return request.param
+        err = exc_info.value
+        if "error_has_keys" in expected:
+            for key in expected["error_has_keys"]:
+                assert getattr(err, key, None) is not None, f"error missing '{key}'"
+        if "error_code" in expected:
+            assert err.code == expected["error_code"]
+        return
 
-    @staticmethod
-    def _run(engine, fixtures, fixture_id):
-        fx = _get_fixture(fixtures, "convert", fixture_id)
-        inp = fx["input"]
-        expected = fx["expected"]
-
-        # Error case: schema_raw → raw FFI
-        if "schema_raw" in inp:
-            assert expected.get("is_error") is True
-            opts_json = json.dumps(inp.get("options", {}))
-            with pytest.raises(JslError) as exc_info:
-                engine._call_jsl("jsl_convert", inp["schema_raw"], opts_json)
-
-            err = exc_info.value
-            if "error_has_keys" in expected:
-                for key in expected["error_has_keys"]:
-                    assert getattr(err, key, None) is not None, f"error missing '{key}'"
-            if "error_code" in expected:
-                assert err.code == expected["error_code"]
-            return
-
-        # Normal convert
-        result = engine.convert(inp["schema"], inp.get("options") or {})
-        _assert_convert_expected(result, expected)
+    # Normal convert
+    result = engine.convert(inp["schema"], inp.get("options") or {})
+    _assert_convert_expected(result, expected)
 
 
 def _assert_convert_expected(result, expected):
@@ -114,7 +90,7 @@ def _generate_convert_tests():
 
 @pytest.mark.parametrize("fixture_id", _generate_convert_tests())
 def test_conformance_convert(engine, fixtures, fixture_id):
-    TestConformanceConvert._run(engine, fixtures, fixture_id)
+    _run_convert(engine, fixtures, fixture_id)
 
 
 # ---------------------------------------------------------------------------
