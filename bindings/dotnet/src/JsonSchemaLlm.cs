@@ -21,10 +21,12 @@ public sealed class JsonSchemaLlmEngine : IDisposable
     private const int JslResultSize = 12; // 3 × u32 (LE)
     private const int StatusOk = 0;
     private const int StatusError = 1;
+    private const int ExpectedAbiVersion = 1;
 
     private readonly Engine _engine;
     private readonly Module _module;
     private readonly Linker _linker;
+    private bool _abiVerified;
 
     public JsonSchemaLlmEngine(string? wasmPath = null)
     {
@@ -80,6 +82,21 @@ public sealed class JsonSchemaLlmEngine : IDisposable
 
         var memory = instance.GetMemory("memory")
             ?? throw new InvalidOperationException("No memory export");
+
+        // ABI version handshake (once per engine lifetime)
+        if (!_abiVerified)
+        {
+            var abiFn = instance.GetFunction<int>("jsl_abi_version");
+            if (abiFn != null)
+            {
+                var version = abiFn();
+                if (version != ExpectedAbiVersion)
+                    throw new InvalidOperationException(
+                        $"ABI version mismatch: binary={version}, expected={ExpectedAbiVersion}");
+            }
+            _abiVerified = true;
+        }
+
         var jslAlloc = instance.GetFunction<int, int>("jsl_alloc")
             ?? throw new InvalidOperationException("No jsl_alloc export");
         var jslFree = instance.GetAction<int, int>("jsl_free")

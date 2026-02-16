@@ -51,6 +51,18 @@
 const STATUS_OK: u32 = 0;
 const STATUS_ERROR: u32 = 1;
 
+/// Current ABI version. Bump on breaking changes to the export contract.
+const ABI_VERSION: u32 = 1;
+
+/// Return the ABI version of this WASI binary.
+///
+/// Hosts should call this at init time and verify the returned value matches
+/// their expected version. A mismatch indicates a binary/wrapper skew.
+#[no_mangle]
+pub extern "C" fn jsl_abi_version() -> u32 {
+    ABI_VERSION
+}
+
 /// C-ABI result struct returned from `jsl_convert` and `jsl_rehydrate`.
 ///
 /// Layout: 12 bytes (3 × u32), `#[repr(C)]` for stable ABI.

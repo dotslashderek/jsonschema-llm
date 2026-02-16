@@ -34,9 +34,11 @@ public class JsonSchemaLlmWasi implements AutoCloseable {
     private static final int JSL_RESULT_SIZE = 12; // 3 × u32 (LE)
     private static final int STATUS_OK = 0;
     private static final int STATUS_ERROR = 1;
+    private static final int EXPECTED_ABI_VERSION = 1;
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final File wasmFile;
+    private boolean abiVerified = false;
 
     public JsonSchemaLlmWasi() {
         this(System.getenv("JSL_WASM_PATH") != null
@@ -103,6 +105,22 @@ public class JsonSchemaLlmWasi implements AutoCloseable {
             ExportFunction jslFree = instance.export("jsl_free");
             ExportFunction jslResultFree = instance.export("jsl_result_free");
             ExportFunction func = instance.export(funcName);
+
+            // ABI version handshake (once per engine lifetime)
+            if (!abiVerified) {
+                try {
+                    ExportFunction abiFn = instance.export("jsl_abi_version");
+                    Value[] abiResult = abiFn.apply();
+                    int version = abiResult[0].asInt();
+                    if (version != EXPECTED_ABI_VERSION) {
+                        throw new RuntimeException(
+                                "ABI version mismatch: binary=" + version + ", expected=" + EXPECTED_ABI_VERSION);
+                    }
+                } catch (Exception ignored) {
+                    // If export doesn't exist, skip version check
+                }
+                abiVerified = true;
+            }
 
             // Allocate and write arguments
             List<int[]> allocs = new ArrayList<>();

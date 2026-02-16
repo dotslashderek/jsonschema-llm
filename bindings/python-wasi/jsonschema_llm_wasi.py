@@ -22,6 +22,7 @@ _DEFAULT_WASM_PATH = os.path.join(
 )
 
 JSL_RESULT_SIZE = 12  # 3 × u32 (LE)
+EXPECTED_ABI_VERSION = 1
 STATUS_OK = 0
 STATUS_ERROR = 1
 
@@ -53,6 +54,7 @@ class Engine:
         self._module = wasmtime.Module.from_file(self._engine, path)
         self._linker = wasmtime.Linker(self._engine)
         self._linker.define_wasi()
+        self._abi_verified = False
 
     def __enter__(self):
         return self
@@ -84,6 +86,18 @@ class Engine:
         store = wasmtime.Store(self._engine)
         store.set_wasi(wasmtime.WasiConfig())
         instance = self._linker.instantiate(store, self._module)
+
+        # ABI version handshake (once per Engine lifetime)
+        if not self._abi_verified:
+            exports = instance.exports(store)
+            abi_fn = exports.get("jsl_abi_version")
+            if abi_fn is not None:
+                version = abi_fn(store)
+                if version != EXPECTED_ABI_VERSION:
+                    raise RuntimeError(
+                        f"ABI version mismatch: binary={version}, expected={EXPECTED_ABI_VERSION}"
+                    )
+            self._abi_verified = True
 
         memory = instance.exports(store)["memory"]
         jsl_alloc = instance.exports(store)["jsl_alloc"]
