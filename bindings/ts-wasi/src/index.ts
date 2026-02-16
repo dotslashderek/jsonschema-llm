@@ -57,12 +57,12 @@ export class JslError extends Error {
 }
 
 export class Engine {
-  private wasmBytes: Buffer;
+  private wasmBytes: Uint8Array;
 
   constructor(wasmPath?: string) {
     const path =
       wasmPath ?? process.env.JSL_WASM_PATH ?? DEFAULT_WASM_PATH;
-    this.wasmBytes = readFileSync(path);
+    this.wasmBytes = new Uint8Array(readFileSync(path));
   }
 
   async convert(
@@ -98,10 +98,11 @@ export class Engine {
   ): Promise<unknown> {
     // Fresh WASI instance per call
     const wasi = new WASI({ version: "preview1" });
-    const module = await WebAssembly.compile(this.wasmBytes);
+    const wasiImports = wasi.getImportObject() as WebAssembly.Imports;
+    const module = await WebAssembly.compile(this.wasmBytes as BufferSource);
     const instance = await WebAssembly.instantiate(
       module,
-      wasi.getImportObject()
+      wasiImports
     );
     wasi.initialize(instance);
 
