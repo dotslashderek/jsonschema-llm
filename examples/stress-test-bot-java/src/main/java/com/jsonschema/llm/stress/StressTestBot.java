@@ -107,8 +107,8 @@ public class StressTestBot {
             Map<String, Object> options = Map.of(
                     "target", "openai-strict",
                     "polymorphism", "any-of",
-                    "max_depth", 50,
-                    "recursion_limit", 3);
+                    "max-depth", 50,
+                    "recursion-limit", 3);
 
             JsonNode convertResult = engine.convert(originalSchema, options);
 

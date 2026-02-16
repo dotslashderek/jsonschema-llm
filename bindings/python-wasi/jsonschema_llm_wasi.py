@@ -98,34 +98,38 @@ class Engine:
             allocs.append((ptr, len(data)))
             flat_args.extend([ptr, len(data)])
 
-        # Call the function
-        result_ptr = func(store, *flat_args)
+        # Call, read, and parse — with guaranteed cleanup
+        result_ptr = 0
+        try:
+            result_ptr = func(store, *flat_args)
+            if result_ptr == 0:
+                raise RuntimeError(f"{func_name} returned null result pointer")
 
-        # Read JslResult (12 bytes: 3 × LE u32)
-        result_bytes = memory.read(store, result_ptr, result_ptr + JSL_RESULT_SIZE)
-        status, payload_ptr, payload_len = struct.unpack("<III", result_bytes)
+            # Read JslResult (12 bytes: 3 × LE u32)
+            result_bytes = memory.read(store, result_ptr, result_ptr + JSL_RESULT_SIZE)
+            status, payload_ptr, payload_len = struct.unpack("<III", result_bytes)
 
-        # Validate payload bounds
-        mem_size = memory.data_len(store)
-        if payload_ptr + payload_len > mem_size:
-            raise RuntimeError(
-                f"payload out of bounds: ptr={payload_ptr} len={payload_len} memSize={mem_size}"
-            )
+            # Validate payload bounds
+            mem_size = memory.data_len(store)
+            if payload_ptr + payload_len > mem_size:
+                raise RuntimeError(
+                    f"payload out of bounds: ptr={payload_ptr} len={payload_len} memSize={mem_size}"
+                )
 
-        # Read and copy payload
-        payload_bytes = memory.read(store, payload_ptr, payload_ptr + payload_len)
-        payload = json.loads(payload_bytes.decode("utf-8"))
+            # Read and copy payload
+            payload_bytes = memory.read(store, payload_ptr, payload_ptr + payload_len)
+            payload = json.loads(payload_bytes.decode("utf-8"))
 
-        # Free result and inputs
-        jsl_result_free(store, result_ptr)
-        for ptr, length in allocs:
-            jsl_free(store, ptr, length)
+            if status == STATUS_ERROR:
+                raise JslError(
+                    code=payload.get("code", "unknown"),
+                    message=payload.get("message", "unknown error"),
+                    path=payload.get("path", ""),
+                )
 
-        if status == STATUS_ERROR:
-            raise JslError(
-                code=payload.get("code", "unknown"),
-                message=payload.get("message", "unknown error"),
-                path=payload.get("path", ""),
-            )
-
-        return payload
+            return payload
+        finally:
+            if result_ptr != 0:
+                jsl_result_free(store, result_ptr)
+            for ptr, length in allocs:
+                jsl_free(store, ptr, length)

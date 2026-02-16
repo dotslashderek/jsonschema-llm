@@ -34,8 +34,7 @@ module JsonSchemaLlm
       }
       @engine = Wasmtime::Engine.new
       @module = Wasmtime::Module.from_file(@engine, path)
-      @linker = Wasmtime::Linker.new(@engine)
-      Wasmtime::WASI::P1.add_to_linker_sync(@linker)
+      @linker = Wasmtime::Linker.new(@engine, wasi: true)
     end
 
     def convert(schema, options = {})
@@ -59,11 +58,12 @@ module JsonSchemaLlm
 
     def call_jsl(func_name, *json_args)
       # Fresh store + instance per call
-      wasi_config = Wasmtime::WasiConfig.new
-                      .set_stdin_string("")
-                      .inherit_stdout
-                      .inherit_stderr
-      store = Wasmtime::Store.new(@engine, wasi_p1_config: wasi_config)
+      wasi_ctx = Wasmtime::WasiCtxBuilder.new
+                   .set_stdin_string("")
+                   .inherit_stdout
+                   .inherit_stderr
+                   .build
+      store = Wasmtime::Store.new(@engine, wasi_ctx: wasi_ctx)
       instance = @linker.instantiate(store, @module)
 
       memory = instance.export("memory").to_memory
@@ -75,38 +75,41 @@ module JsonSchemaLlm
       # Allocate and write arguments
       allocs = []
       flat_args = []
-      json_args.each do |arg|
-        bytes = arg.encode("UTF-8")
-        ptr = jsl_alloc.call(bytes.bytesize)
-        memory.write(ptr, bytes)
-        allocs << [ptr, bytes.bytesize]
-        flat_args.push(ptr, bytes.bytesize)
+      result_ptr = nil
+
+      begin
+        json_args.each do |arg|
+          bytes = arg.encode("UTF-8")
+          ptr = jsl_alloc.call(bytes.bytesize)
+          memory.write(ptr, bytes)
+          allocs << [ptr, bytes.bytesize]
+          flat_args.push(ptr, bytes.bytesize)
+        end
+
+        # Call function
+        result_ptr = func.call(*flat_args)
+
+        # Read JslResult (12 bytes: 3 × LE u32)
+        result_bytes = memory.read(result_ptr, JSL_RESULT_SIZE)
+        status, payload_ptr, payload_len = result_bytes.unpack("V3")
+
+        # Read and parse payload
+        payload_bytes = memory.read(payload_ptr, payload_len)
+        payload = JSON.parse(payload_bytes)
+
+        if status == STATUS_ERROR
+          raise JslError.new(
+            code: payload["code"] || "unknown",
+            message: payload["message"] || "unknown error",
+            path: payload["path"] || ""
+          )
+        end
+
+        payload
+      ensure
+        jsl_result_free.call(result_ptr) if result_ptr
+        allocs.each { |ptr, len| jsl_free.call(ptr, len) }
       end
-
-      # Call function
-      result_ptr = func.call(*flat_args)
-
-      # Read JslResult (12 bytes: 3 × LE u32)
-      result_bytes = memory.read(result_ptr, JSL_RESULT_SIZE)
-      status, payload_ptr, payload_len = result_bytes.unpack("V3")
-
-      # Read and parse payload
-      payload_bytes = memory.read(payload_ptr, payload_len)
-      payload = JSON.parse(payload_bytes)
-
-      # Free
-      jsl_result_free.call(result_ptr)
-      allocs.each { |ptr, len| jsl_free.call(ptr, len) }
-
-      if status == STATUS_ERROR
-        raise JslError.new(
-          code: payload["code"] || "unknown",
-          message: payload["message"] || "unknown error",
-          path: payload["path"] || ""
-        )
-      end
-
-      payload
     end
   end
 end

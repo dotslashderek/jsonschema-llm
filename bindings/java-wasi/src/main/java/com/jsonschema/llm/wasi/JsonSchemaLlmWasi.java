@@ -101,48 +101,65 @@ public class JsonSchemaLlmWasi implements AutoCloseable {
             // Allocate and write arguments
             List<int[]> allocs = new ArrayList<>();
             List<Value> flatArgs = new ArrayList<>();
+            int resultPtr = 0;
 
-            for (String arg : jsonArgs) {
-                byte[] bytes = arg.getBytes(StandardCharsets.UTF_8);
-                Value[] allocResult = jslAlloc.apply(Value.i32(bytes.length));
-                int ptr = allocResult[0].asInt();
-                memory.write(ptr, bytes);
-                allocs.add(new int[] { ptr, bytes.length });
-                flatArgs.add(Value.i32(ptr));
-                flatArgs.add(Value.i32(bytes.length));
+            try {
+                for (String arg : jsonArgs) {
+                    byte[] bytes = arg.getBytes(StandardCharsets.UTF_8);
+                    Value[] allocResult = jslAlloc.apply(Value.i32(bytes.length));
+                    int ptr = allocResult[0].asInt();
+                    if (ptr == 0 && bytes.length > 0) {
+                        throw new RuntimeException("jsl_alloc returned null for " + bytes.length + " bytes");
+                    }
+                    memory.write(ptr, bytes);
+                    allocs.add(new int[] { ptr, bytes.length });
+                    flatArgs.add(Value.i32(ptr));
+                    flatArgs.add(Value.i32(bytes.length));
+                }
+
+                // Call function
+                Value[] result = func.apply(flatArgs.toArray(new Value[0]));
+                resultPtr = result[0].asInt();
+                if (resultPtr == 0) {
+                    throw new RuntimeException(funcName + " returned null result pointer");
+                }
+
+                // Read JslResult (12 bytes: 3 × LE u32)
+                byte[] resultBytes = memory.readBytes(resultPtr, JSL_RESULT_SIZE);
+                ByteBuffer buf = ByteBuffer.wrap(resultBytes).order(ByteOrder.LITTLE_ENDIAN);
+                int status = buf.getInt();
+                int payloadPtr = buf.getInt();
+                int payloadLen = buf.getInt();
+
+                // Validate payload bounds
+                if (payloadPtr < 0 || payloadLen < 0) {
+                    throw new RuntimeException(
+                            "invalid payload pointer/length: ptr=" + payloadPtr + " len=" + payloadLen);
+                }
+
+                // Read payload
+                byte[] payloadBytes = memory.readBytes(payloadPtr, payloadLen);
+                String payloadStr = new String(payloadBytes, StandardCharsets.UTF_8);
+
+                JsonNode payload = MAPPER.readTree(payloadStr);
+
+                if (status == STATUS_ERROR) {
+                    throw new JslException(
+                            payload.path("code").asText("unknown"),
+                            payload.path("message").asText("unknown error"),
+                            payload.path("path").asText(""));
+                }
+
+                return payload;
+            } finally {
+                // Always free guest memory
+                if (resultPtr != 0) {
+                    jslResultFree.apply(Value.i32(resultPtr));
+                }
+                for (int[] alloc : allocs) {
+                    jslFree.apply(Value.i32(alloc[0]), Value.i32(alloc[1]));
+                }
             }
-
-            // Call function
-            Value[] result = func.apply(flatArgs.toArray(new Value[0]));
-            int resultPtr = result[0].asInt();
-
-            // Read JslResult (12 bytes: 3 × LE u32)
-            byte[] resultBytes = memory.readBytes(resultPtr, JSL_RESULT_SIZE);
-            ByteBuffer buf = ByteBuffer.wrap(resultBytes).order(ByteOrder.LITTLE_ENDIAN);
-            int status = buf.getInt();
-            int payloadPtr = buf.getInt();
-            int payloadLen = buf.getInt();
-
-            // Read payload
-            byte[] payloadBytes = memory.readBytes(payloadPtr, payloadLen);
-            String payloadStr = new String(payloadBytes, StandardCharsets.UTF_8);
-
-            // Free
-            jslResultFree.apply(Value.i32(resultPtr));
-            for (int[] alloc : allocs) {
-                jslFree.apply(Value.i32(alloc[0]), Value.i32(alloc[1]));
-            }
-
-            JsonNode payload = MAPPER.readTree(payloadStr);
-
-            if (status == STATUS_ERROR) {
-                throw new JslException(
-                        payload.path("code").asText("unknown"),
-                        payload.path("message").asText("unknown error"),
-                        payload.path("path").asText(""));
-            }
-
-            return payload;
         } catch (JslException e) {
             throw e;
         } catch (Exception e) {
