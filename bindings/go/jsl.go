@@ -182,7 +182,10 @@ func (e *Engine) callJsl(funcName string, jsonArgs ...[]byte) ([]byte, error) {
 		return nil, fmt.Errorf("missing export: %s", funcName)
 	}
 
-	// Allocate and write each argument into guest memory
+	// Allocate and write each argument into guest memory.
+	// Note: if alloc fails mid-loop, earlier allocations are not explicitly freed.
+	// This is safe because each call gets a fresh module instance (defer mod.Close
+	// above), so the entire linear memory is discarded on return.
 	type ptrLen struct {
 		ptr uint32
 		len uint32

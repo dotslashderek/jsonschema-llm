@@ -123,6 +123,9 @@ export class Engine {
     for (const arg of jsonArgs) {
       const bytes = encoder.encode(arg);
       const ptr = jslAlloc(bytes.length);
+      if (ptr === 0 && bytes.length > 0) {
+        throw new Error(`jsl_alloc returned null for ${bytes.length} bytes`);
+      }
       new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
       allocs.push({ ptr, len: bytes.length });
       flatArgs.push(ptr, bytes.length);
@@ -137,6 +140,13 @@ export class Engine {
     const status = view.getUint32(0, true);
     const payloadPtr = view.getUint32(4, true);
     const payloadLen = view.getUint32(8, true);
+
+    // Validate payload bounds before reading
+    if (payloadPtr + payloadLen > memory.buffer.byteLength) {
+      throw new Error(
+        `payload out of bounds: ptr=${payloadPtr} len=${payloadLen} memSize=${memory.buffer.byteLength}`
+      );
+    }
 
     // Read and parse payload
     const payloadBytes = new Uint8Array(

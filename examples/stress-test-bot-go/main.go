@@ -150,9 +150,14 @@ func testSchema(
 	}
 
 	// 2. Call OpenAI
-	convertedSchemaBytes, _ := json.Marshal(convertResult.Schema)
+	convertedSchemaBytes, err := json.Marshal(convertResult.Schema)
+	if err != nil {
+		return false, time.Since(start), fmt.Errorf("marshal converted schema: %w", err)
+	}
 	var schemaParam map[string]any
-	json.Unmarshal(convertedSchemaBytes, &schemaParam)
+	if err := json.Unmarshal(convertedSchemaBytes, &schemaParam); err != nil {
+		return false, time.Since(start), fmt.Errorf("unmarshal schema param: %w", err)
+	}
 
 	resp, err := client.Chat.Completions.New(context.Background(),
 		openai.ChatCompletionNewParams{
@@ -177,6 +182,10 @@ func testSchema(
 		return false, time.Since(start), fmt.Errorf("openai: %w", err)
 	}
 
+	if len(resp.Choices) == 0 {
+		return false, time.Since(start), fmt.Errorf("openai: empty choices")
+	}
+
 	content := resp.Choices[0].Message.Content
 	var llmData any
 	if err := json.Unmarshal([]byte(content), &llmData); err != nil {
@@ -190,8 +199,14 @@ func testSchema(
 	}
 
 	// 4. Validate
-	rehydratedBytes, _ := json.Marshal(rehydrateResult.Data)
-	schemaBytes, _ := json.Marshal(s.schema)
+	rehydratedBytes, err := json.Marshal(rehydrateResult.Data)
+	if err != nil {
+		return false, time.Since(start), fmt.Errorf("marshal rehydrated: %w", err)
+	}
+	schemaBytes, err := json.Marshal(s.schema)
+	if err != nil {
+		return false, time.Since(start), fmt.Errorf("marshal schema: %w", err)
+	}
 
 	compiler := jsonschema.NewCompiler()
 	if err := compiler.AddResource("schema.json", strings.NewReader(string(schemaBytes))); err != nil {
@@ -203,7 +218,9 @@ func testSchema(
 	}
 
 	var rehydratedAny any
-	json.Unmarshal(rehydratedBytes, &rehydratedAny)
+	if err := json.Unmarshal(rehydratedBytes, &rehydratedAny); err != nil {
+		return false, time.Since(start), fmt.Errorf("unmarshal rehydrated: %w", err)
+	}
 	if err := sch.Validate(rehydratedAny); err != nil {
 		return false, time.Since(start), fmt.Errorf("validate: %w", err)
 	}

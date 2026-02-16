@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Text;
 using System.Text.Json;
 using Wasmtime;
@@ -97,9 +98,9 @@ public sealed class JsonSchemaLlmEngine : IDisposable
         // Read JslResult (12 bytes: 3 × LE u32)
         var resultBytes = new byte[JslResultSize];
         memory.Read(resultPtr, resultBytes);
-        var status = BitConverter.ToInt32(resultBytes, 0);
-        var payloadPtr = BitConverter.ToInt32(resultBytes, 4);
-        var payloadLen = BitConverter.ToInt32(resultBytes, 8);
+        var status = BinaryPrimitives.ReadInt32LittleEndian(resultBytes.AsSpan(0, 4));
+        var payloadPtr = BinaryPrimitives.ReadInt32LittleEndian(resultBytes.AsSpan(4, 4));
+        var payloadLen = BinaryPrimitives.ReadInt32LittleEndian(resultBytes.AsSpan(8, 4));
 
         // Read payload
         var payloadBytes = new byte[payloadLen];
@@ -110,7 +111,7 @@ public sealed class JsonSchemaLlmEngine : IDisposable
         jslResultFree(resultPtr);
         foreach (var (ptr, len) in allocs) jslFree(ptr, len);
 
-        var payload = JsonDocument.Parse(payloadStr);
+        using var payload = JsonDocument.Parse(payloadStr);
 
         if (status == StatusError)
         {
@@ -121,7 +122,7 @@ public sealed class JsonSchemaLlmEngine : IDisposable
                 root.TryGetProperty("path", out var path) ? path.GetString() ?? "" : "");
         }
 
-        return payload.RootElement;
+        return payload.RootElement.Clone();
     }
 }
 

@@ -92,6 +92,8 @@ class Engine:
         for arg in json_args:
             data = arg.encode("utf-8")
             ptr = jsl_alloc(store, len(data))
+            if ptr == 0 and len(data) > 0:
+                raise RuntimeError(f"jsl_alloc returned null for {len(data)} bytes")
             memory.write(store, data, ptr)
             allocs.append((ptr, len(data)))
             flat_args.extend([ptr, len(data)])
@@ -102,6 +104,13 @@ class Engine:
         # Read JslResult (12 bytes: 3 × LE u32)
         result_bytes = memory.read(store, result_ptr, result_ptr + JSL_RESULT_SIZE)
         status, payload_ptr, payload_len = struct.unpack("<III", result_bytes)
+
+        # Validate payload bounds
+        mem_size = memory.data_len(store)
+        if payload_ptr + payload_len > mem_size:
+            raise RuntimeError(
+                f"payload out of bounds: ptr={payload_ptr} len={payload_len} memSize={mem_size}"
+            )
 
         # Read and copy payload
         payload_bytes = memory.read(store, payload_ptr, payload_ptr + payload_len)
