@@ -183,10 +183,12 @@ func (e *Engine) callJsl(funcName string, jsonArgs ...[]byte) ([]byte, error) {
 	}
 
 	// Allocate and write each argument into guest memory.
-	// Safety: if alloc or fn.Call fails, we return early without explicit jslFree
-	// calls. This is intentional — defer mod.Close(e.ctx) above closes the entire
-	// wazero instance, discarding all linear memory. Explicit free on error paths
-	// would be redundant.
+	//
+	// Memory safety: on error paths (alloc failure, fn.Call trap, etc.) we return
+	// without calling jslFree on already-allocated buffers. This is safe because
+	// `defer mod.Close(e.ctx)` above tears down the entire wazero module instance,
+	// releasing ALL linear memory. Explicit jslFree on error paths would be
+	// redundant — the instance is single-use and discarded regardless.
 	type ptrLen struct {
 		ptr uint32
 		len uint32

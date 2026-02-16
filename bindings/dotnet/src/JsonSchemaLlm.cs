@@ -1,7 +1,10 @@
 using System.Buffers.Binary;
 using System.Text;
 using System.Text.Json;
+using System.Runtime.CompilerServices;
 using Wasmtime;
+
+[assembly: InternalsVisibleTo("JsonSchemaLlmTests")]
 
 namespace JsonSchemaLlm;
 
@@ -78,51 +81,58 @@ public sealed class JsonSchemaLlmEngine : IDisposable
 
         // Allocate and write arguments
         var allocs = new List<(int ptr, int len)>();
-        var flatArgs = new List<object>();
+        var flatArgs = new List<ValueBox>();
+        var resultPtr = 0;
 
-        foreach (var arg in jsonArgs)
+        try
         {
-            var bytes = Encoding.UTF8.GetBytes(arg);
-            var ptr = jslAlloc(bytes.Length);
-            memory.Write(ptr, bytes);
-            allocs.Add((ptr, bytes.Length));
-            flatArgs.Add(ptr);
-            flatArgs.Add(bytes.Length);
+            foreach (var arg in jsonArgs)
+            {
+                var bytes = Encoding.UTF8.GetBytes(arg);
+                var ptr = jslAlloc(bytes.Length);
+                if (ptr == 0 && bytes.Length > 0)
+                    throw new InvalidOperationException($"jsl_alloc returned null for {bytes.Length} bytes");
+                bytes.CopyTo(memory.GetSpan(ptr, bytes.Length));
+                allocs.Add((ptr, bytes.Length));
+                flatArgs.Add(ptr);
+                flatArgs.Add(bytes.Length);
+            }
+
+            // Call function
+            var func = instance.GetFunction(funcName)
+                ?? throw new InvalidOperationException($"No {funcName} export");
+            resultPtr = (int)(func.Invoke(flatArgs.ToArray()) ?? throw new InvalidOperationException("null result"));
+            if (resultPtr == 0)
+                throw new InvalidOperationException($"{funcName} returned null result pointer");
+
+            // Read JslResult (12 bytes: 3 × LE u32)
+            var resultBytes = memory.GetSpan(resultPtr, JslResultSize).ToArray();
+            var status = BinaryPrimitives.ReadInt32LittleEndian(resultBytes.AsSpan(0, 4));
+            var payloadPtr = BinaryPrimitives.ReadInt32LittleEndian(resultBytes.AsSpan(4, 4));
+            var payloadLen = BinaryPrimitives.ReadInt32LittleEndian(resultBytes.AsSpan(8, 4));
+
+            // Read payload
+            var payloadStr = Encoding.UTF8.GetString(memory.GetSpan(payloadPtr, payloadLen));
+
+            using var payload = JsonDocument.Parse(payloadStr);
+
+            if (status == StatusError)
+            {
+                var root = payload.RootElement;
+                throw new JslException(
+                    root.GetProperty("code").GetString() ?? "unknown",
+                    root.GetProperty("message").GetString() ?? "unknown error",
+                    root.TryGetProperty("path", out var path) ? path.GetString() ?? "" : "");
+            }
+
+            return payload.RootElement.Clone();
         }
-
-        // Call function
-        var func = instance.GetFunction(funcName)
-            ?? throw new InvalidOperationException($"No {funcName} export");
-        var resultPtr = (int)(func.Invoke(flatArgs.ToArray()) ?? throw new InvalidOperationException("null result"));
-
-        // Read JslResult (12 bytes: 3 × LE u32)
-        var resultBytes = new byte[JslResultSize];
-        memory.Read(resultPtr, resultBytes);
-        var status = BinaryPrimitives.ReadInt32LittleEndian(resultBytes.AsSpan(0, 4));
-        var payloadPtr = BinaryPrimitives.ReadInt32LittleEndian(resultBytes.AsSpan(4, 4));
-        var payloadLen = BinaryPrimitives.ReadInt32LittleEndian(resultBytes.AsSpan(8, 4));
-
-        // Read payload
-        var payloadBytes = new byte[payloadLen];
-        memory.Read(payloadPtr, payloadBytes);
-        var payloadStr = Encoding.UTF8.GetString(payloadBytes);
-
-        // Free
-        jslResultFree(resultPtr);
-        foreach (var (ptr, len) in allocs) jslFree(ptr, len);
-
-        using var payload = JsonDocument.Parse(payloadStr);
-
-        if (status == StatusError)
+        finally
         {
-            var root = payload.RootElement;
-            throw new JslException(
-                root.GetString("code") ?? "unknown",
-                root.GetString("message") ?? "unknown error",
-                root.TryGetProperty("path", out var path) ? path.GetString() ?? "" : "");
+            // Always free guest memory, even on exception
+            if (resultPtr != 0) jslResultFree(resultPtr);
+            foreach (var (ptr, len) in allocs) jslFree(ptr, len);
         }
-
-        return payload.RootElement.Clone();
     }
 }
 
