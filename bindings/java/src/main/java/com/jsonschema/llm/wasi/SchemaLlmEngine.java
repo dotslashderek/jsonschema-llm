@@ -89,6 +89,24 @@ public class SchemaLlmEngine implements AutoCloseable {
     }
 
     /**
+     * Create an engine using automatic WASM binary discovery.
+     *
+     * <p>
+     * Resolution cascade:
+     * <ol>
+     * <li>System property {@code jsl.wasm.path}</li>
+     * <li>Environment variable {@code JSL_WASM_PATH}</li>
+     * <li>Classpath resource {@code /wasm/jsonschema_llm_wasi.wasm}</li>
+     * </ol>
+     *
+     * @return a new engine instance
+     * @throws WasmNotFoundException if the WASM binary cannot be found
+     */
+    public static SchemaLlmEngine create() {
+        return new SchemaLlmEngine(WasmResolver.defaultPath());
+    }
+
+    /**
      * Convert a JSON Schema to an LLM-optimized format with default options.
      *
      * <p>

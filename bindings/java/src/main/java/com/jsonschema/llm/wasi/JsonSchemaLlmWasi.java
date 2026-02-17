@@ -40,14 +40,22 @@ public class JsonSchemaLlmWasi implements AutoCloseable {
     private final File wasmFile;
     private boolean abiVerified = false;
 
+    /**
+     * Create using automatic WASM binary discovery.
+     *
+     * @throws WasmNotFoundException if the WASM binary cannot be found
+     * @see WasmResolver
+     */
     public JsonSchemaLlmWasi() {
-        this(System.getenv("JSL_WASM_PATH") != null
-                ? System.getenv("JSL_WASM_PATH")
-                : "target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm");
+        this(WasmResolver.defaultPath().toFile());
     }
 
     public JsonSchemaLlmWasi(String wasmPath) {
-        this.wasmFile = new File(wasmPath);
+        this(new File(wasmPath));
+    }
+
+    private JsonSchemaLlmWasi(File wasmFile) {
+        this.wasmFile = wasmFile;
     }
 
     @Override
