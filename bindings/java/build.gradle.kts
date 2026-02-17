@@ -1,9 +1,10 @@
 plugins {
     `java-library`
+    `maven-publish`
 }
 
 group = "com.jsonschema.llm"
-version = "0.1.0"
+version = "0.1.0-ALPHA"
 
 repositories {
     mavenCentral()
@@ -23,6 +24,51 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
+
+// ---------------------------------------------------------------------------
+// WASM binary embedding
+// ---------------------------------------------------------------------------
+
+val wasmSource = file("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm")
+val wasmGeneratedDir = layout.buildDirectory.dir("generated/resources")
+
+val embedWasm by tasks.registering(Copy::class) {
+    description = "Embeds the compiled WASM binary into the JAR resources."
+    doFirst {
+        if (!wasmSource.exists()) {
+            throw GradleException(
+                "Rust WASM binary not found at ${wasmSource.absolutePath}.\n" +
+                "Build it first: cargo build --target wasm32-wasip1 --release -p jsonschema-llm-wasi"
+            )
+        }
+    }
+    from(wasmSource)
+    into(wasmGeneratedDir.map { it.dir("wasm") })
+}
+
+sourceSets.main {
+    resources.srcDir(wasmGeneratedDir)
+}
+
+tasks.processResources {
+    dependsOn(embedWasm)
+}
+
+// ---------------------------------------------------------------------------
+// Maven publishing
+// ---------------------------------------------------------------------------
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Test configuration
+// ---------------------------------------------------------------------------
 
 tasks.test {
     useJUnitPlatform()
