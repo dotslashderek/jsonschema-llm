@@ -3,6 +3,7 @@ package com.jsonschema.llm.wasi;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
@@ -43,18 +44,26 @@ class WasmResolver {
         // Level 1: System property
         String sysProp = System.getProperty(SYS_PROP_KEY);
         if (sysProp != null && !sysProp.isBlank()) {
-            Path path = Path.of(sysProp);
-            if (Files.isRegularFile(path)) {
-                return path;
+            try {
+                Path path = Path.of(sysProp);
+                if (Files.isRegularFile(path) && Files.isReadable(path)) {
+                    return path;
+                }
+            } catch (InvalidPathException ignored) {
+                // Invalid path syntax — fall through to next level
             }
         }
 
         // Level 2: Environment variable
         String envVar = System.getenv(ENV_VAR_KEY);
         if (envVar != null && !envVar.isBlank()) {
-            Path path = Path.of(envVar);
-            if (Files.isRegularFile(path)) {
-                return path;
+            try {
+                Path path = Path.of(envVar);
+                if (Files.isRegularFile(path) && Files.isReadable(path)) {
+                    return path;
+                }
+            } catch (InvalidPathException ignored) {
+                // Invalid path syntax — fall through to next level
             }
         }
 
@@ -82,7 +91,8 @@ class WasmResolver {
             Files.copy(is, temp, StandardCopyOption.REPLACE_EXISTING);
             return temp;
         } catch (IOException e) {
-            return null;
+            throw new RuntimeException(
+                    "Classpath resource " + CLASSPATH_RESOURCE + " found but extraction failed", e);
         }
     }
 
