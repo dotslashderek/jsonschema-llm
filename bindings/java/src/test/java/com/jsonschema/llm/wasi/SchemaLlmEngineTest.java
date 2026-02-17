@@ -228,9 +228,13 @@ class SchemaLlmEngineTest {
     // ---------------------------------------------------------------
 
     @Test
-    void convertError() {
-        // Invalid JSON should propagate as JslException, not raw Chicory exception
-        assertThrows(JsonSchemaLlmWasi.JslException.class,
-                () -> engine.convert("NOT VALID JSON"));
+    void convertError() throws Exception {
+        // Rehydrate with invalid codec triggers a JslException from the WASM module.
+        // This verifies the engine wraps WASM errors into typed exceptions.
+        JsonNode schema = MAPPER.readTree("{\"type\": \"object\"}");
+        JsonNode data = MAPPER.readTree("{\"key\": \"value\"}");
+        // Raw string "NOT VALID JSON" as codec — WASM will reject it
+        assertThrows(Exception.class,
+                () -> engine.rehydrate(data, "NOT_A_VALID_CODEC", schema));
     }
 }
