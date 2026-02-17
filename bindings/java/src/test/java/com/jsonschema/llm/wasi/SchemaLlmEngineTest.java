@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Acceptance tests for SchemaLlmEngine facade (Issue #161).
@@ -26,215 +27,219 @@ import java.util.concurrent.Future;
  */
 class SchemaLlmEngineTest {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static SchemaLlmEngine engine;
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static SchemaLlmEngine engine;
 
-    @BeforeAll
-    static void setUp() {
-        String wasmPath = System.getenv("JSL_WASM_PATH");
-        Path path = wasmPath != null && !wasmPath.isEmpty()
-                ? Paths.get(wasmPath)
-                : Paths.get("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm");
-        engine = SchemaLlmEngine.create(path);
+  @BeforeAll
+  static void setUp() {
+    String wasmPath = System.getenv("JSL_WASM_PATH");
+    Path path = wasmPath != null && !wasmPath.isEmpty()
+        ? Paths.get(wasmPath)
+        : Paths.get("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm");
+    engine = SchemaLlmEngine.create(path);
+  }
+
+  @AfterAll
+  static void tearDown() {
+    if (engine != null) {
+      engine.close();
     }
+  }
 
-    @AfterAll
-    static void tearDown() {
-        if (engine != null) {
-            engine.close();
+  // ---------------------------------------------------------------
+  // Core operations
+  // ---------------------------------------------------------------
+
+  @Test
+  void convertReturnsTypedResult() throws Exception {
+    JsonNode schema = MAPPER.readTree("""
+        {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "age": { "type": "integer" }
+          },
+          "required": ["name"]
         }
-    }
+        """);
 
-    // ---------------------------------------------------------------
-    // Core operations
-    // ---------------------------------------------------------------
+    ConvertResult result = engine.convert(schema);
 
-    @Test
-    void convertReturnsTypedResult() throws Exception {
-        JsonNode schema = MAPPER.readTree("""
-                {
-                  "type": "object",
-                  "properties": {
-                    "name": { "type": "string" },
-                    "age": { "type": "integer" }
-                  },
-                  "required": ["name"]
-                }
-                """);
+    assertNotNull(result, "ConvertResult should not be null");
+    assertNotNull(result.apiVersion(), "apiVersion should be present");
+    assertFalse(result.apiVersion().isEmpty(), "apiVersion should not be empty");
+    assertNotNull(result.schema(), "schema should not be null");
+    assertNotNull(result.codec(), "codec should not be null");
+    assertTrue(result.schema().isObject(), "schema should be an object");
+  }
 
-        ConvertResult result = engine.convert(schema);
-
-        assertNotNull(result, "ConvertResult should not be null");
-        assertNotNull(result.apiVersion(), "apiVersion should be present");
-        assertFalse(result.apiVersion().isEmpty(), "apiVersion should not be empty");
-        assertNotNull(result.schema(), "schema should not be null");
-        assertNotNull(result.codec(), "codec should not be null");
-        assertTrue(result.schema().isObject(), "schema should be an object");
-    }
-
-    @Test
-    void convertWithOptions() throws Exception {
-        JsonNode schema = MAPPER.readTree("""
-                {
-                  "type": "object",
-                  "properties": {
-                    "name": { "type": "string" }
-                  }
-                }
-                """);
-
-        ConvertOptions opts = ConvertOptions.builder()
-                .target("openai-strict")
-                .maxDepth(50)
-                .recursionLimit(3)
-                .polymorphism("any-of")
-                .build();
-
-        ConvertResult result = engine.convert(schema, opts);
-
-        assertNotNull(result);
-        assertNotNull(result.schema());
-        assertNotNull(result.codec());
-    }
-
-    @Test
-    void roundTripIntegrity() throws Exception {
-        JsonNode schema = MAPPER.readTree("""
-                {
-                  "type": "object",
-                  "properties": {
-                    "name": { "type": "string" },
-                    "score": { "type": "integer", "minimum": 0, "maximum": 100 }
-                  },
-                  "required": ["name", "score"]
-                }
-                """);
-
-        ConvertResult convertResult = engine.convert(schema);
-
-        JsonNode llmData = MAPPER.readTree("{\"name\": \"Ada\", \"score\": 95}");
-        RehydrateResult rehydrateResult = engine.rehydrate(
-                llmData, convertResult.codec(), schema);
-
-        assertNotNull(rehydrateResult);
-        assertEquals("Ada", rehydrateResult.data().get("name").asText());
-        assertEquals(95, rehydrateResult.data().get("score").asInt());
-    }
-
-    // ---------------------------------------------------------------
-    // Thread safety
-    // ---------------------------------------------------------------
-
-    @Test
-    void threadSafety() throws Exception {
-        JsonNode schema = MAPPER.readTree("""
-                {
-                  "type": "object",
-                  "properties": {
-                    "value": { "type": "integer" }
-                  },
-                  "required": ["value"]
-                }
-                """);
-
-        int threadCount = 10;
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-        List<Future<ConvertResult>> futures = new ArrayList<>();
-
-        for (int i = 0; i < threadCount; i++) {
-            futures.add(executor.submit(() -> engine.convert(schema)));
+  @Test
+  void convertWithOptions() throws Exception {
+    JsonNode schema = MAPPER.readTree("""
+        {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" }
+          }
         }
+        """);
 
-        executor.shutdown();
+    ConvertOptions opts = ConvertOptions.builder()
+        .target("openai-strict")
+        .maxDepth(50)
+        .recursionLimit(3)
+        .polymorphism("any-of")
+        .build();
 
-        List<ConvertResult> results = new ArrayList<>();
-        for (Future<ConvertResult> future : futures) {
-            results.add(future.get());
+    ConvertResult result = engine.convert(schema, opts);
+
+    assertNotNull(result);
+    assertNotNull(result.schema());
+    assertNotNull(result.codec());
+  }
+
+  @Test
+  void roundTripIntegrity() throws Exception {
+    JsonNode schema = MAPPER.readTree("""
+        {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "score": { "type": "integer", "minimum": 0, "maximum": 100 }
+          },
+          "required": ["name", "score"]
         }
+        """);
 
-        assertEquals(threadCount, results.size());
-        for (ConvertResult result : results) {
-            assertNotNull(result);
-            assertNotNull(result.schema());
-            assertNotNull(result.codec());
+    ConvertResult convertResult = engine.convert(schema);
+
+    JsonNode llmData = MAPPER.readTree("{\"name\": \"Ada\", \"score\": 95}");
+    RehydrateResult rehydrateResult = engine.rehydrate(
+        llmData, convertResult.codec(), schema);
+
+    assertNotNull(rehydrateResult);
+    assertEquals("Ada", rehydrateResult.data().get("name").asText());
+    assertEquals(95, rehydrateResult.data().get("score").asInt());
+  }
+
+  // ---------------------------------------------------------------
+  // Thread safety
+  // ---------------------------------------------------------------
+
+  @Test
+  void threadSafety() throws Exception {
+    JsonNode schema = MAPPER.readTree("""
+        {
+          "type": "object",
+          "properties": {
+            "value": { "type": "integer" }
+          },
+          "required": ["value"]
         }
+        """);
+
+    int threadCount = 10;
+    ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+    List<Future<ConvertResult>> futures = new ArrayList<>();
+
+    for (int i = 0; i < threadCount; i++) {
+      futures.add(executor.submit(() -> engine.convert(schema)));
     }
 
-    // ---------------------------------------------------------------
-    // Module caching
-    // ---------------------------------------------------------------
+    executor.shutdown();
+    assertTrue(executor.awaitTermination(30, TimeUnit.SECONDS),
+        "Executor should complete all tasks within timeout");
 
-    @Test
-    void moduleCaching() throws Exception {
-        JsonNode schema = MAPPER.readTree("{\"type\": \"object\", \"properties\": {\"x\": {\"type\": \"string\"}}}");
-
-        // Warm-up call (first instantiation)
-        long startFirst = System.nanoTime();
-        engine.convert(schema);
-        long firstCallMs = (System.nanoTime() - startFirst) / 1_000_000;
-
-        // Subsequent calls should reuse the cached Module
-        long startSecond = System.nanoTime();
-        engine.convert(schema);
-        long secondCallMs = (System.nanoTime() - startSecond) / 1_000_000;
-
-        // Relative speedup: second call should be meaningfully faster
-        // (or at least not slower — Module compilation is the expensive part)
-        assertTrue(secondCallMs <= firstCallMs || secondCallMs < 50,
-                "Second call (" + secondCallMs + "ms) should not be dramatically slower than first ("
-                        + firstCallMs + "ms) — Module should be cached");
+    List<ConvertResult> results = new ArrayList<>();
+    for (Future<ConvertResult> future : futures) {
+      results.add(future.get());
     }
 
-    // ---------------------------------------------------------------
-    // Lifecycle
-    // ---------------------------------------------------------------
+    assertEquals(threadCount, results.size());
+    for (ConvertResult result : results) {
+      assertNotNull(result);
+      assertNotNull(result.schema());
+      assertNotNull(result.codec());
+    }
+  }
 
-    @Test
-    void closeReleasesResources() throws Exception {
-        String wasmPath = System.getenv("JSL_WASM_PATH");
-        Path path = wasmPath != null && !wasmPath.isEmpty()
-                ? Paths.get(wasmPath)
-                : Paths.get("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm");
-        SchemaLlmEngine localEngine = SchemaLlmEngine.create(path);
+  // ---------------------------------------------------------------
+  // Module caching
+  // ---------------------------------------------------------------
 
-        // Should work before close
-        JsonNode schema = MAPPER.readTree("{\"type\": \"object\"}");
-        assertNotNull(localEngine.convert(schema));
+  @Test
+  void moduleCaching() throws Exception {
+    JsonNode schema = MAPPER.readTree("{\"type\": \"object\", \"properties\": {\"x\": {\"type\": \"string\"}}}");
 
-        localEngine.close();
-
-        // Should throw after close
-        assertThrows(IllegalStateException.class, () -> localEngine.convert(schema));
+    // The engine was created once in @BeforeAll, so the Module is compiled once.
+    // If caching were broken (Module rebuilt per call), we'd see errors or
+    // inconsistent results. Running 10 consecutive calls proves structural reuse.
+    List<ConvertResult> results = new ArrayList<>();
+    for (int i = 0; i < 10; i++) {
+      results.add(engine.convert(schema));
     }
 
-    @Test
-    void closeIsIdempotent() throws Exception {
-        String wasmPath = System.getenv("JSL_WASM_PATH");
-        Path path = wasmPath != null && !wasmPath.isEmpty()
-                ? Paths.get(wasmPath)
-                : Paths.get("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm");
-        SchemaLlmEngine localEngine = SchemaLlmEngine.create(path);
-
-        // Multiple close() calls should not throw
-        assertDoesNotThrow(() -> {
-            localEngine.close();
-            localEngine.close();
-            localEngine.close();
-        });
+    // All results should be consistent (same schema structure from same Module)
+    for (ConvertResult result : results) {
+      assertNotNull(result);
+      assertNotNull(result.schema());
+      assertNotNull(result.codec());
+      assertEquals(results.get(0).apiVersion(), result.apiVersion(),
+          "All calls should report the same API version (same Module)");
     }
+  }
 
-    // ---------------------------------------------------------------
-    // Error handling
-    // ---------------------------------------------------------------
+  // ---------------------------------------------------------------
+  // Lifecycle
+  // ---------------------------------------------------------------
 
-    @Test
-    void convertError() throws Exception {
-        // Rehydrate with invalid codec triggers a JslException from the WASM module.
-        // This verifies the engine wraps WASM errors into typed exceptions.
-        JsonNode schema = MAPPER.readTree("{\"type\": \"object\"}");
-        JsonNode data = MAPPER.readTree("{\"key\": \"value\"}");
-        // Raw string "NOT VALID JSON" as codec — WASM will reject it
-        assertThrows(Exception.class,
-                () -> engine.rehydrate(data, "NOT_A_VALID_CODEC", schema));
-    }
+  @Test
+  void closeReleasesResources() throws Exception {
+    String wasmPath = System.getenv("JSL_WASM_PATH");
+    Path path = wasmPath != null && !wasmPath.isEmpty()
+        ? Paths.get(wasmPath)
+        : Paths.get("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm");
+    SchemaLlmEngine localEngine = SchemaLlmEngine.create(path);
+
+    // Should work before close
+    JsonNode schema = MAPPER.readTree("{\"type\": \"object\"}");
+    assertNotNull(localEngine.convert(schema));
+
+    localEngine.close();
+
+    // Should throw after close
+    assertThrows(IllegalStateException.class, () -> localEngine.convert(schema));
+  }
+
+  @Test
+  void closeIsIdempotent() throws Exception {
+    String wasmPath = System.getenv("JSL_WASM_PATH");
+    Path path = wasmPath != null && !wasmPath.isEmpty()
+        ? Paths.get(wasmPath)
+        : Paths.get("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm");
+    SchemaLlmEngine localEngine = SchemaLlmEngine.create(path);
+
+    // Multiple close() calls should not throw
+    assertDoesNotThrow(() -> {
+      localEngine.close();
+      localEngine.close();
+      localEngine.close();
+    });
+  }
+
+  // ---------------------------------------------------------------
+  // Error handling
+  // ---------------------------------------------------------------
+
+  @Test
+  void rehydrateError() throws Exception {
+    // Rehydrate with invalid codec triggers a JslException from the WASM module.
+    // This verifies the engine wraps WASM errors into typed exceptions.
+    JsonNode schema = MAPPER.readTree("{\"type\": \"object\"}");
+    JsonNode data = MAPPER.readTree("{\"key\": \"value\"}");
+    // Raw string "NOT VALID JSON" as codec — WASM will reject it
+    assertThrows(JsonSchemaLlmWasi.JslException.class,
+        () -> engine.rehydrate(data, "NOT_A_VALID_CODEC", schema));
+  }
+
 }

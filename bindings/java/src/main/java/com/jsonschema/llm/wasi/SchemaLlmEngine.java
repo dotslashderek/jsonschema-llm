@@ -43,6 +43,7 @@ public class SchemaLlmEngine implements AutoCloseable {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final Module cachedModule;
+    private final WasiPreview1 wasi;
     private volatile boolean closed = false;
     private volatile boolean abiVerified = false;
 
@@ -50,6 +51,9 @@ public class SchemaLlmEngine implements AutoCloseable {
      * Private constructor — use {@link #create(Path)} factory.
      */
     private SchemaLlmEngine(Path wasmPath) {
+        if (wasmPath == null) {
+            throw new IllegalArgumentException("wasmPath must not be null");
+        }
         File wasmFile = wasmPath.toFile();
         if (!wasmFile.exists()) {
             throw new IllegalArgumentException("WASM file not found: " + wasmPath);
@@ -59,12 +63,13 @@ public class SchemaLlmEngine implements AutoCloseable {
         // In Chicory 0.0.12, HostImports (WASI) are coupled to Module at build time.
         // Our WASM module is pure-compute (no I/O), so sharing the WASI context is
         // safe.
-        try (WasiPreview1 wasi = new WasiPreview1(new SystemLogger())) {
-            HostImports hostImports = new HostImports(wasi.toHostFunctions());
-            this.cachedModule = Module.builder(wasmFile)
-                    .withHostImports(hostImports)
-                    .build();
-        }
+        // IMPORTANT: WasiPreview1 must stay alive for the engine's lifetime because
+        // the Module's host functions reference it.
+        this.wasi = new WasiPreview1(new SystemLogger());
+        HostImports hostImports = new HostImports(wasi.toHostFunctions());
+        this.cachedModule = Module.builder(wasmFile)
+                .withHostImports(hostImports)
+                .build();
     }
 
     /**
@@ -173,6 +178,11 @@ public class SchemaLlmEngine implements AutoCloseable {
     @Override
     public void close() {
         closed = true;
+        try {
+            wasi.close();
+        } catch (Exception e) {
+            // Best-effort cleanup
+        }
     }
 
     private void ensureOpen() {
@@ -183,8 +193,12 @@ public class SchemaLlmEngine implements AutoCloseable {
 
     private void verifyAbiOnce(Instance instance) {
         if (!abiVerified) {
-            JslAbi.verifyAbi(instance);
-            abiVerified = true;
+            synchronized (this) {
+                if (!abiVerified) {
+                    JslAbi.verifyAbi(instance);
+                    abiVerified = true;
+                }
+            }
         }
     }
 }

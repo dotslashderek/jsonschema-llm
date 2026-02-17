@@ -125,6 +125,13 @@ final class JslAbi {
                         payload.path("path").asText(""));
             }
 
+            if (status != STATUS_OK) {
+                throw new RuntimeException(
+                        "ABI protocol violation: unexpected status=" + status
+                                + " (expected 0=OK or 1=ERROR). Payload: "
+                                + payloadStr.substring(0, Math.min(200, payloadStr.length())));
+            }
+
             return payload;
         } catch (JsonSchemaLlmWasi.JslException e) {
             throw e;
