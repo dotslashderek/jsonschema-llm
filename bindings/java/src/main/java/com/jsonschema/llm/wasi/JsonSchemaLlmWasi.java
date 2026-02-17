@@ -135,16 +135,17 @@ public class JsonSchemaLlmWasi implements AutoCloseable {
      * @throws JslException if the WASM module returns an error
      */
     public ConvertResult convertTyped(Object schema, ConvertOptions options) throws JslException {
+        JsonNode raw;
         try {
             String schemaJson = MAPPER.writeValueAsString(schema);
             String optsJson = options != null ? options.toJson() : "{}";
-            JsonNode raw = callJsl("jsl_convert", schemaJson, optsJson);
-            return ConvertResult.fromJson(raw);
+            raw = callJsl("jsl_convert", schemaJson, optsJson);
         } catch (JslException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("convertTyped failed", e);
         }
+        return ConvertResult.fromJson(raw);
     }
 
     /**

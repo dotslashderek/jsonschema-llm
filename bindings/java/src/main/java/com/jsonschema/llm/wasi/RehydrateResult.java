@@ -1,6 +1,7 @@
 package com.jsonschema.llm.wasi;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 /**
  * Typed result of a {@code jsl_rehydrate} WASI call.
@@ -42,13 +43,13 @@ public record RehydrateResult(
         JsonNode dataNode = raw.get("data");
         if (dataNode == null) {
             throw new IllegalArgumentException(
-                    "RehydrateResult JSON must contain 'data' field, got: "
-                            + raw.fieldNames());
+                    "RehydrateResult JSON must contain 'data' field, got JSON: "
+                            + raw.toString());
         }
 
         String apiVersion = raw.has("apiVersion") ? raw.get("apiVersion").asText() : null;
         JsonNode warnings = raw.has("warnings") ? raw.get("warnings")
-                : new com.fasterxml.jackson.databind.ObjectMapper().createArrayNode();
+                : JsonNodeFactory.instance.arrayNode();
 
         return new RehydrateResult(apiVersion, dataNode, warnings);
     }

@@ -91,6 +91,9 @@ public final class ConvertOptions {
          * Default: 50
          */
         public Builder maxDepth(int maxDepth) {
+            if (maxDepth < 0) {
+                throw new IllegalArgumentException("maxDepth must be non-negative, got: " + maxDepth);
+            }
             root.put("max-depth", maxDepth);
             return this;
         }
@@ -100,6 +103,10 @@ public final class ConvertOptions {
          * Default: 3
          */
         public Builder recursionLimit(int recursionLimit) {
+            if (recursionLimit < 0) {
+                throw new IllegalArgumentException(
+                        "recursionLimit must be non-negative, got: " + recursionLimit);
+            }
             root.put("recursion-limit", recursionLimit);
             return this;
         }

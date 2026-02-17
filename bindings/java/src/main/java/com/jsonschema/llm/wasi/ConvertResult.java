@@ -46,8 +46,8 @@ public record ConvertResult(
         JsonNode codecNode = raw.get("codec");
         if (schemaNode == null || codecNode == null) {
             throw new IllegalArgumentException(
-                    "ConvertResult JSON must contain 'schema' and 'codec' fields, got: "
-                            + raw.fieldNames());
+                    "ConvertResult JSON must contain 'schema' and 'codec' fields, got JSON: "
+                            + raw.toString());
         }
 
         String apiVersion = raw.has("apiVersion") ? raw.get("apiVersion").asText() : null;
