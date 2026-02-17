@@ -110,6 +110,59 @@ public class JsonSchemaLlmWasi implements AutoCloseable {
         }
     }
 
+    // ---------------------------------------------------------------
+    // Typed API surface (Issue #160)
+    // ---------------------------------------------------------------
+
+    /**
+     * Convert a JSON Schema using default options, returning a typed result.
+     *
+     * @param schema the JSON Schema (any Jackson-serializable object)
+     * @return a typed {@link ConvertResult} with schema, codec, and metadata
+     * @throws JslException if the WASM module returns an error
+     */
+    public ConvertResult convertTyped(Object schema) throws JslException {
+        JsonNode raw = convert(schema, null);
+        return ConvertResult.fromJson(raw);
+    }
+
+    /**
+     * Convert a JSON Schema with specific options, returning a typed result.
+     *
+     * @param schema  the JSON Schema (any Jackson-serializable object)
+     * @param options conversion options built via {@link ConvertOptions#builder()}
+     * @return a typed {@link ConvertResult} with schema, codec, and metadata
+     * @throws JslException if the WASM module returns an error
+     */
+    public ConvertResult convertTyped(Object schema, ConvertOptions options) throws JslException {
+        try {
+            String schemaJson = MAPPER.writeValueAsString(schema);
+            String optsJson = options != null ? options.toJson() : "{}";
+            JsonNode raw = callJsl("jsl_convert", schemaJson, optsJson);
+            return ConvertResult.fromJson(raw);
+        } catch (JslException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("convertTyped failed", e);
+        }
+    }
+
+    /**
+     * Rehydrate LLM output back to the original schema shape, returning a typed
+     * result.
+     *
+     * @param data   the LLM-generated JSON data
+     * @param codec  the codec sidecar from a prior conversion
+     * @param schema the original JSON Schema
+     * @return a typed {@link RehydrateResult} with data and warnings
+     * @throws JslException if the WASM module returns an error
+     */
+    public RehydrateResult rehydrateTyped(Object data, Object codec, Object schema)
+            throws JslException {
+        JsonNode raw = rehydrate(data, codec, schema);
+        return RehydrateResult.fromJson(raw);
+    }
+
     JsonNode callJsl(String funcName, String... jsonArgs) throws JslException {
         // Fresh WASI + instance per call (WASI modules are single-use)
         try (WasiPreview1 wasi = new WasiPreview1(new SystemLogger())) {
