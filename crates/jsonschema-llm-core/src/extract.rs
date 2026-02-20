@@ -34,7 +34,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 use crate::error::ConvertError;
-use crate::schema_utils::resolve_pointer;
+use crate::schema_utils::{escape_pointer_segment, resolve_pointer};
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -124,9 +124,13 @@ pub fn extract_component(
     // Phase 3: Tree-shaking — build new root + $defs.
     // The target node becomes the root schema; deps become $defs.
     // Build a ref-rewrite map: old pointer → new "#/$defs/<key>" reference.
+    // IMPORTANT: re-escape the key for use in a JSON Pointer.
     let rewrite_map: BTreeMap<String, String> = deps
         .iter()
-        .map(|(ptr, (key, _))| (ptr.clone(), format!("#/$defs/{}", key)))
+        .map(|(ptr, (key, _))| {
+            let escaped_key = escape_pointer_segment(key);
+            (ptr.clone(), format!("#/$defs/{}", escaped_key))
+        })
         .collect();
 
     // Phase 4: Rewrite refs in the target node and all dep nodes.
@@ -197,46 +201,75 @@ fn collect_deps(
                     });
                 }
 
-                // Skip if already visited (cycle break).
-                if visited.contains(ref_val) {
-                    return Ok(());
+                // Reject anchor-style fragment refs (e.g., "#Foo") — only JSON Pointer
+                // syntax is supported (matches p0_normalize policy).
+                if ref_val != "#" && !ref_val.starts_with("#/") {
+                    return Err(ConvertError::UnsupportedFeature {
+                        path: current_path.to_string(),
+                        feature: format!("$anchor / non-pointer fragment $ref: {}", ref_val),
+                    });
                 }
 
-                // Attempt to resolve.
-                match resolve_pointer(root_schema, ref_val) {
-                    None => {
-                        // Soft-fail: record as missing, leave $ref dangling.
-                        missing_refs.push(ref_val.to_string());
-                    }
-                    Some(resolved) => {
-                        let key = pointer_to_key(ref_val, deps);
-                        let resolved_clone = resolved.clone();
-                        visited.insert(ref_val.to_string());
-                        deps.insert(ref_val.to_string(), (key, resolved_clone.clone()));
-                        collect_deps(
-                            &resolved_clone,
-                            root_schema,
-                            ref_val,
-                            depth + 1,
-                            max_depth,
-                            visited,
-                            deps,
-                            missing_refs,
-                        )?;
+                // Skip if already visited (cycle break) — but still traverse siblings below.
+                let already_visited = visited.contains(ref_val);
+
+                if !already_visited {
+                    // Attempt to resolve.
+                    match resolve_pointer(root_schema, ref_val) {
+                        None => {
+                            // Soft-fail: record as missing, leave $ref dangling.
+                            missing_refs.push(ref_val.to_string());
+                        }
+                        Some(resolved) => {
+                            let key = pointer_to_key(ref_val, deps);
+                            let resolved_clone = resolved.clone();
+                            visited.insert(ref_val.to_string());
+                            deps.insert(ref_val.to_string(), (key, resolved_clone.clone()));
+                            // Only increment depth for $ref hops (not AST traversal).
+                            collect_deps(
+                                &resolved_clone,
+                                root_schema,
+                                ref_val,
+                                depth + 1,
+                                max_depth,
+                                visited,
+                                deps,
+                                missing_refs,
+                            )?;
+                        }
                     }
                 }
-                // Don't recurse into siblings of a $ref node — the ref IS the schema.
+
+                // Always continue DFS into siblings (regardless of cycle detection).
+                // JSON Schema Draft 2019-09+ allows schemas alongside $ref.
+                for (key, val) in obj {
+                    if key == "$ref" {
+                        continue;
+                    }
+                    let child_path = format!("{}/{}", current_path, key);
+                    // Do NOT increment depth here — sibling traversal is not a ref hop.
+                    collect_deps(
+                        val,
+                        root_schema,
+                        &child_path,
+                        depth,
+                        max_depth,
+                        visited,
+                        deps,
+                        missing_refs,
+                    )?;
+                }
                 return Ok(());
             }
 
-            // No $ref — recurse into all values.
+            // No $ref — recurse into all values (depth unchanged: not a ref hop).
             for (key, val) in obj {
                 let child_path = format!("{}/{}", current_path, key);
                 collect_deps(
                     val,
                     root_schema,
                     &child_path,
-                    depth + 1,
+                    depth,
                     max_depth,
                     visited,
                     deps,
@@ -247,11 +280,12 @@ fn collect_deps(
         Value::Array(arr) => {
             for (i, val) in arr.iter().enumerate() {
                 let child_path = format!("{}/{}", current_path, i);
+                // Depth unchanged: array traversal is not a ref hop.
                 collect_deps(
                     val,
                     root_schema,
                     &child_path,
-                    depth + 1,
+                    depth,
                     max_depth,
                     visited,
                     deps,
@@ -269,38 +303,55 @@ fn collect_deps(
 // Key computation
 // ---------------------------------------------------------------------------
 
-/// Compute a canonical, collision-safe key for a JSON Pointer.
+/// Compute a canonical, collision-safe, unique key for a JSON Pointer.
 ///
 /// Strategy:
 /// 1. Always try the **last segment** first (e.g. `#/components/schemas/Tag` → `"Tag"`)
 /// 2. If that key is **already taken** by a different pointer, fall back to the
 ///    full-path sanitized form (join all segments with `_`)
+/// 3. If the fallback ALSO collides (rare path ambiguity), append `_N` (N=2,3,...)
+///    until unique.
 ///
-/// All segment strings are RFC 6901 unescaped before use.
+/// All segment strings are RFC 6901 unescaped (for human-readable key names).
+/// Callers must escape keys when building JSON Pointer strings.
 fn pointer_to_key(pointer: &str, deps: &BTreeMap<String, (String, Value)>) -> String {
     let stripped = pointer.strip_prefix('#').unwrap_or(pointer);
     let segments: Vec<&str> = stripped.split('/').filter(|s| !s.is_empty()).collect();
 
-    // Preferred: last segment.
     let last = segments
         .last()
         .map(|s| unescape_segment(s))
         .unwrap_or_else(|| "root".to_string());
 
-    // Check for collision: is this key already used by a DIFFERENT pointer?
-    let collision = deps
-        .iter()
-        .any(|(existing_ptr, (existing_key, _))| existing_key == &last && existing_ptr != pointer);
+    // Check for collision: key taken by a DIFFERENT pointer?
+    let key_exists = |candidate: &str| {
+        deps.iter()
+            .any(|(ptr, (k, _))| k == candidate && ptr != pointer)
+    };
 
-    if collision {
-        // Full-path sanitized key as tiebreak.
-        segments
-            .iter()
-            .map(|s| unescape_segment(s))
-            .collect::<Vec<_>>()
-            .join("_")
-    } else {
-        last
+    if !key_exists(&last) {
+        return last;
+    }
+
+    // Fallback: full-path join.
+    let joined = segments
+        .iter()
+        .map(|s| unescape_segment(s))
+        .collect::<Vec<_>>()
+        .join("_");
+
+    if !key_exists(&joined) {
+        return joined;
+    }
+
+    // Last resort: append numeric suffix until unique.
+    let mut n = 2usize;
+    loop {
+        let candidate = format!("{}_{}", joined, n);
+        if !key_exists(&candidate) {
+            return candidate;
+        }
+        n += 1;
     }
 }
 
