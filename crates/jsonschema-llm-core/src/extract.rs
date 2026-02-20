@@ -67,6 +67,120 @@ pub struct ExtractResult {
 // Public API
 // ---------------------------------------------------------------------------
 
+/// Enumerate all extractable component JSON Pointers in a schema.
+///
+/// Walks the schema recursively, discovering components in:
+/// - `$defs` (JSON Schema Draft 2019-09+)
+/// - `definitions` (legacy Draft 4-7)
+/// - `components/schemas` at root level only (OpenAPI Specification)
+///
+/// Returns a sorted, deduplicated list of JSON Pointer strings (RFC 6901).
+///
+/// # Notes
+///
+/// - OAS `components/schemas` is only detected at the document root (`#`) to
+///   avoid false positives when user schemas happen to have properties named
+///   `components`.
+/// - Keys are RFC 6901-escaped via [`crate::schema_utils::escape_pointer_segment`].
+/// - Nested `$defs` inside `$defs` entries are discovered with the correct
+///   full path (e.g. `#/$defs/Outer/$defs/Inner`).
+///
+/// # Example
+///
+/// ```rust,no_run
+/// use jsonschema_llm_core::list_components;
+/// use serde_json::json;
+///
+/// let schema = json!({ "$defs": { "Pet": { "type": "object" } } });
+/// assert_eq!(list_components(&schema), vec!["#/$defs/Pet"]);
+/// ```
+pub fn list_components(schema: &Value) -> Vec<String> {
+    let mut pointers: Vec<String> = Vec::new();
+    collect_components(schema, "#", true, &mut pointers);
+    pointers.sort();
+    pointers.dedup();
+    pointers
+}
+
+/// Recursive helper for [`list_components`].
+///
+/// * `node`        — current schema node
+/// * `path`        — JSON Pointer prefix for this node (e.g. `"#"` or `"#/$defs/Outer"`)
+/// * `is_root`     — true only when `path == "#"` (gates OAS `components/schemas` detection)
+/// * `out`         — accumulator for discovered pointers
+fn collect_components(node: &Value, path: &str, is_root: bool, out: &mut Vec<String>) {
+    match node {
+        // ------------------------------------------------------------------
+        // Array: recurse into each element (handles allOf/anyOf/oneOf/items)
+        // ------------------------------------------------------------------
+        Value::Array(arr) => {
+            for (i, elem) in arr.iter().enumerate() {
+                let child_path = format!("{}/{}", path, i);
+                collect_components(elem, &child_path, false, out);
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Object: enumerate $defs/definitions/components/schemas and recurse
+        // ------------------------------------------------------------------
+        Value::Object(obj) => {
+            // ---------------------------------------------------------------
+            // Detect `$defs` / `definitions` map-of-components at this node
+            // ---------------------------------------------------------------
+            for keyword in ["$defs", "definitions"] {
+                if let Some(Value::Object(defs)) = obj.get(keyword) {
+                    for key in defs.keys() {
+                        let escaped = escape_pointer_segment(key);
+                        let ptr = format!("{}/{}/{}", path, keyword, escaped);
+                        out.push(ptr.clone());
+                        // Recurse into this component's schema (for nested $defs).
+                        // The component itself is NOT the root — no OAS detection inside it.
+                        collect_components(&defs[key], &ptr, false, out);
+                    }
+                }
+            }
+
+            // ---------------------------------------------------------------
+            // Detect OAS `components/schemas` — ONLY at the document root
+            // ---------------------------------------------------------------
+            if is_root {
+                if let Some(Value::Object(components)) = obj.get("components") {
+                    if let Some(Value::Object(schemas)) = components.get("schemas") {
+                        for key in schemas.keys() {
+                            let escaped = escape_pointer_segment(key);
+                            let ptr = format!("#/components/schemas/{}", escaped);
+                            out.push(ptr.clone());
+                            // Recurse for nested $defs inside OAS component schemas.
+                            collect_components(&schemas[key], &ptr, false, out);
+                        }
+                    }
+                }
+            }
+
+            // ---------------------------------------------------------------
+            // Recurse into all remaining object values.
+            // Skip keys already processed above to avoid double-counting.
+            // ---------------------------------------------------------------
+            for (key, val) in obj {
+                if key == "$defs" || key == "definitions" {
+                    // Already enumerated component keys above; recursion into each
+                    // component's body is handled in the enumeration loop above.
+                    continue;
+                }
+                if is_root && key == "components" {
+                    // Already handled OAS components/schemas above.
+                    continue;
+                }
+                let child_path = format!("{}/{}", path, escape_pointer_segment(key));
+                collect_components(val, &child_path, false, out);
+            }
+        }
+
+        // All other Value variants (String, Number, Bool, Null) cannot contain $defs.
+        _ => {}
+    }
+}
+
 /// Extract a single component from a schema by JSON Pointer.
 ///
 /// Resolves the target pointer, performs a DFS transitive closure over all
@@ -660,6 +774,226 @@ mod tests {
     // -----------------------------------------------------------------------
     // AC2: Extracted schema can be passed to convert()
     // -----------------------------------------------------------------------
+
+    // -----------------------------------------------------------------------
+    // list_components() — TDD gate tests (written before implementation)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_list_components_empty_schema() {
+        let schema = json!({});
+        let result = list_components(&schema);
+        assert!(result.is_empty(), "empty schema should return empty vec");
+    }
+
+    #[test]
+    fn test_list_components_no_defs() {
+        let schema = json!({
+            "type": "object",
+            "properties": { "name": { "type": "string" } }
+        });
+        let result = list_components(&schema);
+        assert!(
+            result.is_empty(),
+            "schema without $defs should return empty vec"
+        );
+    }
+
+    #[test]
+    fn test_list_components_defs_five_entries() {
+        let schema = json!({
+            "$defs": {
+                "A": { "type": "string" },
+                "B": { "type": "integer" },
+                "C": { "type": "boolean" },
+                "D": { "type": "number" },
+                "E": { "type": "null" }
+            }
+        });
+        let result = list_components(&schema);
+        assert_eq!(result.len(), 5, "should enumerate all 5 $defs entries");
+        assert!(result.contains(&"#/$defs/A".to_string()));
+        assert!(result.contains(&"#/$defs/B".to_string()));
+        assert!(result.contains(&"#/$defs/C".to_string()));
+        assert!(result.contains(&"#/$defs/D".to_string()));
+        assert!(result.contains(&"#/$defs/E".to_string()));
+    }
+
+    #[test]
+    fn test_list_components_output_sorted() {
+        let schema = json!({
+            "$defs": {
+                "Zebra": { "type": "string" },
+                "Apple": { "type": "integer" },
+                "Mango": { "type": "boolean" }
+            }
+        });
+        let result = list_components(&schema);
+        assert_eq!(result.len(), 3);
+        let mut expected = result.clone();
+        expected.sort();
+        assert_eq!(result, expected, "output must be sorted");
+    }
+
+    #[test]
+    fn test_list_components_deterministic() {
+        let schema = json!({
+            "$defs": {
+                "X": { "type": "string" },
+                "Y": { "type": "integer" }
+            }
+        });
+        let r1 = list_components(&schema);
+        let r2 = list_components(&schema);
+        let r3 = list_components(&schema);
+        assert_eq!(r1, r2);
+        assert_eq!(r2, r3);
+    }
+
+    #[test]
+    fn test_list_components_legacy_definitions() {
+        // Pre-Draft-2019 `definitions` key should be enumerated
+        let schema = json!({
+            "definitions": {
+                "Foo": { "type": "string" },
+                "Bar": { "type": "integer" }
+            }
+        });
+        let result = list_components(&schema);
+        assert_eq!(result.len(), 2);
+        assert!(result.contains(&"#/definitions/Foo".to_string()));
+        assert!(result.contains(&"#/definitions/Bar".to_string()));
+    }
+
+    #[test]
+    fn test_list_components_oas_components_schemas() {
+        // OAS `components/schemas` at root level
+        let schema = json!({
+            "components": {
+                "schemas": {
+                    "Pet": { "type": "object" },
+                    "Tag": { "type": "object" }
+                }
+            }
+        });
+        let result = list_components(&schema);
+        assert_eq!(result.len(), 2);
+        assert!(result.contains(&"#/components/schemas/Pet".to_string()));
+        assert!(result.contains(&"#/components/schemas/Tag".to_string()));
+    }
+
+    #[test]
+    fn test_list_components_mixed_defs_and_oas() {
+        let schema = json!({
+            "$defs": { "LocalType": { "type": "string" } },
+            "components": {
+                "schemas": { "OasType": { "type": "object" } }
+            }
+        });
+        let result = list_components(&schema);
+        assert_eq!(result.len(), 2);
+        assert!(result.contains(&"#/$defs/LocalType".to_string()));
+        assert!(result.contains(&"#/components/schemas/OasType".to_string()));
+    }
+
+    #[test]
+    fn test_list_components_defs_inside_all_of_array() {
+        // Regression for array traversal bug: $defs nested inside allOf entries
+        // must be discovered even though allOf is a Value::Array.
+        let schema = json!({
+            "allOf": [
+                {
+                    "$defs": {
+                        "InnerA": { "type": "string" }
+                    }
+                },
+                {
+                    "anyOf": [
+                        {
+                            "definitions": {
+                                "DeepDefined": { "type": "integer" }
+                            }
+                        }
+                    ]
+                }
+            ]
+        });
+        let result = list_components(&schema);
+        assert!(
+            result.iter().any(|p| p.contains("InnerA")),
+            "InnerA (nested in allOf[0]/$defs) should be discovered; got: {:?}",
+            result
+        );
+        assert!(
+            result.iter().any(|p| p.contains("DeepDefined")),
+            "DeepDefined (nested in allOf[1]/anyOf[0]/definitions) should be discovered; got: {:?}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_list_components_nested_defs_inside_defs() {
+        // $defs entries that themselves contain nested $defs
+        let schema = json!({
+            "$defs": {
+                "Outer": {
+                    "type": "object",
+                    "$defs": {
+                        "Inner": { "type": "string" }
+                    }
+                }
+            }
+        });
+        let result = list_components(&schema);
+        // Should find both Outer and Outer/Inner
+        assert!(
+            result.contains(&"#/$defs/Outer".to_string()),
+            "missing Outer; got: {:?}",
+            result
+        );
+        assert!(
+            result.contains(&"#/$defs/Outer/$defs/Inner".to_string()),
+            "missing Outer/$defs/Inner; got: {:?}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_list_components_special_char_key_escaped() {
+        // Keys with `/` must be RFC 6901 escaped in the returned pointer
+        let schema = json!({
+            "$defs": {
+                "user/name": { "type": "string" }
+            }
+        });
+        let result = list_components(&schema);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0], "#/$defs/user~1name");
+    }
+
+    #[test]
+    fn test_list_components_oas_not_at_nested_level() {
+        // components/schemas nested inside properties should NOT be enumerated
+        let schema = json!({
+            "properties": {
+                "components": {
+                    "properties": {
+                        "schemas": {
+                            "properties": {
+                                "Thing": { "type": "string" }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        let result = list_components(&schema);
+        assert!(
+            result.is_empty(),
+            "components/schemas buried in properties should not be listed; got: {:?}",
+            result
+        );
+    }
 
     #[test]
     fn test_extracted_passes_convert() {
