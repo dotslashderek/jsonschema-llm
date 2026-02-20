@@ -74,6 +74,8 @@ struct WasmConvertOptions {
     recursion_limit: Option<usize>,
     #[serde(alias = "polymorphism")]
     polymorphism: Option<PolymorphismStrategy>,
+    #[serde(alias = "skip-components")]
+    skip_components: Option<bool>,
 }
 
 impl From<WasmConvertOptions> for ConvertOptions {
@@ -85,6 +87,7 @@ impl From<WasmConvertOptions> for ConvertOptions {
             max_depth: wasm.max_depth.unwrap_or(defaults.max_depth),
             recursion_limit: wasm.recursion_limit.unwrap_or(defaults.recursion_limit),
             polymorphism: wasm.polymorphism.unwrap_or(defaults.polymorphism),
+            skip_components: wasm.skip_components.unwrap_or(defaults.skip_components),
         }
     }
 }
@@ -238,6 +241,7 @@ export interface ConvertOptions {
   maxDepth?: number;
   recursionLimit?: number;
   polymorphism?: PolymorphismStrategy;
+  skipComponents?: boolean;
 }
 
 export interface Codec {

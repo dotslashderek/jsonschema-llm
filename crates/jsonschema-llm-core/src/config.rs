@@ -47,6 +47,12 @@ pub struct ConvertOptions {
     pub recursion_limit: usize,
     /// Polymorphism strategy override.
     pub polymorphism: PolymorphismStrategy,
+    /// If `true`, [`convert_all_components`](crate::convert_all_components) skips
+    /// per-component extraction and returns only the full-schema result.
+    ///
+    /// This flag is a no-op when calling [`convert`](crate::convert) directly.
+    /// Default: `false`.
+    pub skip_components: bool,
 }
 
 /// Strategy for handling oneOf/anyOf polymorphism.
@@ -68,6 +74,7 @@ impl Default for ConvertOptions {
             max_depth: 50,
             recursion_limit: 3,
             polymorphism: PolymorphismStrategy::AnyOf,
+            skip_components: false,
         }
     }
 }
@@ -84,6 +91,7 @@ mod tests {
             max_depth: 100,
             recursion_limit: 5,
             polymorphism: PolymorphismStrategy::Flatten,
+            skip_components: false,
         };
 
         // Serialize to JSON

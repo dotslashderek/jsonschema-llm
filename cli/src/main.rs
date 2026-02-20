@@ -56,6 +56,10 @@ enum Commands {
         #[arg(long, default_value_t = 3)]
         recursion_limit: usize,
 
+        /// Skip processing $defs/components entirely
+        #[arg(long, default_value_t = false)]
+        skip_components: bool,
+
         /// Output format
         #[arg(long, value_enum, default_value_t = OutputFormat::Pretty)]
         format: OutputFormat,
@@ -162,6 +166,7 @@ fn main() -> Result<()> {
             polymorphism,
             max_depth,
             recursion_limit,
+            skip_components,
             format,
         } => {
             let file = File::open(&input)
@@ -177,6 +182,7 @@ fn main() -> Result<()> {
                 polymorphism: polymorphism.into(),
                 max_depth,
                 recursion_limit,
+                skip_components,
             };
 
             let result = convert(&schema, &options)
