@@ -38,7 +38,7 @@ pub use codec::Codec;
 pub use codec_warning::Warning;
 pub use config::{ConvertOptions, Mode, PolymorphismStrategy, Target};
 pub use error::{ConvertError, ErrorCode, ProviderCompatError};
-pub use extract::{extract_component, ExtractOptions, ExtractResult};
+pub use extract::{extract_component, list_components, ExtractOptions, ExtractResult};
 pub use rehydrator::{coerce_types, RehydrateResult};
 pub use schema_utils::{build_path, escape_pointer_segment, split_path, unescape_pointer_segment};
 
@@ -195,6 +195,92 @@ pub fn rehydrate(
     Ok(result)
 }
 
+/// Result of a [`convert_all_components`] call.
+///
+/// Contains the full-schema conversion and, unless suppressed via
+/// [`ConvertOptions::skip_components`], per-component results sorted by
+/// JSON Pointer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConvertAllResult {
+    /// Conversion result for the entire input schema.
+    pub full: ConvertResult,
+    /// Per-component results as `(pointer, ConvertResult)` pairs, sorted by pointer.
+    ///
+    /// Empty when [`ConvertOptions::skip_components`] is `true`.
+    pub components: Vec<(String, ConvertResult)>,
+    /// Per-component failures as `(pointer, error_message)` pairs.
+    ///
+    /// Individual errors do not abort the batch — components that succeed still
+    /// appear in `components`. Sorted by pointer for deterministic output.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub component_errors: Vec<(String, String)>,
+}
+
+/// Convert an entire schema *and* each of its components in one call.
+///
+/// This is a thin orchestration layer:
+/// 1. Always runs [`convert`] on the full `schema` → [`ConvertAllResult::full`]
+/// 2. Unless [`ConvertOptions::skip_components`] is `true`: calls
+///    [`list_components`] → for each pointer calls [`extract_component`] then
+///    [`convert`] on the extracted sub-schema
+/// 3. Per-component errors are collected in [`ConvertAllResult::component_errors`]
+///    and do not abort the batch
+///
+/// # Performance Note
+///
+/// Extraction is `O(N × Schema_Size)` — each call traverses the full schema.
+/// For very large OAS documents with hundreds of components, this may be slow.
+/// See [#190](<https://github.com/dotslashderek/jsonschema-llm/issues/190>) for
+/// the tracked optimisation.
+pub fn convert_all_components(
+    schema: &Value,
+    convert_options: &ConvertOptions,
+    extract_options: &ExtractOptions,
+) -> Result<ConvertAllResult, ConvertError> {
+    // Step 1: Always convert the full schema.
+    let full = convert(schema, convert_options)?;
+
+    // Step 2: Early-exit if component extraction is suppressed.
+    if convert_options.skip_components {
+        return Ok(ConvertAllResult {
+            full,
+            components: Vec::new(),
+            component_errors: Vec::new(),
+        });
+    }
+
+    // Step 3: Enumerate and process each component — best-effort.
+    let pointers = list_components(schema);
+    let mut components: Vec<(String, ConvertResult)> = Vec::with_capacity(pointers.len());
+    let mut component_errors: Vec<(String, String)> = Vec::new();
+
+    for pointer in pointers {
+        let extract_result = extract_component(schema, &pointer, extract_options);
+        match extract_result {
+            Err(e) => {
+                component_errors.push((pointer, e.to_string()));
+            }
+            Ok(extracted) => match convert(&extracted.schema, convert_options) {
+                Err(e) => {
+                    component_errors.push((pointer, e.to_string()));
+                }
+                Ok(conv) => {
+                    components.push((pointer, conv));
+                }
+            },
+        }
+    }
+
+    // Sort errors for deterministic output.
+    component_errors.sort_by(|(a, _), (b, _)| a.cmp(b));
+
+    Ok(ConvertAllResult {
+        full,
+        components,
+        component_errors,
+    })
+}
+
 // ---------------------------------------------------------------------------
 // JSON-String Bridge API (FFI surface)
 // ---------------------------------------------------------------------------
@@ -290,4 +376,189 @@ pub fn rehydrate_json(
         inner: &result,
     };
     serde_json::to_string(&bridge).map_err(|e| err_json(ConvertError::JsonError(e)))
+}
+
+// ===========================================================================
+// Tests (TDD — written before implementation)
+// ===========================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    fn default_opts() -> ConvertOptions {
+        ConvertOptions::default()
+    }
+
+    fn default_extract_opts() -> ExtractOptions {
+        ExtractOptions::default()
+    }
+
+    // -----------------------------------------------------------------------
+    // convert_all_components() — TDD gate tests (#176)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_convert_all_empty_schema() {
+        let schema = json!({ "type": "object", "properties": { "x": { "type": "integer" } } });
+        let result = convert_all_components(&schema, &default_opts(), &default_extract_opts())
+            .expect("convert_all_components should not error on a schema with no components");
+        assert!(result.components.is_empty(), "no $defs → empty components");
+        assert!(result.component_errors.is_empty());
+        // full schema always present
+        assert!(result.full.schema.is_object());
+    }
+
+    #[test]
+    fn test_convert_all_three_defs() {
+        let schema = json!({
+            "$defs": {
+                "A": { "type": "string" },
+                "B": { "type": "integer" },
+                "C": { "type": "boolean" }
+            }
+        });
+        let result = convert_all_components(&schema, &default_opts(), &default_extract_opts())
+            .expect("convert_all_components should succeed");
+        // full is always present
+        assert!(result.full.schema.is_object());
+        // 3 components
+        assert_eq!(
+            result.components.len(),
+            3,
+            "expected 3 component results; got: {:?}",
+            result.components.iter().map(|(p, _)| p).collect::<Vec<_>>()
+        );
+        // all components have a valid schema
+        for (pointer, conv_result) in &result.components {
+            assert!(
+                conv_result.schema.is_object(),
+                "component {} schema should be an object",
+                pointer
+            );
+        }
+        // no errors
+        assert!(result.component_errors.is_empty());
+    }
+
+    #[test]
+    fn test_convert_all_skip_components_flag() {
+        let schema = json!({
+            "$defs": {
+                "A": { "type": "string" },
+                "B": { "type": "integer" }
+            }
+        });
+        let mut opts = default_opts();
+        opts.skip_components = true;
+        let result = convert_all_components(&schema, &opts, &default_extract_opts())
+            .expect("convert_all_components should succeed with skip_components=true");
+        // full always present
+        assert!(result.full.schema.is_object());
+        // components vec must be empty
+        assert!(
+            result.components.is_empty(),
+            "skip_components=true should yield empty components"
+        );
+        assert!(result.component_errors.is_empty());
+    }
+
+    #[test]
+    fn test_convert_all_partial_failure_best_effort() {
+        // Use a tight max_depth so a component with a deep $ref chain fails at
+        // extraction while simpler components succeed. This exercises the
+        // best-effort error collection in convert_all_components().
+        let schema = json!({
+            "$defs": {
+                // This component has a 2-hop ref chain: Deep → Mid → Leaf
+                // With max_depth=1, the second hop (Leaf) will exceed the limit.
+                "Deep": { "$ref": "#/$defs/Mid" },
+                "Mid":  { "$ref": "#/$defs/Leaf" },
+                "Leaf": { "type": "string" },
+                "Good": { "type": "integer" }
+            }
+        });
+        // max_depth=1 means exactly one $ref hop is allowed.
+        // Extracting "Deep" tries to follow Deep→Mid (hop 1) then Mid→Leaf (hop 2) → error.
+        // Extracting "Good", "Mid", and "Leaf" all succeed.
+        let tight_extract = ExtractOptions { max_depth: Some(1) };
+        let result = convert_all_components(&schema, &default_opts(), &tight_extract)
+            .expect("convert_all_components itself should not fail");
+        // Good component must succeed
+        let good = result.components.iter().find(|(p, _)| p == "#/$defs/Good");
+        assert!(
+            good.is_some(),
+            "Good component should succeed; components: {:?}",
+            result.components.iter().map(|(p, _)| p).collect::<Vec<_>>()
+        );
+        // Deep must be in component_errors (exceeded max_depth)
+        let deep_err = result
+            .component_errors
+            .iter()
+            .find(|(p, _)| p == "#/$defs/Deep");
+        assert!(
+            deep_err.is_some(),
+            "#/$defs/Deep should appear in component_errors; errors: {:?}",
+            result.component_errors
+        );
+    }
+
+    #[test]
+    fn test_convert_all_component_codec_rehydrates() {
+        // Each component's codec should be usable to rehydrate LLM output.
+        let schema = json!({
+            "$defs": {
+                "Pet": {
+                    "type": "object",
+                    "properties": {
+                        "name": { "type": "string" },
+                        "age":  { "type": "integer" }
+                    },
+                    "required": ["name"]
+                }
+            }
+        });
+        let result = convert_all_components(&schema, &default_opts(), &default_extract_opts())
+            .expect("convert_all_components should succeed");
+        let (_ptr, pet_result) = result
+            .components
+            .iter()
+            .find(|(p, _)| p == "#/$defs/Pet")
+            .expect("#/$defs/Pet should be present");
+        // Use the extracted schema as the original for rehydration
+        let llm_output = json!({ "name": "Fido", "age": 3 });
+        let rehydrated = rehydrate(&llm_output, &pet_result.codec, &pet_result.schema);
+        assert!(
+            rehydrated.is_ok(),
+            "rehydrate() on component codec should succeed: {:?}",
+            rehydrated.unwrap_err()
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // skip_components in ConvertOptions serde round-trip (#176)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_skip_components_serde_round_trip() {
+        let opts = ConvertOptions {
+            skip_components: true,
+            ..ConvertOptions::default()
+        };
+        let json = serde_json::to_string(&opts).unwrap();
+        assert!(
+            json.contains("\"skip-components\""),
+            "kebab-case field expected; got: {}",
+            json
+        );
+        let deserialized: ConvertOptions = serde_json::from_str(&json).unwrap();
+        assert!(deserialized.skip_components);
+    }
+
+    #[test]
+    fn test_skip_components_defaults_false() {
+        let opts = ConvertOptions::default();
+        assert!(!opts.skip_components);
+    }
 }
