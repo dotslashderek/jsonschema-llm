@@ -187,6 +187,84 @@ public class SchemaLlmEngine implements AutoCloseable {
     }
 
     /**
+     * List all extractable component JSON Pointers in a schema.
+     *
+     * @param schema the JSON Schema
+     * @return a JsonNode with apiVersion and components array
+     * @throws JsonSchemaLlmWasi.JslException if the WASM module returns an error
+     */
+    public com.fasterxml.jackson.databind.JsonNode listComponents(Object schema)
+            throws JsonSchemaLlmWasi.JslException {
+        ensureOpen();
+        try {
+            String schemaJson = MAPPER.writeValueAsString(schema);
+
+            Instance instance = cachedModule.instantiate();
+            verifyAbiOnce(instance);
+            return JslAbi.callExport(instance, "jsl_list_components", schemaJson);
+        } catch (JsonSchemaLlmWasi.JslException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("listComponents failed", e);
+        }
+    }
+
+    /**
+     * Extract a single component from a schema by JSON Pointer.
+     *
+     * @param schema  the JSON Schema
+     * @param pointer the JSON Pointer (e.g. "#/$defs/Pet")
+     * @param options extraction options as a JSON string, or null for defaults
+     * @return a JsonNode with apiVersion, schema, pointer, dependencyCount,
+     *         missingRefs
+     * @throws JsonSchemaLlmWasi.JslException if the WASM module returns an error
+     */
+    public com.fasterxml.jackson.databind.JsonNode extractComponent(Object schema, String pointer,
+            String options) throws JsonSchemaLlmWasi.JslException {
+        ensureOpen();
+        try {
+            String schemaJson = MAPPER.writeValueAsString(schema);
+            String optsJson = options != null ? options : "{}";
+
+            Instance instance = cachedModule.instantiate();
+            verifyAbiOnce(instance);
+            return JslAbi.callExport(instance, "jsl_extract_component", schemaJson, pointer, optsJson);
+        } catch (JsonSchemaLlmWasi.JslException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("extractComponent failed", e);
+        }
+    }
+
+    /**
+     * Convert a schema and all its components in one call.
+     *
+     * @param schema         the JSON Schema
+     * @param convertOptions conversion options, or null for defaults
+     * @param extractOptions extraction options as JSON string, or null for defaults
+     * @return a JsonNode with apiVersion, full, components, componentErrors
+     * @throws JsonSchemaLlmWasi.JslException if the WASM module returns an error
+     */
+    public com.fasterxml.jackson.databind.JsonNode convertAllComponents(Object schema,
+            ConvertOptions convertOptions, String extractOptions) throws JsonSchemaLlmWasi.JslException {
+        ensureOpen();
+        try {
+            String schemaJson = MAPPER.writeValueAsString(schema);
+            String convOptsJson = convertOptions != null ? convertOptions.toJson() : "{}";
+            String extOptsJson = extractOptions != null ? extractOptions : "{}";
+
+            Instance instance = cachedModule.instantiate();
+            verifyAbiOnce(instance);
+            return JslAbi.callExport(instance, "jsl_convert_all_components", schemaJson, convOptsJson,
+                    extOptsJson);
+        } catch (JsonSchemaLlmWasi.JslException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("convertAllComponents failed", e);
+        }
+    }
+
+    /**
      * Release the cached Module. After this call, all operations throw
      * {@link IllegalStateException}.
      *
