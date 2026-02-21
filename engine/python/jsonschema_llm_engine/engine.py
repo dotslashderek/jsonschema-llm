@@ -159,7 +159,6 @@ class LlmRoundtripEngine:
 
     def _call_wasi(self, func_name: str, *json_args: str) -> Any:
         """Execute a WASI export following the JslResult protocol."""
-        import ctypes
         import struct
 
         store = wasmtime.Store(self._engine)
@@ -195,9 +194,7 @@ class LlmRoundtripEngine:
                     raise SchemaConversionError(
                         f"jsl_alloc returned null for {len(data)} bytes"
                     )
-                # Write to memory
-                base = ctypes.addressof(memory.data_ptr(store).contents)
-                ctypes.memmove(base + ptr, data, len(data))
+                memory.write(store, data, ptr)
                 allocs.append((ptr, len(data)))
                 flat_args.extend([ptr, len(data)])
 
@@ -205,16 +202,18 @@ class LlmRoundtripEngine:
             if result_ptr == 0:
                 raise SchemaConversionError(f"{func_name} returned null result pointer")
 
-            # Read result struct
-            base = ctypes.addressof(memory.data_ptr(store).contents)
-            result_bytes = bytes(
-                (ctypes.c_ubyte * _RESULT_SIZE).from_address(base + result_ptr)
-            )
+            # Read result struct (12 bytes: 3 × LE u32)
+            result_bytes = memory.read(store, result_ptr, result_ptr + _RESULT_SIZE)
             status, payload_ptr, payload_len = struct.unpack("<III", result_bytes)
 
-            payload_bytes = bytes(
-                (ctypes.c_ubyte * payload_len).from_address(base + payload_ptr)
-            )
+            # Bounds check before payload read
+            mem_size = memory.data_len(store)
+            if payload_ptr + payload_len > mem_size:
+                raise SchemaConversionError(
+                    f"payload out of bounds: ptr={payload_ptr} len={payload_len} memSize={mem_size}"
+                )
+
+            payload_bytes = memory.read(store, payload_ptr, payload_ptr + payload_len)
             payload_str = payload_bytes.decode("utf-8")
             payload = json.loads(payload_str)
 
