@@ -82,7 +82,6 @@ pub fn normalize(
     normalize_items_recursive(&mut root);
     strip_examples_recursive(&mut root);
     strip_problematic_root_defs(&mut root);
-    strip_nested_defs_recursive(&mut root, true);
 
     // Phase 2: resolve $ref.
     let frozen_root = root.clone();
@@ -302,18 +301,18 @@ fn is_problematic_def(name: &str, defn: &Value, defs_key: &str) -> bool {
     count >= SELF_REF_THRESHOLD
 }
 
-/// Recursively check if a value contains `definitions` or `$defs` keys.
+/// Check if a definition's **direct** schema object contains `definitions`
+/// or `$defs` keys — indicating it embeds a meta-schema with nested
+/// definition blocks.
+///
+/// Only checks direct keys of the definition object, NOT recursively
+/// through `properties` or other maps where "definitions" could be a
+/// user-defined property name.
 fn has_nested_defs(value: &Value) -> bool {
-    match value {
-        Value::Object(obj) => {
-            if obj.contains_key("definitions") || obj.contains_key("$defs") {
-                return true;
-            }
-            obj.values().any(has_nested_defs)
-        }
-        Value::Array(arr) => arr.iter().any(has_nested_defs),
-        _ => false,
-    }
+    let Some(obj) = value.as_object() else {
+        return false;
+    };
+    obj.contains_key("definitions") || obj.contains_key("$defs")
 }
 
 /// Count how many `$ref` values in a subtree match a given pattern.
@@ -361,74 +360,6 @@ fn neutralize_dead_refs(value: &mut Value, dead_prefixes: &[String]) {
     for val in obj.values_mut() {
         neutralize_dead_refs(val, dead_prefixes);
     }
-}
-
-// ---------------------------------------------------------------------------
-// Phase 1c: Strip nested definitions blocks (meta-schema fragments)
-// ---------------------------------------------------------------------------
-
-/// Recursively remove `definitions` and `$defs` blocks that appear INSIDE
-/// definitions — i.e., meta-schema fragments.
-///
-/// Bundled spec schemas (e.g., AsyncAPI 2.6) embed meta-schemas like Draft-07
-/// as definitions. These meta-schemas contain their own nested `definitions`
-/// blocks (e.g., `schemaArray`, `nonNegativeInteger`). When the ref resolver
-/// walks into these nested blocks, it creates pointer chains that fail after
-/// the `definitions→$defs` rename.
-///
-/// Also neutralizes `$ref` pointers that reference paths INSIDE nested
-/// definitions (e.g., `#/definitions/X/definitions/Y`) since those targets
-/// no longer exist after stripping.
-///
-/// The `is_root` parameter preserves the root-level `definitions`/`$defs`
-/// (the actual schema definitions) while stripping nested ones.
-fn strip_nested_defs_recursive(value: &mut Value, is_root: bool) {
-    let Some(obj) = value.as_object_mut() else {
-        return;
-    };
-
-    // At non-root levels, strip definitions and $defs entirely
-    if !is_root {
-        obj.remove("definitions");
-        obj.remove("$defs");
-    }
-
-    // Neutralize $ref pointers into nested definition paths.
-    // A ref like "#/definitions/X/definitions/Y" has "definitions" appearing
-    // twice — meaning it points into a nested block we just stripped.
-    if let Some(ref_val) = obj.get("$ref").and_then(Value::as_str).map(String::from) {
-        if refs_into_nested_defs(&ref_val) {
-            // Replace the entire node with accept-all {} (remove all keys)
-            obj.clear();
-            return;
-        }
-    }
-
-    // Recurse into all values (children are never root)
-    for val in obj.values_mut() {
-        match val {
-            Value::Object(_) => strip_nested_defs_recursive(val, false),
-            Value::Array(arr) => {
-                for item in arr.iter_mut() {
-                    strip_nested_defs_recursive(item, false);
-                }
-            }
-            _ => {}
-        }
-    }
-}
-
-/// Returns true if a `$ref` pointer references a path inside a nested
-/// definitions block (i.e., `definitions` or `$defs` appears more than
-/// once in the JSON Pointer path segments).
-fn refs_into_nested_defs(ref_str: &str) -> bool {
-    let path = ref_str.strip_prefix('#').unwrap_or(ref_str);
-    let segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
-    let def_count = segments
-        .iter()
-        .filter(|s| **s == "definitions" || **s == "$defs")
-        .count();
-    def_count >= 2
 }
 
 // ---------------------------------------------------------------------------
@@ -1487,6 +1418,52 @@ mod tests {
             result.is_ok(),
             "nested definitions inside defs should not cause crash: {:?}",
             result.unwrap_err()
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Regression: property named "definitions" must NOT be stripped (#201)
+    // A user schema may define a payload property literally called
+    // "definitions" — this must survive normalization unmodified.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_property_named_definitions_preserved() {
+        let input = json!({
+            "type": "object",
+            "properties": {
+                "definitions": { "type": "string" },
+                "$defs": { "type": "integer" },
+                "config": { "$ref": "#/$defs/SafeDef" }
+            },
+            "$defs": {
+                "SafeDef": {
+                    "type": "object",
+                    "properties": {
+                        "definitions": {
+                            "type": "array",
+                            "items": { "type": "string" }
+                        }
+                    }
+                }
+            }
+        });
+
+        let (output, _) = run(input);
+
+        // Root-level property named "definitions" must survive
+        assert_eq!(
+            output["properties"]["definitions"]["type"], "string",
+            "property named 'definitions' must not be stripped"
+        );
+        // Root-level property named "$defs" must survive
+        assert_eq!(
+            output["properties"]["$defs"]["type"], "integer",
+            "property named '$defs' must not be stripped"
+        );
+        // SafeDef's property named "definitions" must survive after $ref inlining
+        assert_eq!(
+            output["properties"]["config"]["properties"]["definitions"]["type"], "array",
+            "property named 'definitions' inside a resolved def must not be stripped"
         );
     }
 }
