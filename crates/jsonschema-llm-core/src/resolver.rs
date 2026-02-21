@@ -120,11 +120,7 @@ impl ResolverEngine {
         &self.base_uri
     }
 
-    /// The anchor map for this schema document.
-    #[allow(dead_code)]
-    pub fn anchor_map(&self) -> &HashMap<String, String> {
-        &self.anchor_map
-    }
+
 }
 
 // ===========================================================================

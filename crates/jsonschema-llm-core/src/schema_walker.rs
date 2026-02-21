@@ -205,13 +205,10 @@ fn fold_children<F: SchemaFolder>(
 // Convenience: identity folder (passthrough)
 // ---------------------------------------------------------------------------
 
-/// A no-op folder that passes every node through unchanged.
-///
-/// Useful as a base for simple transformations that only need to
-/// intercept specific nodes.
-#[allow(dead_code)]
+#[cfg(test)]
 pub struct IdentityFolder;
 
+#[cfg(test)]
 impl SchemaFolder for IdentityFolder {
     type Error = ConvertError;
 
