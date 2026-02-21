@@ -225,6 +225,52 @@ impl SchemaFolder for IdentityFolder {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Convenience: ref rewriter
+// ---------------------------------------------------------------------------
+
+/// A folder that rewrites `$ref` strings using a provided lookup map.
+///
+/// For each schema node containing a `$ref` key whose string value is in
+/// the map, the value is replaced. All other nodes pass through unchanged.
+pub(crate) struct RefRewriter<'a> {
+    map: &'a std::collections::BTreeMap<String, String>,
+}
+
+impl SchemaFolder for RefRewriter<'_> {
+    type Error = ConvertError;
+
+    fn fold_schema(
+        &mut self,
+        schema: Value,
+        _path: &str,
+        _depth: usize,
+    ) -> Result<FoldAction, Self::Error> {
+        let Value::Object(mut obj) = schema else {
+            return Ok(FoldAction::Continue(schema));
+        };
+
+        if let Some(Value::String(ref_str)) = obj.get("$ref").cloned() {
+            if let Some(new_ref) = self.map.get(&ref_str) {
+                obj.insert("$ref".to_string(), Value::String(new_ref.clone()));
+            }
+        }
+
+        Ok(FoldAction::Continue(Value::Object(obj)))
+    }
+}
+
+/// Rewrite all `$ref` strings in a schema tree using the provided map.
+///
+/// Convenience wrapper around [`fold`] + [`RefRewriter`].
+pub(crate) fn rewrite_refs(
+    schema: Value,
+    map: &std::collections::BTreeMap<String, String>,
+) -> Result<Value, ConvertError> {
+    let mut folder = RefRewriter { map };
+    fold(schema, &mut folder, "#", 0)
+}
+
 // ===========================================================================
 // Tests
 // ===========================================================================

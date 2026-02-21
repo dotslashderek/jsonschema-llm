@@ -275,13 +275,13 @@ pub fn extract_component(
     }
 
     // Phase 4: Rewrite refs in the target node and all dep nodes.
-    let mut root = rewrite_refs(target, &full_rewrite_map);
+    let mut root = crate::schema_walker::rewrite_refs(target, &full_rewrite_map)?;
 
     // Phase 5: Assemble $defs if there are any deps.
     if !deps.is_empty() {
         let mut defs_map = Map::new();
         for (_ptr, (key, value)) in deps {
-            let rewritten = rewrite_refs(value, &full_rewrite_map);
+            let rewritten = crate::schema_walker::rewrite_refs(value, &full_rewrite_map)?;
             defs_map.insert(key, rewritten);
         }
         if let Value::Object(ref mut obj) = root {
@@ -490,32 +490,6 @@ fn unescape_segment(segment: &str) -> String {
 
 // ---------------------------------------------------------------------------
 // Ref rewriting
-// ---------------------------------------------------------------------------
-
-/// Walk a schema value and rewrite all `$ref` strings using the provided map.
-fn rewrite_refs(value: Value, rewrite_map: &BTreeMap<String, String>) -> Value {
-    match value {
-        Value::Object(mut obj) => {
-            // Rewrite $ref if present and in the map.
-            if let Some(Value::String(ref_str)) = obj.get("$ref").cloned() {
-                if let Some(new_ref) = rewrite_map.get(&ref_str) {
-                    obj.insert("$ref".to_string(), Value::String(new_ref.clone()));
-                }
-            }
-            let rewritten: Map<String, Value> = obj
-                .into_iter()
-                .map(|(k, v)| (k, rewrite_refs(v, rewrite_map)))
-                .collect();
-            Value::Object(rewritten)
-        }
-        Value::Array(arr) => Value::Array(
-            arr.into_iter()
-                .map(|v| rewrite_refs(v, rewrite_map))
-                .collect(),
-        ),
-        other => other,
-    }
-}
 
 // ===========================================================================
 // Tests (TDD — written before implementation)
