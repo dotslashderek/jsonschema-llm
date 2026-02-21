@@ -10,16 +10,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * OpenAI structured output formatter.
+ * Anthropic Claude Messages API formatter (tool-use wire format).
  *
  * <p>
- * Formats requests for the OpenAI Chat Completions API with
- * {@code response_format: { type: "json_schema" }} for structured output.
+ * Formats requests using Claude's tool-use mechanism: defines a tool
+ * whose {@code input_schema} is the LLM schema, then forces the model
+ * to call it via {@code tool_choice: { type: "tool", name: "response" }}.
+ * Works with any endpoint that speaks the Anthropic Messages API
+ * (api.anthropic.com, AWS Bedrock, etc.).
  *
  * <p>
- * Extracts content from {@code choices[0].message.content}.
+ * Extracts content from {@code content[].type == "tool_use" → input}.
  */
-public class OpenAiFormatter implements ProviderFormatter {
+public class ClaudeFormatter implements ProviderFormatter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -28,6 +31,7 @@ public class OpenAiFormatter implements ProviderFormatter {
         try {
             ObjectNode requestBody = MAPPER.createObjectNode();
             requestBody.put("model", config.model());
+            requestBody.put("max_tokens", 4096);
 
             // Messages array: single user message
             ArrayNode messages = requestBody.putArray("messages");
@@ -35,14 +39,17 @@ public class OpenAiFormatter implements ProviderFormatter {
             userMessage.put("role", "user");
             userMessage.put("content", prompt);
 
-            // Structured output: response_format with json_schema
-            ObjectNode responseFormat = requestBody.putObject("response_format");
-            responseFormat.put("type", "json_schema");
+            // Tool definition
+            ArrayNode tools = requestBody.putArray("tools");
+            ObjectNode tool = tools.addObject();
+            tool.put("name", "response");
+            tool.put("description", "Generate structured output matching the schema");
+            tool.set("input_schema", llmSchema);
 
-            ObjectNode jsonSchema = responseFormat.putObject("json_schema");
-            jsonSchema.put("name", "response");
-            jsonSchema.put("strict", true);
-            jsonSchema.set("schema", llmSchema);
+            // Force tool use
+            ObjectNode toolChoice = requestBody.putObject("tool_choice");
+            toolChoice.put("type", "tool");
+            toolChoice.put("name", "response");
 
             String body = MAPPER.writeValueAsString(requestBody);
 
@@ -52,7 +59,7 @@ public class OpenAiFormatter implements ProviderFormatter {
             return new LlmRequest(config.url(), headers, body);
         } catch (JsonProcessingException e) {
             throw new EngineException.ResponseParsingException(
-                    "Failed to serialize OpenAI request", e);
+                    "Failed to serialize Claude request", e);
         }
     }
 
@@ -61,39 +68,31 @@ public class OpenAiFormatter implements ProviderFormatter {
         try {
             JsonNode root = MAPPER.readTree(rawResponse);
 
-            JsonNode choices = root.get("choices");
-            if (choices == null || !choices.isArray() || choices.isEmpty()) {
+            JsonNode content = root.get("content");
+            if (content == null || !content.isArray()) {
                 throw new EngineException.ResponseParsingException(
-                        "OpenAI response missing 'choices' array or empty: "
+                        "Claude response missing 'content' array: "
                                 + truncate(rawResponse, 200));
             }
 
-            JsonNode message = choices.get(0).get("message");
-            if (message == null) {
-                throw new EngineException.ResponseParsingException(
-                        "OpenAI response missing 'choices[0].message': "
-                                + truncate(rawResponse, 200));
+            // Find the tool_use block
+            for (JsonNode block : content) {
+                if ("tool_use".equals(block.path("type").asText())) {
+                    JsonNode input = block.get("input");
+                    if (input != null) {
+                        return MAPPER.writeValueAsString(input);
+                    }
+                }
             }
 
-            JsonNode content = message.get("content");
-            if (content == null || content.isNull()) {
-                throw new EngineException.ResponseParsingException(
-                        "OpenAI response has null 'choices[0].message.content': "
-                                + truncate(rawResponse, 200));
-            }
-
-            if (!content.isTextual()) {
-                throw new EngineException.ResponseParsingException(
-                        "OpenAI response 'choices[0].message.content' is not a text node: "
-                                + truncate(rawResponse, 200));
-            }
-
-            return content.asText();
+            throw new EngineException.ResponseParsingException(
+                    "Claude response contains no 'tool_use' content block: "
+                            + truncate(rawResponse, 200));
         } catch (EngineException.ResponseParsingException e) {
             throw e;
         } catch (Exception e) {
             throw new EngineException.ResponseParsingException(
-                    "Failed to parse OpenAI response: " + truncate(rawResponse, 200), e);
+                    "Failed to parse Claude response: " + truncate(rawResponse, 200), e);
         }
     }
 

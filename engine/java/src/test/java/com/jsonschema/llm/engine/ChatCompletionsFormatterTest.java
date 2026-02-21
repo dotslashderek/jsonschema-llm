@@ -9,19 +9,19 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Unit tests for OpenAiFormatter.
+ * Unit tests for ChatCompletionsFormatter (formerly OpenAiFormatter).
  */
-class OpenAiFormatterTest {
+class ChatCompletionsFormatterTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private final OpenAiFormatter formatter = new OpenAiFormatter();
+    private final ChatCompletionsFormatter formatter = new ChatCompletionsFormatter();
 
     // ---------------------------------------------------------------
-    // 1. Format produces valid OpenAI payload
+    // 1. Format produces valid Chat Completions payload
     // ---------------------------------------------------------------
 
     @Test
-    void format_producesValidOpenAiPayload() throws Exception {
+    void format_producesValidChatCompletionsPayload() throws Exception {
         JsonNode llmSchema = MAPPER.readTree("""
                 {
                   "type": "object",
@@ -83,7 +83,7 @@ class OpenAiFormatterTest {
     void extractContent_malformedResponse_throwsError() {
         assertThatThrownBy(() -> formatter.extractContent("NOT JSON"))
                 .isInstanceOf(EngineException.ResponseParsingException.class)
-                .hasMessageContaining("Failed to parse OpenAI response");
+                .hasMessageContaining("Failed to parse Chat Completions response");
     }
 
     @Test
