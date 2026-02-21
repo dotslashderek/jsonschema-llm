@@ -1,0 +1,72 @@
+{
+  "version": "1",
+  "generatedAt": "2026-02-21T05:47:46.064925+00:00",
+  "sourceSchema": "arazzo-schema.json",
+  "target": "openai-strict",
+  "mode": "strict",
+  "components": [
+    {
+      "name": "criterion-expression-type-object",
+      "pointer": "#/$defs/criterion-expression-type-object",
+      "schemaPath": "$defs/criterion-expression-type-object/schema.json",
+      "codecPath": "$defs/criterion-expression-type-object/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "criterion-object",
+      "pointer": "#/$defs/criterion-object",
+      "schemaPath": "$defs/criterion-object/schema.json",
+      "codecPath": "$defs/criterion-object/codec.json",
+      "dependencyCount": 2
+    },
+    {
+      "name": "info",
+      "pointer": "#/$defs/info",
+      "schemaPath": "$defs/info/schema.json",
+      "codecPath": "$defs/info/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "parameter-object",
+      "pointer": "#/$defs/parameter-object",
+      "schemaPath": "$defs/parameter-object/schema.json",
+      "codecPath": "$defs/parameter-object/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "payload-replacement-object",
+      "pointer": "#/$defs/payload-replacement-object",
+      "schemaPath": "$defs/payload-replacement-object/schema.json",
+      "codecPath": "$defs/payload-replacement-object/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "request-body-object",
+      "pointer": "#/$defs/request-body-object",
+      "schemaPath": "$defs/request-body-object/schema.json",
+      "codecPath": "$defs/request-body-object/codec.json",
+      "dependencyCount": 2
+    },
+    {
+      "name": "reusable-object",
+      "pointer": "#/$defs/reusable-object",
+      "schemaPath": "$defs/reusable-object/schema.json",
+      "codecPath": "$defs/reusable-object/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "source-description-object",
+      "pointer": "#/$defs/source-description-object",
+      "schemaPath": "$defs/source-description-object/schema.json",
+      "codecPath": "$defs/source-description-object/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "specification-extensions",
+      "pointer": "#/$defs/specification-extensions",
+      "schemaPath": "$defs/specification-extensions/schema.json",
+      "codecPath": "$defs/specification-extensions/codec.json",
+      "dependencyCount": 0
+    }
+  ]
+}

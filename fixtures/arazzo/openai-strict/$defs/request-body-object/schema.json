@@ -1,0 +1,63 @@
+{
+  "$comment": "https://spec.openapis.org/arazzo/v1.0#request-body-object",
+  "additionalProperties": false,
+  "description": "The request body to pass to an operation as referenced by operationId or operationPath",
+  "patternProperties": {
+    "^x-": {
+      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "contentType": {
+      "anyOf": [
+        {
+          "description": "The Content-Type for the request content",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "payload": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "replacements": {
+      "anyOf": [
+        {
+          "description": "A list of locations and values to set within a payload. Constraints: items must be unique.",
+          "items": {
+            "$comment": "https://spec.openapis.org/arazzo/v1.0#specification-extensions",
+            "description": "While the Arazzo Specification tries to accommodate most use cases, additional data can be added to extend the specification at certain points",
+            "patternProperties": {
+              "^x-": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              }
+            }
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "contentType",
+    "payload",
+    "replacements"
+  ],
+  "type": "object",
+  "unevaluatedProperties": false
+}

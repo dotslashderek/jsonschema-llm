@@ -1,0 +1,80 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "result": {
+      "$comment": "https://spec.openapis.org/arazzo/v1.0#criterion-object",
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "anyOf": [
+                {
+                  "description": "The type of condition to be applied",
+                  "enum": [
+                    "simple",
+                    "regex",
+                    "jsonpath",
+                    "xpath"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "$comment": "https://spec.openapis.org/arazzo/v1.0#specification-extensions",
+          "description": "While the Arazzo Specification tries to accommodate most use cases, additional data can be added to extend the specification at certain points",
+          "patternProperties": {
+            "^x-": {
+              "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "description": "An object used to specify the context, conditions, and condition types that can be used to prove or satisfy assertions specified in Step Object successCriteria, Success Action Object criteria, and Failure Action Object criteria",
+      "patternProperties": {
+        "^x-": {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "condition": {
+          "description": "The condition to apply",
+          "type": "string"
+        },
+        "context": {
+          "anyOf": [
+            {
+              "description": "A runtime expression used to set the context for the condition to be applied on",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "condition",
+        "context"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "type": "object"
+}

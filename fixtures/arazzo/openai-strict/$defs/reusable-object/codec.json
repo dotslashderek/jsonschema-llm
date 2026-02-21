@@ -1,0 +1,11 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/value",
+      "originalRequired": false
+    }
+  ],
+  "droppedConstraints": []
+}

@@ -1,0 +1,51 @@
+{
+  "$comment": "https://spec.openapis.org/arazzo/v1.0#info-object",
+  "additionalProperties": false,
+  "description": "Provides metadata about the Arazzo description",
+  "patternProperties": {
+    "^x-": {
+      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "description": {
+      "anyOf": [
+        {
+          "description": "A description of the purpose of the workflows defined. CommonMark syntax MAY be used for rich text representation",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "summary": {
+      "anyOf": [
+        {
+          "description": "A short summary of the Arazzo Description",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "title": {
+      "description": "A human readable title of the Arazzo Description",
+      "type": "string"
+    },
+    "version": {
+      "description": "The version identifier of the Arazzo document (which is distinct from the Arazzo Specification version)",
+      "type": "string"
+    }
+  },
+  "required": [
+    "description",
+    "summary",
+    "title",
+    "version"
+  ],
+  "type": "object",
+  "unevaluatedProperties": false
+}

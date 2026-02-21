@@ -1,0 +1,28 @@
+{
+  "$comment": "https://spec.openapis.org/arazzo/v1.0#reusable-object",
+  "additionalProperties": false,
+  "description": "A simple object to allow referencing of objects contained within the Components Object",
+  "properties": {
+    "reference": {
+      "description": "A runtime expression used to reference the desired object",
+      "type": "string"
+    },
+    "value": {
+      "description": "Sets a value of the referenced parameter",
+      "type": [
+        "string",
+        "boolean",
+        "object",
+        "array",
+        "number",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "reference",
+    "value"
+  ],
+  "type": "object",
+  "unevaluatedProperties": false
+}
