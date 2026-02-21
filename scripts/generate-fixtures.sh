@@ -113,6 +113,7 @@ generate_spec() {
       exit 1
     fi
     convert_source=$(mktemp)
+    trap "rm -f '$convert_source'" EXIT
     python3 "$preprocess_script" "$source_path" "$convert_source"
   fi
 

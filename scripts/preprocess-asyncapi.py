@@ -34,7 +34,9 @@ def count_self_refs(obj, target_name):
     count = 0
     if isinstance(obj, dict):
         if "$ref" in obj and isinstance(obj["$ref"], str):
-            if f"definitions/{target_name}" in obj["$ref"]:
+            ref = obj["$ref"]
+            exact = f"#/definitions/{target_name}"
+            if ref == exact or ref.startswith(f"{exact}/"):
                 count += 1
         for v in obj.values():
             count += count_self_refs(v, target_name)
@@ -70,13 +72,20 @@ def strip_meta_schemas(schema, meta_names):
         if name in root_defs:
             del root_defs[name]
 
-    # Build set of ref prefixes to replace
-    prefixes = tuple(f"#/definitions/{name}" for name in meta_names)
+    # Build set of exact ref prefixes to replace
+    prefixes = {f"#/definitions/{name}" for name in meta_names}
+
+    def matches_prefix(ref):
+        """Check if ref exactly matches or extends a prefix."""
+        for p in prefixes:
+            if ref == p or ref.startswith(f"{p}/"):
+                return True
+        return False
 
     def rewrite(obj):
         if isinstance(obj, dict):
             if "$ref" in obj and isinstance(obj["$ref"], str):
-                if obj["$ref"].startswith(prefixes):
+                if matches_prefix(obj["$ref"]):
                     # Replace with accept-all schema (remove $ref, return empty object)
                     siblings = {k: v for k, v in obj.items() if k != "$ref"}
                     return rewrite(siblings) if siblings else {}
