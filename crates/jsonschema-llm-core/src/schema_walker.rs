@@ -225,46 +225,6 @@ impl SchemaFolder for IdentityFolder {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Convenience: ref rewriter
-// ---------------------------------------------------------------------------
-
-/// Rewrite all `$ref` strings in a schema tree using the provided map.
-///
-/// This does NOT use the `SchemaFolder` trait because it must universally
-/// traverse ALL object keys and array elements (including custom extensions
-/// like `x-...`) to rewrite any `$ref` string found, regardless of whether
-/// it is in a schema-bearing position or not.
-pub(crate) fn rewrite_refs(
-    schema: Value,
-    map: &std::collections::BTreeMap<String, String>,
-) -> Result<Value, ConvertError> {
-    Ok(rewrite_refs_universal(schema, map))
-}
-
-fn rewrite_refs_universal(value: Value, rewrite_map: &std::collections::BTreeMap<String, String>) -> Value {
-    match value {
-        Value::Object(mut obj) => {
-            if let Some(Value::String(ref_str)) = obj.get("$ref") {
-                if let Some(new_ref) = rewrite_map.get(ref_str) {
-                    obj.insert("$ref".to_string(), Value::String(new_ref.clone()));
-                }
-            }
-            let rewritten = obj
-                .into_iter()
-                .map(|(k, v)| (k, rewrite_refs_universal(v, rewrite_map)))
-                .collect();
-            Value::Object(rewritten)
-        }
-        Value::Array(arr) => Value::Array(
-            arr.into_iter()
-                .map(|v| rewrite_refs_universal(v, rewrite_map))
-                .collect(),
-        ),
-        other => other,
-    }
-}
-
 // ===========================================================================
 // Tests
 // ===========================================================================
