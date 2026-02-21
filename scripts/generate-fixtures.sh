@@ -1,98 +1,157 @@
 #!/usr/bin/env bash
-# generate-fixtures.sh — Regenerate pre-built OAS 3.1 fixtures
+# generate-fixtures.sh — Regenerate pre-built fixtures for specification schemas
 #
-# Usage: ./scripts/generate-fixtures.sh
+# Usage: ./scripts/generate-fixtures.sh [spec]
+#   spec: oas31 | arazzo | all (default: all)
 #
 # Prerequisites:
 #   - Rust toolchain (cargo)
 #   - jq (for JSON validation)
 #
-# The source schema must already exist at fixtures/oas31/source/oas31-schema.json.
+# Source schemas must already exist in fixtures/<spec>/source/.
 # This script does NOT fetch from the network.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SOURCE_SCHEMA="$PROJECT_ROOT/fixtures/oas31/source/oas31-schema.json"
-OUTPUT_DIR="$PROJECT_ROOT/fixtures/oas31/openai-strict"
 CLI="$PROJECT_ROOT/target/release/jsonschema-llm"
 
-# ── Step 1: Pre-flight checks (dependencies \u0026 source) ──────────────────────
+# ── Spec configuration ──────────────────────────────────────────────────────
+
+spec_source() {
+  case "$1" in
+    oas31)  echo "$PROJECT_ROOT/fixtures/oas31/source/oas31-schema.json" ;;
+    arazzo) echo "$PROJECT_ROOT/fixtures/arazzo/source/arazzo-schema.json" ;;
+    *) echo "UNKNOWN"; return 1 ;;
+  esac
+}
+
+spec_output() {
+  case "$1" in
+    oas31)  echo "$PROJECT_ROOT/fixtures/oas31/openai-strict" ;;
+    arazzo) echo "$PROJECT_ROOT/fixtures/arazzo/openai-strict" ;;
+    *) echo "UNKNOWN"; return 1 ;;
+  esac
+}
+
+spec_url() {
+  case "$1" in
+    oas31)  echo "https://spec.openapis.org/oas/3.1/schema/2022-10-07" ;;
+    arazzo) echo "https://raw.githubusercontent.com/OAI/Arazzo-Specification/main/_archive_/schemas/v1.0/schema.json" ;;
+    *) echo "UNKNOWN"; return 1 ;;
+  esac
+}
+
+ALL_SPECS="oas31 arazzo"
+
+# ── Parse arguments ─────────────────────────────────────────────────────────
+
+REQUESTED_SPEC="${1:-all}"
+
+if [[ "$REQUESTED_SPEC" == "all" ]]; then
+  SPECS="$ALL_SPECS"
+else
+  if ! spec_source "$REQUESTED_SPEC" >/dev/null 2>&1; then
+    echo "ERROR: Unknown spec '$REQUESTED_SPEC'. Valid: $ALL_SPECS | all"
+    exit 1
+  fi
+  SPECS="$REQUESTED_SPEC"
+fi
+
+# ── Step 1: Pre-flight checks ───────────────────────────────────────────────
 
 if ! command -v jq >/dev/null 2>&1; then
   echo >&2 "ERROR: jq is required but not installed."
   exit 1
 fi
 
-if [[ ! -f "$SOURCE_SCHEMA" ]]; then
-  echo "ERROR: Source schema not found at $SOURCE_SCHEMA"
-  echo "Download it from: https://spec.openapis.org/oas/3.1/schema/2022-10-07"
-  exit 1
-fi
-
-echo "✅ Source schema: $SOURCE_SCHEMA"
+for spec in $SPECS; do
+  source_path="$(spec_source "$spec")"
+  if [[ ! -f "$source_path" ]]; then
+    echo "ERROR: Source schema not found for $spec at $source_path"
+    echo "Download it from: $(spec_url "$spec")"
+    exit 1
+  fi
+done
 
 # ── Step 2: Build the CLI ────────────────────────────────────────────────────
 
 echo "🔧 Building CLI (release)..."
 cargo build --release -p jsonschema-llm --manifest-path "$PROJECT_ROOT/Cargo.toml" 2>&1 | tail -3
 
-# ── Step 3: Clean previous output ────────────────────────────────────────────
+# ── Step 3: Generate fixtures per spec ───────────────────────────────────────
 
-if [[ -d "$OUTPUT_DIR" ]]; then
-  echo "🗑️  Removing previous output: $OUTPUT_DIR"
-  rm -rf "$OUTPUT_DIR"
-fi
+generate_spec() {
+  local spec="$1"
+  local source_path
+  local output
+  source_path="$(spec_source "$spec")"
+  output="$(spec_output "$spec")"
 
-# ── Step 4: Generate fixtures ────────────────────────────────────────────────
-
-echo "⚙️  Generating fixtures..."
-STDERR_FILE=$(mktemp)
-"$CLI" convert "$SOURCE_SCHEMA" --output-dir "$OUTPUT_DIR" 2>"$STDERR_FILE"
-
-# Check for component errors (report but don't fail — some recursive schemas are expected to error)
-if grep -q "Component error" "$STDERR_FILE"; then
   echo ""
-  echo "⚠️  Component errors (expected for deeply recursive schemas):"
-  grep "Component error" "$STDERR_FILE" | while read -r line; do
-    echo "  $line"
-  done
-  echo ""
-fi
-rm -f "$STDERR_FILE"
+  echo "════════════════════════════════════════════════"
+  echo "  ⚙️  Generating: $spec"
+  echo "  📄 Source: $source_path"
+  echo "════════════════════════════════════════════════"
 
-# ── Step 5: Validate JSON files ──────────────────────────────────────────────
-
-echo "🔍 Validating generated JSON files..."
-TOTAL_FILES=0
-INVALID_FILES=0
-
-while IFS= read -r -d '' file; do
-  TOTAL_FILES=$((TOTAL_FILES + 1))
-  if ! jq . "$file" > /dev/null 2>&1; then
-    echo "  ❌ Invalid JSON: $file"
-    INVALID_FILES=$((INVALID_FILES + 1))
+  # Clean previous output
+  if [[ -d "$output" ]]; then
+    echo "🗑️  Removing previous output: $output"
+    rm -rf "$output"
   fi
-done < <(find "$OUTPUT_DIR" -name "*.json" -print0)
 
-if [[ $TOTAL_FILES -eq 0 ]]; then
-  echo "ERROR: No JSON files generated"
-  exit 1
-fi
+  # Generate
+  STDERR_FILE=$(mktemp)
+  "$CLI" convert "$source_path" --output-dir "$output" 2>"$STDERR_FILE"
 
-if [[ $INVALID_FILES -gt 0 ]]; then
-  echo "ERROR: $INVALID_FILES invalid JSON files found"
-  exit 1
-fi
+  # Report component errors (expected for some recursive/unsupported schemas)
+  if grep -q "Component error" "$STDERR_FILE"; then
+    echo ""
+    echo "⚠️  Component errors (expected for recursive/unsupported schemas):"
+    grep "Component error" "$STDERR_FILE" | while read -r line; do
+      echo "  $line"
+    done
+    echo ""
+  fi
+  rm -f "$STDERR_FILE"
 
-# ── Step 6: Summary ─────────────────────────────────────────────────────────
+  # Validate JSON files
+  echo "🔍 Validating generated JSON files..."
+  local total_files=0
+  local invalid_files=0
 
-COMPONENT_COUNT=$(jq '.components | length' "$OUTPUT_DIR/manifest.json")
+  while IFS= read -r -d '' file; do
+    total_files=$((total_files + 1))
+    if ! jq . "$file" > /dev/null 2>&1; then
+      echo "  ❌ Invalid JSON: $file"
+      invalid_files=$((invalid_files + 1))
+    fi
+  done < <(find "$output" -name "*.json" -print0)
+
+  if [[ $total_files -eq 0 ]]; then
+    echo "ERROR: No JSON files generated for $spec"
+    exit 1
+  fi
+
+  if [[ $invalid_files -gt 0 ]]; then
+    echo "ERROR: $invalid_files invalid JSON files found for $spec"
+    exit 1
+  fi
+
+  # Summary
+  local component_count
+  component_count=$(jq '.components | length' "$output/manifest.json")
+  echo "  ✅ $spec: $component_count components, $total_files files"
+}
+
+# ── Execute ──────────────────────────────────────────────────────────────────
+
+for spec in $SPECS; do
+  generate_spec "$spec"
+done
+
 echo ""
 echo "════════════════════════════════════════════════"
-echo "  ✅ Fixture generation complete"
-echo "  📦 Components: $COMPONENT_COUNT"
-echo "  📄 Total files: $TOTAL_FILES"
-echo "  📁 Output: $OUTPUT_DIR"
+echo "  ✅ All fixture generation complete"
 echo "════════════════════════════════════════════════"
