@@ -236,6 +236,10 @@ public class LlmRoundtripEngine implements AutoCloseable {
     }
 
     private static JsonNode parseJson(String json, String context) {
+        if (json == null) {
+            throw new EngineException.ResponseParsingException(
+                    "Cannot parse " + context + ": input is null");
+        }
         try {
             return MAPPER.readTree(json);
         } catch (Exception e) {
