@@ -178,3 +178,89 @@ fn test_cli_e2e_stdout_pipe() {
         .stdout(predicate::str::contains("\"type\""))
         .stdout(predicate::str::contains("\"additionalProperties\""));
 }
+
+// ── E2E: OAS 3.1 fixture generation (#185) ─────────────────────────────────
+
+const OAS31_SOURCE: &str = concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../fixtures/oas31/source/oas31-schema.json"
+);
+
+#[test]
+fn test_cli_e2e_oas31_fixtures() {
+    let dir = TempDir::new().unwrap();
+    let out_dir = dir.path().join("oas31");
+
+    // Run convert --output-dir against the committed OAS 3.1 source schema
+    // Note: some deeply recursive components (e.g., response-or-reference) may
+    // emit "Component error" on stderr — this is expected for pathologically
+    // recursive schemas. The CLI still exits 0.
+    cmd()
+        .args(["convert", OAS31_SOURCE])
+        .args(["--output-dir", out_dir.to_str().unwrap()])
+        .assert()
+        .success();
+
+    // Root files must exist
+    assert!(out_dir.join("schema.json").exists(), "root schema.json");
+    assert!(out_dir.join("codec.json").exists(), "root codec.json");
+
+    // Manifest must exist and be valid
+    let manifest_path = out_dir.join("manifest.json");
+    assert!(manifest_path.exists(), "manifest.json must exist");
+
+    let manifest_content = fs::read_to_string(&manifest_path).unwrap();
+    let manifest: serde_json::Value =
+        serde_json::from_str(&manifest_content).expect("manifest.json should be valid JSON");
+
+    // Must have at least one component
+    let components = manifest["components"]
+        .as_array()
+        .expect("components should be an array");
+    assert!(
+        !components.is_empty(),
+        "OAS 3.1 schema should produce at least one component"
+    );
+
+    // Verify every component listed in the manifest has schema.json and codec.json
+    for comp in components {
+        let schema_path_str = comp["schemaPath"]
+            .as_str()
+            .expect("schemaPath should be a string");
+        let codec_path_str = comp["codecPath"]
+            .as_str()
+            .expect("codecPath should be a string");
+
+        let schema_file = out_dir.join(schema_path_str);
+        let codec_file = out_dir.join(codec_path_str);
+
+        assert!(
+            schema_file.exists(),
+            "Component schema missing: {}",
+            schema_path_str
+        );
+        assert!(
+            codec_file.exists(),
+            "Component codec missing: {}",
+            codec_path_str
+        );
+
+        // Validate both are parseable JSON
+        let s_content = fs::read_to_string(&schema_file).unwrap();
+        let _: serde_json::Value =
+            serde_json::from_str(&s_content).expect("component schema should be valid JSON");
+
+        let c_content = fs::read_to_string(&codec_file).unwrap();
+        let _: serde_json::Value =
+            serde_json::from_str(&c_content).expect("component codec should be valid JSON");
+    }
+
+    // Verify root schema and codec are valid JSON too
+    let root_schema = fs::read_to_string(out_dir.join("schema.json")).unwrap();
+    let _: serde_json::Value =
+        serde_json::from_str(&root_schema).expect("root schema should be valid JSON");
+
+    let root_codec = fs::read_to_string(out_dir.join("codec.json")).unwrap();
+    let _: serde_json::Value =
+        serde_json::from_str(&root_codec).expect("root codec should be valid JSON");
+}
