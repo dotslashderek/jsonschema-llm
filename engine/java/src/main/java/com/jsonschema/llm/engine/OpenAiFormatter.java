@@ -82,6 +82,12 @@ public class OpenAiFormatter implements ProviderFormatter {
                                 + truncate(rawResponse, 200));
             }
 
+            if (!content.isTextual()) {
+                throw new EngineException.ResponseParsingException(
+                        "OpenAI response 'choices[0].message.content' is not a text node: "
+                                + truncate(rawResponse, 200));
+            }
+
             return content.asText();
         } catch (EngineException.ResponseParsingException e) {
             throw e;
@@ -92,6 +98,8 @@ public class OpenAiFormatter implements ProviderFormatter {
     }
 
     private static String truncate(String s, int maxLen) {
+        if (s == null)
+            return "<null>";
         return s.length() <= maxLen ? s : s.substring(0, maxLen) + "...";
     }
 }
