@@ -222,7 +222,7 @@ pub fn extract_component(
     // Initialize base URI from root $id if present.
     let default_base = crate::anchor_utils::default_base_uri();
     let root_base = if let Some(id_val) = schema.get("$id").and_then(serde_json::Value::as_str) {
-        url::Url::parse(id_val).unwrap_or(default_base.clone())
+        default_base.join(id_val).unwrap_or(default_base.clone())
     } else {
         default_base
     };
@@ -353,7 +353,9 @@ fn collect_deps(
 
     match node {
         Value::Object(obj) => {
-            // Check for $ref at this node.
+            // Save base URI — $id scoping is lexical (per-subtree), not global.
+            let saved_base = ctx.base_uri.clone();
+
             // Track $id for base URI scoping.
             if let Some(id_val) = obj.get("$id").and_then(Value::as_str) {
                 if let Ok(new_base) = ctx.base_uri.join(id_val) {
@@ -371,6 +373,7 @@ fn collect_deps(
                             // Soft-fail: external or unresolvable anchor refs are
                             // recorded as missing and left as-is.
                             ctx.missing_refs.push(ref_val.to_string());
+                            ctx.base_uri = saved_base;
                             return Ok(());
                         }
                     };
@@ -409,6 +412,7 @@ fn collect_deps(
                     // Do NOT increment depth here — sibling traversal is not a ref hop.
                     collect_deps(val, &child_path, depth, ctx)?;
                 }
+                ctx.base_uri = saved_base;
                 return Ok(());
             }
 
@@ -417,6 +421,7 @@ fn collect_deps(
                 let child_path = format!("{}/{}", current_path, key);
                 collect_deps(val, &child_path, depth, ctx)?;
             }
+            ctx.base_uri = saved_base;
         }
         Value::Array(arr) => {
             for (i, val) in arr.iter().enumerate() {

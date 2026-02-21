@@ -90,7 +90,12 @@ pub fn normalize(
     // Phase 2: resolve $ref.
     let frozen_root = root.clone();
     let anchor_map = crate::anchor_utils::build_anchor_map(&frozen_root, None)?;
-    let base_uri = crate::anchor_utils::default_base_uri();
+    let default_base = crate::anchor_utils::default_base_uri();
+    let base_uri = if let Some(id_val) = frozen_root.get("$id").and_then(Value::as_str) {
+        default_base.join(id_val).unwrap_or(default_base)
+    } else {
+        default_base
+    };
     let mut ctx = RefContext {
         root: &frozen_root,
         config,
@@ -392,6 +397,9 @@ fn resolve_refs(
         other => return Ok(other),
     };
 
+    // Save base URI — $id scoping is lexical (per-subtree), not global.
+    let saved_base = ctx.base_uri.clone();
+
     // Track $id for base URI scoping.
     if let Some(id_val) = result.get("$id").and_then(Value::as_str).map(String::from) {
         if let Ok(new_base) = ctx.base_uri.join(&id_val) {
@@ -401,12 +409,15 @@ fn resolve_refs(
 
     // Check for $ref.
     if let Some(ref_val) = result.get("$ref").and_then(Value::as_str).map(String::from) {
-        return resolve_single_ref(&result, &ref_val, path, depth, ctx);
+        let ret = resolve_single_ref(&result, &ref_val, path, depth, ctx);
+        ctx.base_uri = saved_base;
+        return ret;
     }
 
     // No $ref — recurse into children.
     recurse_children(&mut result, path, depth, ctx)?;
 
+    ctx.base_uri = saved_base;
     Ok(Value::Object(result))
 }
 
