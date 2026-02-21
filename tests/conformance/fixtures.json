@@ -244,6 +244,193 @@
           }
         }
       ]
+    },
+    "list_components": {
+      "description": "list_components operation test cases",
+      "fixtures": [
+        {
+          "id": "list_components_with_defs",
+          "description": "Schema with $defs returns sorted component pointers",
+          "input": {
+            "schema": {
+              "$defs": {
+                "Pet": { "type": "object", "properties": { "name": { "type": "string" } } },
+                "Tag": { "type": "string" },
+                "Address": { "type": "object", "properties": { "city": { "type": "string" } } }
+              }
+            }
+          },
+          "expected": {
+            "has_keys": ["apiVersion", "components"],
+            "apiVersion": "1.0",
+            "components": ["#/$defs/Address", "#/$defs/Pet", "#/$defs/Tag"]
+          }
+        },
+        {
+          "id": "list_components_empty_schema",
+          "description": "Schema without $defs returns empty components list",
+          "input": {
+            "schema": {
+              "type": "object",
+              "properties": { "x": { "type": "string" } }
+            }
+          },
+          "expected": {
+            "has_keys": ["apiVersion", "components"],
+            "apiVersion": "1.0",
+            "components": []
+          }
+        },
+        {
+          "id": "list_components_error_invalid_json",
+          "description": "Invalid JSON input produces structured error",
+          "input": {
+            "schema_raw": "NOT VALID JSON"
+          },
+          "expected": {
+            "is_error": true,
+            "error_has_keys": ["code", "message"]
+          }
+        }
+      ]
+    },
+    "extract_component": {
+      "description": "extract_component operation test cases",
+      "fixtures": [
+        {
+          "id": "extract_simple_def",
+          "description": "Extract a simple $def produces self-contained sub-schema",
+          "input": {
+            "schema": {
+              "$defs": {
+                "Pet": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "age": { "type": "integer" }
+                  },
+                  "required": ["name"]
+                },
+                "Tag": { "type": "string" }
+              }
+            },
+            "pointer": "#/$defs/Pet",
+            "options": {}
+          },
+          "expected": {
+            "has_keys": ["apiVersion", "schema", "pointer", "dependencyCount"],
+            "apiVersion": "1.0",
+            "pointer": "#/$defs/Pet",
+            "schema_is_object": true,
+            "dependency_count": 0
+          }
+        },
+        {
+          "id": "extract_with_internal_ref",
+          "description": "Extract a $def that references another $def resolves dependencies",
+          "input": {
+            "schema": {
+              "$defs": {
+                "Owner": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "pet": { "$ref": "#/$defs/Pet" }
+                  }
+                },
+                "Pet": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" }
+                  }
+                }
+              }
+            },
+            "pointer": "#/$defs/Owner",
+            "options": {}
+          },
+          "expected": {
+            "has_keys": ["apiVersion", "schema", "pointer", "dependencyCount"],
+            "apiVersion": "1.0",
+            "pointer": "#/$defs/Owner",
+            "schema_is_object": true,
+            "dependency_count_gte": 1
+          }
+        },
+        {
+          "id": "extract_missing_pointer",
+          "description": "Extracting a non-existent pointer produces error",
+          "input": {
+            "schema": {
+              "$defs": {
+                "Foo": { "type": "string" }
+              }
+            },
+            "pointer": "#/$defs/DoesNotExist",
+            "options": {}
+          },
+          "expected": {
+            "is_error": true,
+            "error_has_keys": ["code", "message"]
+          }
+        }
+      ]
+    },
+    "convert_all_components": {
+      "description": "convert_all_components operation test cases",
+      "fixtures": [
+        {
+          "id": "convert_all_with_defs",
+          "description": "Schema with $defs produces full + per-component results",
+          "input": {
+            "schema": {
+              "$defs": {
+                "A": { "type": "string" },
+                "B": { "type": "integer" }
+              }
+            },
+            "convert_options": {},
+            "extract_options": {}
+          },
+          "expected": {
+            "has_keys": ["apiVersion", "full", "components"],
+            "apiVersion": "1.0",
+            "full_is_object": true,
+            "components_count": 2
+          }
+        },
+        {
+          "id": "convert_all_empty_schema",
+          "description": "Schema without $defs returns empty components",
+          "input": {
+            "schema": {
+              "type": "object",
+              "properties": { "x": { "type": "string" } }
+            },
+            "convert_options": {},
+            "extract_options": {}
+          },
+          "expected": {
+            "has_keys": ["apiVersion", "full", "components"],
+            "apiVersion": "1.0",
+            "full_is_object": true,
+            "components_count": 0
+          }
+        },
+        {
+          "id": "convert_all_error_invalid_json",
+          "description": "Invalid JSON input produces structured error",
+          "input": {
+            "schema_raw": "NOT VALID JSON",
+            "convert_options": {},
+            "extract_options": {}
+          },
+          "expected": {
+            "is_error": true,
+            "error_has_keys": ["code", "message"]
+          }
+        }
+      ]
     }
   }
 }

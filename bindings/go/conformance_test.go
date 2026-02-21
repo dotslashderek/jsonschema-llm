@@ -24,11 +24,14 @@ type fixture struct {
 }
 
 type fixtureInput struct {
-	Schema    any            `json:"schema,omitempty"`
-	SchemaRaw string         `json:"schema_raw,omitempty"`
-	Options   map[string]any `json:"options,omitempty"`
-	Data      any            `json:"data,omitempty"`
-	CodecRaw  string         `json:"codec_raw,omitempty"`
+	Schema         any            `json:"schema,omitempty"`
+	SchemaRaw      string         `json:"schema_raw,omitempty"`
+	Options        map[string]any `json:"options,omitempty"`
+	Data           any            `json:"data,omitempty"`
+	CodecRaw       string         `json:"codec_raw,omitempty"`
+	Pointer        string         `json:"pointer,omitempty"`
+	ConvertOptions map[string]any `json:"convert_options,omitempty"`
+	ExtractOptions map[string]any `json:"extract_options,omitempty"`
 }
 
 func loadFixtures(t *testing.T) fixtureFile {
@@ -341,5 +344,206 @@ func assertErrorExpected(t *testing.T, jslErr *Error, expected map[string]any) {
 		if jslErr.Code != code {
 			t.Errorf("error_code: got %q, want %q", jslErr.Code, code)
 		}
+	}
+}
+
+func TestConformance_ListComponents(t *testing.T) {
+	fixtures := loadFixtures(t)
+	listSuite := fixtures.Suites["list_components"]
+
+	for _, fx := range listSuite.Fixtures {
+		t.Run(fx.ID, func(t *testing.T) {
+			eng, err := New()
+			if err != nil {
+				t.Fatalf("New() failed: %v", err)
+			}
+			defer eng.Close()
+
+			expected := fx.Expected
+
+			// Error case: schema_raw
+			if fx.Input.SchemaRaw != "" {
+				_, err := eng.callJsl("jsl_list_components", []byte(fx.Input.SchemaRaw))
+				if err == nil {
+					t.Fatal("expected error for schema_raw fixture, got nil")
+				}
+				jslErr, ok := err.(*Error)
+				if !ok {
+					t.Fatalf("expected *Error, got %T: %v", err, err)
+				}
+				assertErrorExpected(t, jslErr, expected)
+				return
+			}
+
+			result, err := eng.ListComponents(fx.Input.Schema)
+			if err != nil {
+				t.Fatalf("ListComponents() failed: %v", err)
+			}
+
+			// apiVersion
+			if v, ok := expected["apiVersion"].(string); ok {
+				if result.APIVersion != v {
+					t.Errorf("apiVersion: got %q, want %q", result.APIVersion, v)
+				}
+			}
+
+			// components exact match
+			if comps, ok := expected["components"]; ok {
+				expectedJSON, _ := json.Marshal(comps)
+				actualJSON, _ := json.Marshal(result.Components)
+				if string(actualJSON) != string(expectedJSON) {
+					t.Errorf("components mismatch:\n  got:  %s\n  want: %s", actualJSON, expectedJSON)
+				}
+			}
+		})
+	}
+}
+
+func TestConformance_ExtractComponent(t *testing.T) {
+	fixtures := loadFixtures(t)
+	extractSuite := fixtures.Suites["extract_component"]
+
+	for _, fx := range extractSuite.Fixtures {
+		t.Run(fx.ID, func(t *testing.T) {
+			eng, err := New()
+			if err != nil {
+				t.Fatalf("New() failed: %v", err)
+			}
+			defer eng.Close()
+
+			expected := fx.Expected
+
+			// Error case
+			if isErr, _ := expected["is_error"].(bool); isErr {
+				if fx.Input.SchemaRaw != "" {
+					_, err := eng.callJsl("jsl_extract_component", []byte(fx.Input.SchemaRaw), []byte(fx.Input.Pointer), []byte("{}"))
+					if err == nil {
+						t.Fatal("expected error, got nil")
+					}
+					jslErr, ok := err.(*Error)
+					if !ok {
+						t.Fatalf("expected *Error, got %T: %v", err, err)
+					}
+					assertErrorExpected(t, jslErr, expected)
+				} else {
+					_, err := eng.ExtractComponent(fx.Input.Schema, fx.Input.Pointer, nil)
+					if err == nil {
+						t.Fatal("expected error, got nil")
+					}
+					jslErr, ok := err.(*Error)
+					if !ok {
+						t.Fatalf("expected *Error, got %T: %v", err, err)
+					}
+					assertErrorExpected(t, jslErr, expected)
+				}
+				return
+			}
+
+			result, err := eng.ExtractComponent(fx.Input.Schema, fx.Input.Pointer, nil)
+			if err != nil {
+				t.Fatalf("ExtractComponent() failed: %v", err)
+			}
+
+			// apiVersion
+			if v, ok := expected["apiVersion"].(string); ok {
+				if result.APIVersion != v {
+					t.Errorf("apiVersion: got %q, want %q", result.APIVersion, v)
+				}
+			}
+			// pointer
+			if v, ok := expected["pointer"].(string); ok {
+				if result.Pointer != v {
+					t.Errorf("pointer: got %q, want %q", result.Pointer, v)
+				}
+			}
+			// schema_is_object
+			if _, ok := expected["schema_is_object"]; ok {
+				if result.Schema == nil {
+					t.Error("schema should not be nil")
+				}
+			}
+			// dependency_count
+			if v, ok := expected["dependency_count"]; ok {
+				wantCount := int(v.(float64))
+				if result.DependencyCount != wantCount {
+					t.Errorf("dependencyCount: got %d, want %d", result.DependencyCount, wantCount)
+				}
+			}
+			// dependency_count_gte
+			if v, ok := expected["dependency_count_gte"]; ok {
+				min := int(v.(float64))
+				if result.DependencyCount < min {
+					t.Errorf("dependencyCount: got %d, want >= %d", result.DependencyCount, min)
+				}
+			}
+		})
+	}
+}
+
+func TestConformance_ConvertAllComponents(t *testing.T) {
+	fixtures := loadFixtures(t)
+	convertAllSuite := fixtures.Suites["convert_all_components"]
+
+	for _, fx := range convertAllSuite.Fixtures {
+		t.Run(fx.ID, func(t *testing.T) {
+			eng, err := New()
+			if err != nil {
+				t.Fatalf("New() failed: %v", err)
+			}
+			defer eng.Close()
+
+			expected := fx.Expected
+
+			// Error case: schema_raw
+			if fx.Input.SchemaRaw != "" {
+				convBytes, _ := json.Marshal(fx.Input.ConvertOptions)
+				extBytes, _ := json.Marshal(fx.Input.ExtractOptions)
+				if convBytes == nil {
+					convBytes = []byte("{}")
+				}
+				if extBytes == nil {
+					extBytes = []byte("{}")
+				}
+				_, err := eng.callJsl("jsl_convert_all_components", []byte(fx.Input.SchemaRaw), convBytes, extBytes)
+				if err == nil {
+					t.Fatal("expected error for schema_raw fixture, got nil")
+				}
+				jslErr, ok := err.(*Error)
+				if !ok {
+					t.Fatalf("expected *Error, got %T: %v", err, err)
+				}
+				assertErrorExpected(t, jslErr, expected)
+				return
+			}
+
+			result, err := eng.ConvertAllComponents(fx.Input.Schema, nil, nil)
+			if err != nil {
+				t.Fatalf("ConvertAllComponents() failed: %v", err)
+			}
+
+			// apiVersion
+			if v, ok := expected["apiVersion"].(string); ok {
+				if result.APIVersion != v {
+					t.Errorf("apiVersion: got %q, want %q", result.APIVersion, v)
+				}
+			}
+			// full_is_object
+			if _, ok := expected["full_is_object"]; ok {
+				if result.Full == nil {
+					t.Error("full should not be nil")
+				}
+			}
+			// components_count
+			if v, ok := expected["components_count"]; ok {
+				wantCount := int(v.(float64))
+				var comps []any
+				if err := json.Unmarshal(result.Components, &comps); err != nil {
+					t.Fatalf("failed to parse components: %v", err)
+				}
+				if len(comps) != wantCount {
+					t.Errorf("components count: got %d, want %d", len(comps), wantCount)
+				}
+			}
+		})
 	}
 }

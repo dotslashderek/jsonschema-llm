@@ -80,6 +80,33 @@ class Engine:
         schema_json = json.dumps(schema)
         return self._call_jsl("jsl_rehydrate", data_json, codec_json, schema_json)
 
+    def list_components(self, schema: Any) -> dict:
+        """List all extractable component JSON Pointers in a schema."""
+        schema_json = json.dumps(schema)
+        return self._call_jsl("jsl_list_components", schema_json)
+
+    def extract_component(
+        self, schema: Any, pointer: str, options: Optional[dict] = None
+    ) -> dict:
+        """Extract a single component from a schema by JSON Pointer."""
+        schema_json = json.dumps(schema)
+        opts_json = json.dumps(options or {})
+        return self._call_jsl("jsl_extract_component", schema_json, pointer, opts_json)
+
+    def convert_all_components(
+        self,
+        schema: Any,
+        convert_options: Optional[dict] = None,
+        extract_options: Optional[dict] = None,
+    ) -> dict:
+        """Convert a schema and all its discoverable components in one call."""
+        schema_json = json.dumps(schema)
+        conv_opts_json = json.dumps(convert_options or {})
+        ext_opts_json = json.dumps(extract_options or {})
+        return self._call_jsl(
+            "jsl_convert_all_components", schema_json, conv_opts_json, ext_opts_json
+        )
+
     def _call_jsl(self, func_name: str, *json_args: str) -> dict:
         """Execute a WASI export following the JslResult protocol."""
         # Fresh store + instance per call (WASI modules are single-use)
