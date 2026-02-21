@@ -367,18 +367,22 @@ fn collect_deps(
                             let key = pointer_to_key(ref_val, &ctx.deps);
                             let resolved_clone = resolved.clone();
                             ctx.visited.insert(ref_val.to_string());
-                            
-                            let target_base_uri = ctx.resolver.parent_base_uri_for_pointer(ctx.root_schema, ref_val);
-                            
-                            ctx.deps
-                                .insert(ref_val.to_string(), (key, resolved_clone.clone(), target_base_uri.clone()));
-                                
+
+                            let target_base_uri = ctx
+                                .resolver
+                                .parent_base_uri_for_pointer(ctx.root_schema, ref_val);
+
+                            ctx.deps.insert(
+                                ref_val.to_string(),
+                                (key, resolved_clone.clone(), target_base_uri.clone()),
+                            );
+
                             let saved_base = ctx.base_uri.clone();
                             ctx.base_uri = target_base_uri;
-                                
+
                             // Only increment depth for $ref hops (not AST traversal).
                             collect_deps(&resolved_clone, ref_val, depth + 1, ctx)?;
-                            
+
                             ctx.base_uri = saved_base;
                         }
                     }
@@ -511,19 +515,23 @@ fn rewrite_refs_aware(
     }
 
     if let Some(Value::String(ref_str)) = obj.get("$ref") {
-        match resolver.resolve(ref_str, &scoped_base) {
-            crate::resolver::ResolvedRef::Pointer(target_ptr) => {
-                if let Some(new_ref) = pointer_rewrite_map.get(&target_ptr) {
-                    obj.insert("$ref".to_string(), Value::String(new_ref.clone()));
-                }
+        if let crate::resolver::ResolvedRef::Pointer(target_ptr) =
+            resolver.resolve(ref_str, &scoped_base)
+        {
+            if let Some(new_ref) = pointer_rewrite_map.get(&target_ptr) {
+                obj.insert("$ref".to_string(), Value::String(new_ref.clone()));
             }
-            _ => {}
         }
     }
 
     let rewritten = obj
         .into_iter()
-        .map(|(k, v)| (k, rewrite_refs_aware(v, &scoped_base, resolver, pointer_rewrite_map)))
+        .map(|(k, v)| {
+            (
+                k,
+                rewrite_refs_aware(v, &scoped_base, resolver, pointer_rewrite_map),
+            )
+        })
         .collect();
     Value::Object(rewritten)
 }
