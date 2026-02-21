@@ -281,3 +281,135 @@ func TestRealWorldSchema(t *testing.T) {
 		t.Errorf("expected 'Ada Lovelace', got %v", userMap["name"])
 	}
 }
+
+// TestListComponents verifies listing extractable components.
+func TestListComponents(t *testing.T) {
+	eng, err := New()
+	if err != nil {
+		t.Fatalf("New() failed: %v", err)
+	}
+	defer eng.Close()
+
+	schema := map[string]any{
+		"$defs": map[string]any{
+			"Pet": map[string]any{"type": "string"},
+			"Tag": map[string]any{"type": "integer"},
+		},
+	}
+
+	result, err := eng.ListComponents(schema)
+	if err != nil {
+		t.Fatalf("ListComponents() failed: %v", err)
+	}
+
+	if result.APIVersion == "" {
+		t.Error("apiVersion should not be empty")
+	}
+	if len(result.Components) != 2 {
+		t.Errorf("expected 2 components, got %d", len(result.Components))
+	}
+}
+
+// TestListComponentsEmpty verifies empty schema returns no components.
+func TestListComponentsEmpty(t *testing.T) {
+	eng, err := New()
+	if err != nil {
+		t.Fatalf("New() failed: %v", err)
+	}
+	defer eng.Close()
+
+	schema := map[string]any{"type": "object"}
+	result, err := eng.ListComponents(schema)
+	if err != nil {
+		t.Fatalf("ListComponents() failed: %v", err)
+	}
+	if len(result.Components) != 0 {
+		t.Errorf("expected 0 components, got %d", len(result.Components))
+	}
+}
+
+// TestExtractComponent verifies extracting a single component.
+func TestExtractComponent(t *testing.T) {
+	eng, err := New()
+	if err != nil {
+		t.Fatalf("New() failed: %v", err)
+	}
+	defer eng.Close()
+
+	schema := map[string]any{
+		"$defs": map[string]any{
+			"Pet": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"name": map[string]any{"type": "string"},
+				},
+			},
+		},
+	}
+
+	result, err := eng.ExtractComponent(schema, "#/$defs/Pet", nil)
+	if err != nil {
+		t.Fatalf("ExtractComponent() failed: %v", err)
+	}
+
+	if result.APIVersion == "" {
+		t.Error("apiVersion should not be empty")
+	}
+	if result.Pointer != "#/$defs/Pet" {
+		t.Errorf("pointer: got %q, want %q", result.Pointer, "#/$defs/Pet")
+	}
+	if result.Schema == nil {
+		t.Error("schema should not be nil")
+	}
+}
+
+// TestExtractComponentError verifies missing pointer returns error.
+func TestExtractComponentError(t *testing.T) {
+	eng, err := New()
+	if err != nil {
+		t.Fatalf("New() failed: %v", err)
+	}
+	defer eng.Close()
+
+	schema := map[string]any{
+		"$defs": map[string]any{
+			"Foo": map[string]any{"type": "string"},
+		},
+	}
+
+	_, err = eng.ExtractComponent(schema, "#/$defs/DoesNotExist", nil)
+	if err == nil {
+		t.Fatal("expected error for missing pointer, got nil")
+	}
+}
+
+// TestConvertAllComponents verifies batch conversion.
+func TestConvertAllComponents(t *testing.T) {
+	eng, err := New()
+	if err != nil {
+		t.Fatalf("New() failed: %v", err)
+	}
+	defer eng.Close()
+
+	schema := map[string]any{
+		"$defs": map[string]any{
+			"A": map[string]any{"type": "string"},
+			"B": map[string]any{"type": "integer"},
+		},
+	}
+
+	result, err := eng.ConvertAllComponents(schema, nil, nil)
+	if err != nil {
+		t.Fatalf("ConvertAllComponents() failed: %v", err)
+	}
+
+	if result.APIVersion == "" {
+		t.Error("apiVersion should not be empty")
+	}
+	if result.Full == nil {
+		t.Error("full should not be nil")
+	}
+	if result.Components == nil {
+		t.Error("components should not be nil")
+	}
+}

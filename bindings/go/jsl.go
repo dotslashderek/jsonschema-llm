@@ -71,6 +71,34 @@ type RehydrateResult struct {
 	Warnings   []Warning `json:"warnings,omitempty"`
 }
 
+// ExtractOptions configures component extraction.
+type ExtractOptions struct {
+	MaxDepth int `json:"max-depth,omitempty"`
+}
+
+// ExtractResult is the result of an extract_component operation.
+type ExtractResult struct {
+	APIVersion      string         `json:"apiVersion"`
+	Schema          map[string]any `json:"schema"`
+	Pointer         string         `json:"pointer"`
+	DependencyCount int            `json:"dependencyCount"`
+	MissingRefs     []string       `json:"missingRefs"`
+}
+
+// ListComponentsResult is the result of a list_components operation.
+type ListComponentsResult struct {
+	APIVersion string   `json:"apiVersion"`
+	Components []string `json:"components"`
+}
+
+// ConvertAllResult is the result of a convert_all_components operation.
+type ConvertAllResult struct {
+	APIVersion      string           `json:"apiVersion"`
+	Full            json.RawMessage  `json:"full"`
+	Components      json.RawMessage  `json:"components"`
+	ComponentErrors json.RawMessage  `json:"componentErrors,omitempty"`
+}
+
 // Error represents a structured error from the WASI binary.
 type Error struct {
 	Code    string `json:"code"`
@@ -175,6 +203,95 @@ func (e *Engine) Rehydrate(data any, codec any, schema any) (*RehydrateResult, e
 	var result RehydrateResult
 	if err := json.Unmarshal(payload, &result); err != nil {
 		return nil, fmt.Errorf("unmarshal rehydrate result: %w", err)
+	}
+	return &result, nil
+}
+
+// ListComponents returns all extractable component JSON Pointers in a schema.
+func (e *Engine) ListComponents(schema any) (*ListComponentsResult, error) {
+	schemaBytes, err := json.Marshal(schema)
+	if err != nil {
+		return nil, fmt.Errorf("marshal schema: %w", err)
+	}
+
+	payload, err := e.callJsl("jsl_list_components", schemaBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	var result ListComponentsResult
+	if err := json.Unmarshal(payload, &result); err != nil {
+		return nil, fmt.Errorf("unmarshal list_components result: %w", err)
+	}
+	return &result, nil
+}
+
+// ExtractComponent extracts a single component from a schema by JSON Pointer.
+func (e *Engine) ExtractComponent(schema any, pointer string, opts *ExtractOptions) (*ExtractResult, error) {
+	schemaBytes, err := json.Marshal(schema)
+	if err != nil {
+		return nil, fmt.Errorf("marshal schema: %w", err)
+	}
+
+	pointerBytes := []byte(pointer)
+
+	var optsBytes []byte
+	if opts != nil {
+		optsBytes, err = json.Marshal(opts)
+		if err != nil {
+			return nil, fmt.Errorf("marshal extract options: %w", err)
+		}
+	} else {
+		optsBytes = []byte("{}")
+	}
+
+	payload, err := e.callJsl("jsl_extract_component", schemaBytes, pointerBytes, optsBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	var result ExtractResult
+	if err := json.Unmarshal(payload, &result); err != nil {
+		return nil, fmt.Errorf("unmarshal extract_component result: %w", err)
+	}
+	return &result, nil
+}
+
+// ConvertAllComponents converts a schema and all its discoverable components in one call.
+func (e *Engine) ConvertAllComponents(schema any, convertOpts *ConvertOptions, extractOpts *ExtractOptions) (*ConvertAllResult, error) {
+	schemaBytes, err := json.Marshal(schema)
+	if err != nil {
+		return nil, fmt.Errorf("marshal schema: %w", err)
+	}
+
+	var convOptsBytes []byte
+	if convertOpts != nil {
+		convOptsBytes, err = json.Marshal(convertOpts)
+		if err != nil {
+			return nil, fmt.Errorf("marshal convert options: %w", err)
+		}
+	} else {
+		convOptsBytes = []byte("{}")
+	}
+
+	var extOptsBytes []byte
+	if extractOpts != nil {
+		extOptsBytes, err = json.Marshal(extractOpts)
+		if err != nil {
+			return nil, fmt.Errorf("marshal extract options: %w", err)
+		}
+	} else {
+		extOptsBytes = []byte("{}")
+	}
+
+	payload, err := e.callJsl("jsl_convert_all_components", schemaBytes, convOptsBytes, extOptsBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	var result ConvertAllResult
+	if err := json.Unmarshal(payload, &result); err != nil {
+		return nil, fmt.Errorf("unmarshal convert_all_components result: %w", err)
 	}
 	return &result, nil
 }
