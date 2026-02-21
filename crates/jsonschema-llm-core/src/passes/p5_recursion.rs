@@ -155,11 +155,10 @@ fn resolve_ref(
 
         Ok(result)
     } else {
-        // Unknown ref — fail fast to avoid dangling $ref after $defs are stripped
-        Err(ConvertError::UnresolvableRef {
-            path: path.to_string(),
-            reference: ref_str.to_string(),
-        })
+        // Non-local ref (e.g., external URL preserved from earlier passes) —
+        // leave as-is. The `has_remaining_refs` check will keep `$defs`
+        // intact if needed.
+        Ok(serde_json::json!({ "$ref": ref_str }))
     }
 }
 

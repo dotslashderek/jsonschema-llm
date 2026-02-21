@@ -1,0 +1,205 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "map_to_array",
+      "path": "#/properties/failureActions",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/properties/inputs",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/properties/parameters",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/properties/successActions",
+      "keyField": "key"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/failureActions",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/inputs",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/parameters",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/successActions",
+      "originalRequired": false
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/failureActions/anyOf/0/items/properties/value/patternProperties/^x-"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/parameters/anyOf/0/items/properties/value/patternProperties/^x-"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/successActions/anyOf/0/items/properties/value/patternProperties/^x-"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/patternProperties/^(inputs|parameters|successActions|failureActions)$"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/allOf/1/$defs/criterion-expression-type-object",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "type": {
+            "const": "jsonpath"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      }
+    },
+    {
+      "path": "#/allOf/1/$defs/criterion-expression-type-object",
+      "constraint": "then",
+      "value": {
+        "properties": {
+          "version": {
+            "const": "draft-goessner-dispatch-jsonpath-00"
+          }
+        }
+      }
+    },
+    {
+      "path": "#/allOf/1/$defs/criterion-expression-type-object",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "type": {
+            "const": "xpath"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      }
+    },
+    {
+      "path": "#/allOf/1/$defs/criterion-expression-type-object",
+      "constraint": "then",
+      "value": {
+        "properties": {
+          "version": {
+            "enum": [
+              "xpath-10",
+              "xpath-20",
+              "xpath-30"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "path": "#/allOf/1/$defs/failure-action-object",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "type": {
+            "enum": [
+              "goto",
+              "retry"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "path": "#/allOf/1/$defs/failure-action-object",
+      "constraint": "then",
+      "value": {
+        "oneOf": [
+          {
+            "required": [
+              "workflowId"
+            ]
+          },
+          {
+            "required": [
+              "stepId"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "#/allOf/1/$defs/failure-action-object",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "type": {
+            "const": "retry"
+          }
+        }
+      }
+    },
+    {
+      "path": "#/allOf/1/$defs/failure-action-object",
+      "constraint": "then",
+      "value": {
+        "required": [
+          "retryAfter"
+        ]
+      }
+    },
+    {
+      "path": "#/allOf/1/$defs/success-action-object",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "type": {
+            "const": "goto"
+          }
+        }
+      }
+    },
+    {
+      "path": "#/allOf/1/$defs/success-action-object",
+      "constraint": "then",
+      "value": {
+        "oneOf": [
+          {
+            "required": [
+              "workflowId"
+            ]
+          },
+          {
+            "required": [
+              "stepId"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "path": "#/patternProperties/^(inputs|parameters|successActions|failureActions)$",
+      "constraint": "propertyNames",
+      "value": {
+        "pattern": "^[a-zA-Z0-9\\.\\-_]+$"
+      }
+    }
+  ]
+}

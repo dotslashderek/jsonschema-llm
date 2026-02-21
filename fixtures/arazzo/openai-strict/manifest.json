@@ -1,10 +1,17 @@
 {
   "version": "1",
-  "generatedAt": "2026-02-21T19:46:48.500727+00:00",
+  "generatedAt": "2026-02-21T19:56:08.257176+00:00",
   "sourceSchema": "arazzo-schema.json",
   "target": "openai-strict",
   "mode": "strict",
   "components": [
+    {
+      "name": "components-object",
+      "pointer": "#/$defs/components-object",
+      "schemaPath": "$defs/components-object/schema.json",
+      "codecPath": "$defs/components-object/codec.json",
+      "dependencyCount": 9
+    },
     {
       "name": "criterion-expression-type-object",
       "pointer": "#/$defs/criterion-expression-type-object",
@@ -62,6 +69,13 @@
       "dependencyCount": 0
     },
     {
+      "name": "schema",
+      "pointer": "#/$defs/schema",
+      "schemaPath": "$defs/schema/schema.json",
+      "codecPath": "$defs/schema/codec.json",
+      "dependencyCount": 0
+    },
+    {
       "name": "source-description-object",
       "pointer": "#/$defs/source-description-object",
       "schemaPath": "$defs/source-description-object/schema.json",
@@ -88,6 +102,13 @@
       "schemaPath": "$defs/success-action-object/schema.json",
       "codecPath": "$defs/success-action-object/codec.json",
       "dependencyCount": 5
+    },
+    {
+      "name": "workflow-object",
+      "pointer": "#/$defs/workflow-object",
+      "schemaPath": "$defs/workflow-object/schema.json",
+      "codecPath": "$defs/workflow-object/codec.json",
+      "dependencyCount": 13
     }
   ]
 }

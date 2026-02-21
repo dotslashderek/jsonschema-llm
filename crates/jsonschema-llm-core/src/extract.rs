@@ -362,26 +362,18 @@ fn collect_deps(
             }
 
             if let Some(ref_val) = obj.get("$ref").and_then(Value::as_str) {
-                // Try to resolve anchor-style or URI-style refs via the anchor map.
-                let effective_ref = if ref_val == "#" || ref_val.starts_with("#/") {
-                    // Standard JSON Pointer — use as-is.
-                    ref_val.to_string()
-                } else {
-                    // Anchor-style or URI-style ref — resolve via anchor map.
-                    match crate::anchor_utils::resolve_ref_via_anchor_map(
-                        ref_val,
-                        &ctx.base_uri,
-                        &ctx.anchor_map,
-                    ) {
-                        Some(pointer) => pointer,
-                        None => {
-                            return Err(ConvertError::UnresolvableRef {
-                                path: current_path.to_string(),
-                                reference: ref_val.to_string(),
-                            });
+                // Resolve via centralized anchor_utils::resolve_ref.
+                let effective_ref =
+                    match crate::anchor_utils::resolve_ref(ref_val, &ctx.base_uri, &ctx.anchor_map)
+                    {
+                        crate::anchor_utils::ResolvedRef::Pointer(p) => p,
+                        crate::anchor_utils::ResolvedRef::Unresolvable(_) => {
+                            // Soft-fail: external or unresolvable anchor refs are
+                            // recorded as missing and left as-is.
+                            ctx.missing_refs.push(ref_val.to_string());
+                            return Ok(());
                         }
-                    }
-                };
+                    };
 
                 let ref_val = effective_ref.as_str();
 
@@ -684,7 +676,7 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    fn test_external_ref_error() {
+    fn test_external_ref_soft_fail() {
         let schema = json!({
             "$defs": {
                 "Pet": {
@@ -696,13 +688,15 @@ mod tests {
             }
         });
 
-        let err = extract_component(&schema, "#/$defs/Pet", &opts()).unwrap_err();
-        match err {
-            ConvertError::UnresolvableRef { reference, .. } => {
-                assert!(reference.contains("example.com"), "got: {}", reference);
-            }
-            other => panic!("expected UnresolvableRef, got: {:?}", other),
-        }
+        let result = extract_component(&schema, "#/$defs/Pet", &opts()).unwrap();
+        assert!(
+            result
+                .missing_refs
+                .iter()
+                .any(|r| r.contains("example.com")),
+            "expected external ref in missing_refs; got: {:?}",
+            result.missing_refs
+        );
     }
 
     // -----------------------------------------------------------------------

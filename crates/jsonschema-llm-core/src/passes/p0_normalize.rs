@@ -419,26 +419,15 @@ fn resolve_single_ref(
     depth: usize,
     ctx: &mut RefContext<'_>,
 ) -> Result<Value, ConvertError> {
-    // Resolve anchor-style or URI-style refs via the anchor map.
-    let effective_ref = if ref_str == "#" || ref_str.starts_with("#/") {
-        // Standard JSON Pointer — use as-is.
-        ref_str.to_string()
-    } else {
-        // Anchor-style or URI-style ref — resolve via anchor map.
-        match crate::anchor_utils::resolve_ref_via_anchor_map(
-            ref_str,
-            &ctx.base_uri,
-            &ctx.anchor_map,
-        ) {
-            Some(pointer) => pointer,
-            None => {
-                return Err(ConvertError::UnresolvableRef {
-                    path: path.to_string(),
-                    reference: ref_str.to_string(),
-                });
+    // Resolve via centralized anchor_utils::resolve_ref.
+    let effective_ref =
+        match crate::anchor_utils::resolve_ref(ref_str, &ctx.base_uri, &ctx.anchor_map) {
+            crate::anchor_utils::ResolvedRef::Pointer(p) => p,
+            crate::anchor_utils::ResolvedRef::Unresolvable(_) => {
+                // Unresolvable anchor or external ref — leave as-is.
+                return Ok(Value::Object(obj.clone()));
             }
-        }
-    };
+        };
 
     let ref_str = effective_ref.as_str();
 
@@ -1059,10 +1048,10 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // Test 12: Non-local $ref (no # prefix) → error
+    // Test 12: Non-local $ref (no # prefix) → preserved as-is
     // -----------------------------------------------------------------------
     #[test]
-    fn test_non_local_ref_error() {
+    fn test_non_local_ref_preserved() {
         let input = json!({
             "type": "object",
             "properties": {
@@ -1070,12 +1059,11 @@ mod tests {
             }
         });
 
-        let err = run_err(input);
-        let msg = err.to_string();
-        assert!(
-            msg.contains("Unresolvable") || msg.contains("external") || msg.contains("non-local"),
-            "Expected error about non-local $ref, got: {}",
-            msg
+        let (output, _) = run(input);
+        // External ref should be preserved as-is (pass-through).
+        assert_eq!(
+            output["properties"]["ext"]["$ref"],
+            "https://example.com/schemas/Thing"
         );
     }
 
@@ -1263,7 +1251,7 @@ mod tests {
     }
 
     #[test]
-    fn test_anchor_style_ref_error() {
+    fn test_anchor_style_ref_preserved() {
         let input = json!({
             "type": "object",
             "properties": {
@@ -1271,19 +1259,9 @@ mod tests {
             }
         });
         let config = ConvertOptions::default();
-        let result = normalize(&input, &config);
-        assert!(result.is_err());
-        let err = result.unwrap_err();
-        match &err {
-            ConvertError::UnresolvableRef { reference, .. } => {
-                assert!(
-                    reference.contains("Foo"),
-                    "Expected reference containing 'Foo', got: {}",
-                    reference
-                );
-            }
-            other => panic!("Expected UnresolvableRef, got: {:?}", other),
-        }
+        let result = normalize(&input, &config).unwrap();
+        // Unresolvable anchor ref should be preserved as-is.
+        assert_eq!(result.pass.schema["properties"]["name"]["$ref"], "#Foo");
     }
 
     #[test]

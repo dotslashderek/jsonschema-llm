@@ -22,12 +22,9 @@ Fixtures generated with `--target openai-strict` (default, most restrictive). Co
 | `$defs/<Component>/schema.json` | Per-component converted schema             |
 | `$defs/<Component>/codec.json`  | Per-component rehydration codec            |
 
-**12 components** extracted, including: `criterion-object`, `failure-action-object`, `info`, `parameter-object`, `request-body-object`, `source-description-object`, `step-object`, `success-action-object`, `reusable-object`, `specification-extensions`, and more.
+**15 components** extracted — all `$defs` in the Arazzo 1.0 schema, including `components-object`, `step-object`, `success-action-object`, `failure-action-object`, `workflow-object`, `schema`, and more.
 
-> **Note**: 3 components are excluded due to unsupported features:
->
-> - `components-object`, `workflow-object` — transitively depend on `schema` which uses an external meta-schema `$ref` (`https://json-schema.org/draft/2020-12/schema`)
-> - `schema` — external meta-schema `$ref` (`https://json-schema.org/draft/2020-12/schema`)
+> **Note**: Components with external `$ref` dependencies (e.g., `schema` referencing `https://json-schema.org/draft/2020-12/schema`) preserve those references as-is in the converted output.
 
 ## Usage
 

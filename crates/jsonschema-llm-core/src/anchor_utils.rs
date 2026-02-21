@@ -66,6 +66,38 @@ pub(crate) fn resolve_ref_via_anchor_map(
     anchor_map.get(resolved.as_str()).cloned()
 }
 
+/// Result of resolving a `$ref` string through the anchor map.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) enum ResolvedRef {
+    /// The ref resolved to a canonical JSON Pointer (either it was already
+    /// a pointer, or it was an anchor-style ref that mapped to one).
+    Pointer(String),
+    /// The ref could not be resolved (external URL, unknown anchor, etc.).
+    /// Contains the original ref string.
+    Unresolvable(String),
+}
+
+/// Resolve a `$ref` string: JSON Pointers pass through, anchor-style and
+/// URI-style refs are looked up in the anchor map,  unresolvable refs
+/// (external URLs, unknown anchors) are returned as `Unresolvable`.
+///
+/// This is the single entry point for ref resolution, used by both
+/// `extract.rs` and `p0_normalize.rs`.
+pub(crate) fn resolve_ref(
+    ref_str: &str,
+    base_uri: &Url,
+    anchor_map: &HashMap<String, String>,
+) -> ResolvedRef {
+    if ref_str == "#" || ref_str.starts_with("#/") {
+        ResolvedRef::Pointer(ref_str.to_string())
+    } else {
+        match resolve_ref_via_anchor_map(ref_str, base_uri, anchor_map) {
+            Some(pointer) => ResolvedRef::Pointer(pointer),
+            None => ResolvedRef::Unresolvable(ref_str.to_string()),
+        }
+    }
+}
+
 /// Recursive DFS scanner that builds the anchor map.
 ///
 /// Tracks `current_base` (updated by `$id`) and `pointer` (the JSON Pointer
