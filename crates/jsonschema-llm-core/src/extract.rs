@@ -249,39 +249,20 @@ pub fn extract_component(
     // IMPORTANT: re-escape the key for use in a JSON Pointer.
     let rewrite_map: BTreeMap<String, String> = deps
         .iter()
-        .map(|(ptr, (key, _))| {
+        .map(|(ptr, (key, _, _))| {
             let escaped_key = escape_pointer_segment(key);
             (ptr.clone(), format!("#/$defs/{}", escaped_key))
         })
         .collect();
 
-    // Phase 3b: Also add anchor-ref → new-pointer entries to the rewrite map
-    // so that anchor-style $refs (e.g., "#stepId") get rewritten in the output.
-    let mut full_rewrite_map = rewrite_map.clone();
-    for (uri, pointer_path) in resolver.anchor_map() {
-        if let Some(new_ref) = rewrite_map.get(pointer_path) {
-            // Extract the fragment from the URI (e.g., "#stepId").
-            if let Ok(parsed) = url::Url::parse(uri) {
-                if let Some(fragment) = parsed.fragment() {
-                    let anchor_ref = format!("#{}", fragment);
-                    full_rewrite_map.insert(anchor_ref, new_ref.clone());
-                }
-            }
-            // Also add the full URI as a rewrite target for URI-style refs.
-            full_rewrite_map.insert(uri.clone(), new_ref.clone());
-            // And the relative form (e.g., "nested.json#foo").
-            // We compute this by stripping the base from the URI.
-        }
-    }
-
     // Phase 4: Rewrite refs in the target node and all dep nodes.
-    let mut root = crate::schema_walker::rewrite_refs(target, &full_rewrite_map)?;
+    let mut root = rewrite_refs_aware(target, resolver.base_uri(), &resolver, &rewrite_map);
 
     // Phase 5: Assemble $defs if there are any deps.
     if !deps.is_empty() {
         let mut defs_map = Map::new();
-        for (_ptr, (key, value)) in deps {
-            let rewritten = crate::schema_walker::rewrite_refs(value, &full_rewrite_map)?;
+        for (_ptr, (key, value, dep_base_uri)) in deps {
+            let rewritten = rewrite_refs_aware(value, &dep_base_uri, &resolver, &rewrite_map);
             defs_map.insert(key, rewritten);
         }
         if let Value::Object(ref mut obj) = root {
@@ -311,7 +292,7 @@ struct DfsCtx<'a> {
     max_depth: usize,
     visited: HashSet<String>,
     /// pointer → (key, resolved_value). `BTreeMap` for deterministic output.
-    deps: BTreeMap<String, (String, Value)>,
+    deps: BTreeMap<String, (String, Value, url::Url)>,
     missing_refs: Vec<String>,
     /// Centralized resolver engine for $ref resolution.
     resolver: &'a crate::resolver::ResolverEngine,
@@ -349,10 +330,12 @@ fn collect_deps(
             // Save base URI — $id scoping is lexical (per-subtree), not global.
             let saved_base = ctx.base_uri.clone();
 
-            // Track $id for base URI scoping.
-            if let Some(id_val) = obj.get("$id").and_then(Value::as_str) {
-                if let Ok(new_base) = ctx.base_uri.join(id_val) {
-                    ctx.base_uri = new_base;
+            // Track $id for base URI scoping (skip exactly at root since it's already in ctx.base_uri)
+            if current_path != "#" {
+                if let Some(id_val) = obj.get("$id").and_then(Value::as_str) {
+                    if let Ok(new_base) = ctx.base_uri.join(id_val) {
+                        ctx.base_uri = new_base;
+                    }
                 }
             }
 
@@ -386,7 +369,7 @@ fn collect_deps(
                             let resolved_clone = resolved.clone();
                             ctx.visited.insert(ref_val.to_string());
                             ctx.deps
-                                .insert(ref_val.to_string(), (key, resolved_clone.clone()));
+                                .insert(ref_val.to_string(), (key, resolved_clone.clone(), ctx.base_uri.clone()));
                             // Only increment depth for $ref hops (not AST traversal).
                             collect_deps(&resolved_clone, ref_val, depth + 1, ctx)?;
                         }
@@ -442,7 +425,7 @@ fn collect_deps(
 ///
 /// All segment strings are RFC 6901 unescaped (for human-readable key names).
 /// Callers must escape keys when building JSON Pointer strings.
-fn pointer_to_key(pointer: &str, deps: &BTreeMap<String, (String, Value)>) -> String {
+fn pointer_to_key(pointer: &str, deps: &BTreeMap<String, (String, Value, url::Url)>) -> String {
     let stripped = pointer.strip_prefix('#').unwrap_or(pointer);
     let segments: Vec<&str> = stripped.split('/').filter(|s| !s.is_empty()).collect();
 
@@ -454,7 +437,7 @@ fn pointer_to_key(pointer: &str, deps: &BTreeMap<String, (String, Value)>) -> St
     // Check for collision: key taken by a DIFFERENT pointer?
     let key_exists = |candidate: &str| {
         deps.iter()
-            .any(|(ptr, (k, _))| k == candidate && ptr != pointer)
+            .any(|(ptr, (k, _, _))| k == candidate && ptr != pointer)
     };
 
     if !key_exists(&last) {
@@ -490,6 +473,52 @@ fn unescape_segment(segment: &str) -> String {
 
 // ---------------------------------------------------------------------------
 // Ref rewriting
+// ---------------------------------------------------------------------------
+
+/// Walk a schema value and rewrite all `$ref` strings using the provided map,
+/// tracking the base URI to accurately resolve anchors and relative paths.
+fn rewrite_refs_aware(
+    value: Value,
+    current_base: &url::Url,
+    resolver: &crate::resolver::ResolverEngine,
+    pointer_rewrite_map: &std::collections::BTreeMap<String, String>,
+) -> Value {
+    let mut obj = match value {
+        Value::Object(o) => o,
+        Value::Array(arr) => {
+            return Value::Array(
+                arr.into_iter()
+                    .map(|v| rewrite_refs_aware(v, current_base, resolver, pointer_rewrite_map))
+                    .collect(),
+            );
+        }
+        other => return other,
+    };
+
+    let mut scoped_base = current_base.clone();
+    if let Some(id_val) = obj.get("$id").and_then(Value::as_str) {
+        if let Ok(new_base) = current_base.join(id_val) {
+            scoped_base = new_base;
+        }
+    }
+
+    if let Some(Value::String(ref_str)) = obj.get("$ref") {
+        match resolver.resolve(ref_str, &scoped_base) {
+            crate::resolver::ResolvedRef::Pointer(target_ptr) => {
+                if let Some(new_ref) = pointer_rewrite_map.get(&target_ptr) {
+                    obj.insert("$ref".to_string(), Value::String(new_ref.clone()));
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let rewritten = obj
+        .into_iter()
+        .map(|(k, v)| (k, rewrite_refs_aware(v, &scoped_base, resolver, pointer_rewrite_map)))
+        .collect();
+    Value::Object(rewritten)
+}
 
 // ===========================================================================
 // Tests (TDD — written before implementation)

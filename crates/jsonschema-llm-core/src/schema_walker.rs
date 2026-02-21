@@ -229,46 +229,40 @@ impl SchemaFolder for IdentityFolder {
 // Convenience: ref rewriter
 // ---------------------------------------------------------------------------
 
-/// A folder that rewrites `$ref` strings using a provided lookup map.
-///
-/// For each schema node containing a `$ref` key whose string value is in
-/// the map, the value is replaced. All other nodes pass through unchanged.
-pub(crate) struct RefRewriter<'a> {
-    map: &'a std::collections::BTreeMap<String, String>,
-}
-
-impl SchemaFolder for RefRewriter<'_> {
-    type Error = ConvertError;
-
-    fn fold_schema(
-        &mut self,
-        schema: Value,
-        _path: &str,
-        _depth: usize,
-    ) -> Result<FoldAction, Self::Error> {
-        let Value::Object(mut obj) = schema else {
-            return Ok(FoldAction::Continue(schema));
-        };
-
-        if let Some(Value::String(ref_str)) = obj.get("$ref").cloned() {
-            if let Some(new_ref) = self.map.get(&ref_str) {
-                obj.insert("$ref".to_string(), Value::String(new_ref.clone()));
-            }
-        }
-
-        Ok(FoldAction::Continue(Value::Object(obj)))
-    }
-}
-
 /// Rewrite all `$ref` strings in a schema tree using the provided map.
 ///
-/// Convenience wrapper around [`fold`] + [`RefRewriter`].
+/// This does NOT use the `SchemaFolder` trait because it must universally
+/// traverse ALL object keys and array elements (including custom extensions
+/// like `x-...`) to rewrite any `$ref` string found, regardless of whether
+/// it is in a schema-bearing position or not.
 pub(crate) fn rewrite_refs(
     schema: Value,
     map: &std::collections::BTreeMap<String, String>,
 ) -> Result<Value, ConvertError> {
-    let mut folder = RefRewriter { map };
-    fold(schema, &mut folder, "#", 0)
+    Ok(rewrite_refs_universal(schema, map))
+}
+
+fn rewrite_refs_universal(value: Value, rewrite_map: &std::collections::BTreeMap<String, String>) -> Value {
+    match value {
+        Value::Object(mut obj) => {
+            if let Some(Value::String(ref_str)) = obj.get("$ref") {
+                if let Some(new_ref) = rewrite_map.get(ref_str) {
+                    obj.insert("$ref".to_string(), Value::String(new_ref.clone()));
+                }
+            }
+            let rewritten = obj
+                .into_iter()
+                .map(|(k, v)| (k, rewrite_refs_universal(v, rewrite_map)))
+                .collect();
+            Value::Object(rewritten)
+        }
+        Value::Array(arr) => Value::Array(
+            arr.into_iter()
+                .map(|v| rewrite_refs_universal(v, rewrite_map))
+                .collect(),
+        ),
+        other => other,
+    }
 }
 
 // ===========================================================================

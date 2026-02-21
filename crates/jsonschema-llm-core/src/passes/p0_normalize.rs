@@ -394,10 +394,12 @@ fn resolve_refs(
     // Save base URI — $id scoping is lexical (per-subtree), not global.
     let saved_base = ctx.base_uri.clone();
 
-    // Track $id for base URI scoping.
-    if let Some(id_val) = result.get("$id").and_then(Value::as_str).map(String::from) {
-        if let Ok(new_base) = ctx.base_uri.join(&id_val) {
-            ctx.base_uri = new_base;
+    // Track $id for base URI scoping (skip exactly at root since it's already in ctx.base_uri)
+    if path != "#" {
+        if let Some(id_val) = result.get("$id").and_then(Value::as_str).map(String::from) {
+            if let Ok(new_base) = ctx.base_uri.join(&id_val) {
+                ctx.base_uri = new_base;
+            }
         }
     }
 

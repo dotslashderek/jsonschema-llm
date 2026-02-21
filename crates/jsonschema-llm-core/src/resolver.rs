@@ -44,7 +44,8 @@ impl ResolverEngine {
         } else {
             default_base
         };
-        let anchor_map = crate::anchor_utils::build_anchor_map(schema, Some(&base_uri))?;
+        let default_anchor_base = crate::anchor_utils::default_base_uri();
+        let anchor_map = crate::anchor_utils::build_anchor_map(schema, Some(&default_anchor_base))?;
         Ok(Self {
             anchor_map,
             base_uri,
