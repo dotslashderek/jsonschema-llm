@@ -1,0 +1,177 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "json_string_parse",
+      "path": "#/if"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/then/properties/$ref",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/then/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/then/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/externalValue",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/value",
+      "originalRequired": false
+    },
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#",
+      "constraint": "if",
+      "value": {
+        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "then",
+      "value": {
+        "$comment": "https://spec.openapis.org/oas/v3.1.0#reference-object",
+        "additionalProperties": false,
+        "properties": {
+          "$ref": {
+            "anyOf": [
+              {
+                "format": "uri-reference",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "$ref",
+          "description",
+          "summary"
+        ],
+        "type": "object",
+        "unevaluatedProperties": false
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "else",
+      "value": {
+        "$comment": "https://spec.openapis.org/oas/v3.1.0#example-object",
+        "additionalProperties": false,
+        "not": {
+          "required": [
+            "value",
+            "externalValue"
+          ]
+        },
+        "patternProperties": {
+          "^x-": true
+        },
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "externalValue": {
+            "anyOf": [
+              {
+                "format": "uri",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "value": {
+            "anyOf": [
+              true,
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "description",
+          "externalValue",
+          "summary",
+          "value"
+        ],
+        "type": "object",
+        "unevaluatedProperties": false
+      }
+    }
+  ]
+}

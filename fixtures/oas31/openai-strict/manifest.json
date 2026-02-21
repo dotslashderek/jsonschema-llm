@@ -1,0 +1,331 @@
+{
+  "version": "1",
+  "generatedAt": "2026-02-21T04:06:13.477638+00:00",
+  "sourceSchema": "oas31-schema.json",
+  "target": "openai-strict",
+  "mode": "strict",
+  "components": [
+    {
+      "name": "components",
+      "pointer": "#/$defs/components",
+      "schemaPath": "$defs/components/schema.json",
+      "codecPath": "$defs/components/codec.json",
+      "dependencyCount": 47
+    },
+    {
+      "name": "contact",
+      "pointer": "#/$defs/contact",
+      "schemaPath": "$defs/contact/schema.json",
+      "codecPath": "$defs/contact/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "explode-default",
+      "pointer": "#/$defs/encoding/$defs/explode-default",
+      "schemaPath": "$defs/encoding/$defs/explode-default/schema.json",
+      "codecPath": "$defs/encoding/$defs/explode-default/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "example",
+      "pointer": "#/$defs/example",
+      "schemaPath": "$defs/example/schema.json",
+      "codecPath": "$defs/example/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "example-or-reference",
+      "pointer": "#/$defs/example-or-reference",
+      "schemaPath": "$defs/example-or-reference/schema.json",
+      "codecPath": "$defs/example-or-reference/codec.json",
+      "dependencyCount": 3
+    },
+    {
+      "name": "examples",
+      "pointer": "#/$defs/examples",
+      "schemaPath": "$defs/examples/schema.json",
+      "codecPath": "$defs/examples/codec.json",
+      "dependencyCount": 4
+    },
+    {
+      "name": "external-documentation",
+      "pointer": "#/$defs/external-documentation",
+      "schemaPath": "$defs/external-documentation/schema.json",
+      "codecPath": "$defs/external-documentation/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "header",
+      "pointer": "#/$defs/header",
+      "schemaPath": "$defs/header/schema.json",
+      "codecPath": "$defs/header/codec.json",
+      "dependencyCount": 10
+    },
+    {
+      "name": "info",
+      "pointer": "#/$defs/info",
+      "schemaPath": "$defs/info/schema.json",
+      "codecPath": "$defs/info/codec.json",
+      "dependencyCount": 3
+    },
+    {
+      "name": "license",
+      "pointer": "#/$defs/license",
+      "schemaPath": "$defs/license/schema.json",
+      "codecPath": "$defs/license/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "link",
+      "pointer": "#/$defs/link",
+      "schemaPath": "$defs/link/schema.json",
+      "codecPath": "$defs/link/codec.json",
+      "dependencyCount": 4
+    },
+    {
+      "name": "link-or-reference",
+      "pointer": "#/$defs/link-or-reference",
+      "schemaPath": "$defs/link-or-reference/schema.json",
+      "codecPath": "$defs/link-or-reference/codec.json",
+      "dependencyCount": 6
+    },
+    {
+      "name": "map-of-strings",
+      "pointer": "#/$defs/map-of-strings",
+      "schemaPath": "$defs/map-of-strings/schema.json",
+      "codecPath": "$defs/map-of-strings/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "oauth-flows",
+      "pointer": "#/$defs/oauth-flows",
+      "schemaPath": "$defs/oauth-flows/schema.json",
+      "codecPath": "$defs/oauth-flows/codec.json",
+      "dependencyCount": 6
+    },
+    {
+      "name": "authorization-code",
+      "pointer": "#/$defs/oauth-flows/$defs/authorization-code",
+      "schemaPath": "$defs/oauth-flows/$defs/authorization-code/schema.json",
+      "codecPath": "$defs/oauth-flows/$defs/authorization-code/codec.json",
+      "dependencyCount": 2
+    },
+    {
+      "name": "client-credentials",
+      "pointer": "#/$defs/oauth-flows/$defs/client-credentials",
+      "schemaPath": "$defs/oauth-flows/$defs/client-credentials/schema.json",
+      "codecPath": "$defs/oauth-flows/$defs/client-credentials/codec.json",
+      "dependencyCount": 2
+    },
+    {
+      "name": "implicit",
+      "pointer": "#/$defs/oauth-flows/$defs/implicit",
+      "schemaPath": "$defs/oauth-flows/$defs/implicit/schema.json",
+      "codecPath": "$defs/oauth-flows/$defs/implicit/codec.json",
+      "dependencyCount": 2
+    },
+    {
+      "name": "password",
+      "pointer": "#/$defs/oauth-flows/$defs/password",
+      "schemaPath": "$defs/oauth-flows/$defs/password/schema.json",
+      "codecPath": "$defs/oauth-flows/$defs/password/codec.json",
+      "dependencyCount": 2
+    },
+    {
+      "name": "operation",
+      "pointer": "#/$defs/operation",
+      "schemaPath": "$defs/operation/schema.json",
+      "codecPath": "$defs/operation/codec.json",
+      "dependencyCount": 34
+    },
+    {
+      "name": "parameter",
+      "pointer": "#/$defs/parameter",
+      "schemaPath": "$defs/parameter/schema.json",
+      "codecPath": "$defs/parameter/codec.json",
+      "dependencyCount": 16
+    },
+    {
+      "name": "parameter-or-reference",
+      "pointer": "#/$defs/parameter-or-reference",
+      "schemaPath": "$defs/parameter-or-reference/schema.json",
+      "codecPath": "$defs/parameter-or-reference/codec.json",
+      "dependencyCount": 17
+    },
+    {
+      "name": "styles-for-cookie",
+      "pointer": "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-cookie",
+      "schemaPath": "$defs/parameter/dependentSchemas/schema/$defs/styles-for-cookie/schema.json",
+      "codecPath": "$defs/parameter/dependentSchemas/schema/$defs/styles-for-cookie/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "styles-for-form",
+      "pointer": "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-form",
+      "schemaPath": "$defs/parameter/dependentSchemas/schema/$defs/styles-for-form/schema.json",
+      "codecPath": "$defs/parameter/dependentSchemas/schema/$defs/styles-for-form/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "styles-for-header",
+      "pointer": "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-header",
+      "schemaPath": "$defs/parameter/dependentSchemas/schema/$defs/styles-for-header/schema.json",
+      "codecPath": "$defs/parameter/dependentSchemas/schema/$defs/styles-for-header/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "styles-for-path",
+      "pointer": "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-path",
+      "schemaPath": "$defs/parameter/dependentSchemas/schema/$defs/styles-for-path/schema.json",
+      "codecPath": "$defs/parameter/dependentSchemas/schema/$defs/styles-for-path/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "styles-for-query",
+      "pointer": "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-query",
+      "schemaPath": "$defs/parameter/dependentSchemas/schema/$defs/styles-for-query/schema.json",
+      "codecPath": "$defs/parameter/dependentSchemas/schema/$defs/styles-for-query/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "path-item",
+      "pointer": "#/$defs/path-item",
+      "schemaPath": "$defs/path-item/schema.json",
+      "codecPath": "$defs/path-item/codec.json",
+      "dependencyCount": 34
+    },
+    {
+      "name": "paths",
+      "pointer": "#/$defs/paths",
+      "schemaPath": "$defs/paths/schema.json",
+      "codecPath": "$defs/paths/codec.json",
+      "dependencyCount": 35
+    },
+    {
+      "name": "reference",
+      "pointer": "#/$defs/reference",
+      "schemaPath": "$defs/reference/schema.json",
+      "codecPath": "$defs/reference/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "request-body",
+      "pointer": "#/$defs/request-body",
+      "schemaPath": "$defs/request-body/schema.json",
+      "codecPath": "$defs/request-body/codec.json",
+      "dependencyCount": 11
+    },
+    {
+      "name": "request-body-or-reference",
+      "pointer": "#/$defs/request-body-or-reference",
+      "schemaPath": "$defs/request-body-or-reference/schema.json",
+      "codecPath": "$defs/request-body-or-reference/codec.json",
+      "dependencyCount": 12
+    },
+    {
+      "name": "response",
+      "pointer": "#/$defs/response",
+      "schemaPath": "$defs/response/schema.json",
+      "codecPath": "$defs/response/codec.json",
+      "dependencyCount": 16
+    },
+    {
+      "name": "responses",
+      "pointer": "#/$defs/responses",
+      "schemaPath": "$defs/responses/schema.json",
+      "codecPath": "$defs/responses/codec.json",
+      "dependencyCount": 18
+    },
+    {
+      "name": "schema",
+      "pointer": "#/$defs/schema",
+      "schemaPath": "$defs/schema/schema.json",
+      "codecPath": "$defs/schema/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "security-requirement",
+      "pointer": "#/$defs/security-requirement",
+      "schemaPath": "$defs/security-requirement/schema.json",
+      "codecPath": "$defs/security-requirement/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "security-scheme",
+      "pointer": "#/$defs/security-scheme",
+      "schemaPath": "$defs/security-scheme/schema.json",
+      "codecPath": "$defs/security-scheme/codec.json",
+      "dependencyCount": 12
+    },
+    {
+      "name": "security-scheme-or-reference",
+      "pointer": "#/$defs/security-scheme-or-reference",
+      "schemaPath": "$defs/security-scheme-or-reference/schema.json",
+      "codecPath": "$defs/security-scheme-or-reference/codec.json",
+      "dependencyCount": 14
+    },
+    {
+      "name": "type-apikey",
+      "pointer": "#/$defs/security-scheme/$defs/type-apikey",
+      "schemaPath": "$defs/security-scheme/$defs/type-apikey/schema.json",
+      "codecPath": "$defs/security-scheme/$defs/type-apikey/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "type-http",
+      "pointer": "#/$defs/security-scheme/$defs/type-http",
+      "schemaPath": "$defs/security-scheme/$defs/type-http/schema.json",
+      "codecPath": "$defs/security-scheme/$defs/type-http/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "type-http-bearer",
+      "pointer": "#/$defs/security-scheme/$defs/type-http-bearer",
+      "schemaPath": "$defs/security-scheme/$defs/type-http-bearer/schema.json",
+      "codecPath": "$defs/security-scheme/$defs/type-http-bearer/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "type-oauth2",
+      "pointer": "#/$defs/security-scheme/$defs/type-oauth2",
+      "schemaPath": "$defs/security-scheme/$defs/type-oauth2/schema.json",
+      "codecPath": "$defs/security-scheme/$defs/type-oauth2/codec.json",
+      "dependencyCount": 7
+    },
+    {
+      "name": "type-oidc",
+      "pointer": "#/$defs/security-scheme/$defs/type-oidc",
+      "schemaPath": "$defs/security-scheme/$defs/type-oidc/schema.json",
+      "codecPath": "$defs/security-scheme/$defs/type-oidc/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "server",
+      "pointer": "#/$defs/server",
+      "schemaPath": "$defs/server/schema.json",
+      "codecPath": "$defs/server/codec.json",
+      "dependencyCount": 2
+    },
+    {
+      "name": "server-variable",
+      "pointer": "#/$defs/server-variable",
+      "schemaPath": "$defs/server-variable/schema.json",
+      "codecPath": "$defs/server-variable/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "specification-extensions",
+      "pointer": "#/$defs/specification-extensions",
+      "schemaPath": "$defs/specification-extensions/schema.json",
+      "codecPath": "$defs/specification-extensions/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "tag",
+      "pointer": "#/$defs/tag",
+      "schemaPath": "$defs/tag/schema.json",
+      "codecPath": "$defs/tag/codec.json",
+      "dependencyCount": 2
+    }
+  ]
+}

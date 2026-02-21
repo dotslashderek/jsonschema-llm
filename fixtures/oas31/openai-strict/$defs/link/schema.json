@@ -1,0 +1,127 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "result": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#link-object",
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "operationRef"
+          ]
+        },
+        {
+          "required": [
+            "operationId"
+          ]
+        }
+      ],
+      "patternProperties": {
+        "^x-": {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        }
+      },
+      "properties": {
+        "body": {
+          "anyOf": [
+            {
+              "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
+              "patternProperties": {
+                "^x-": {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "operationId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "operationRef": {
+          "anyOf": [
+            {
+              "description": "Constraints: format: uri-reference.",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parameters": {
+          "anyOf": [
+            {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "key",
+                  "value"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "requestBody": {
+          "anyOf": [
+            {
+              "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "body",
+        "description",
+        "operationId",
+        "operationRef",
+        "parameters",
+        "requestBody"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "type": "object"
+}

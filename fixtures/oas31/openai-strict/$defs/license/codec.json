@@ -1,0 +1,39 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/identifier",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/url",
+      "originalRequired": false
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/patternProperties/^x-"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#",
+      "constraint": "dependentSchemas",
+      "value": {
+        "identifier": {
+          "not": {
+            "required": [
+              "url"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "path": "#/properties/url/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    }
+  ]
+}

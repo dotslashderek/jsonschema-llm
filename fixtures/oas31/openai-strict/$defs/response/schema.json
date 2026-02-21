@@ -1,0 +1,128 @@
+{
+  "$comment": "https://spec.openapis.org/oas/v3.1.0#response-object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-": {
+      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "content": {
+      "anyOf": [
+        {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "properties": {
+                  "example": {
+                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
+                  },
+                  "examples": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "key",
+                        "value"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                }
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "headers": {
+      "anyOf": [
+        {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "links": {
+      "anyOf": [
+        {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "content",
+    "description",
+    "headers",
+    "links"
+  ],
+  "type": "object",
+  "unevaluatedProperties": false
+}

@@ -1,0 +1,354 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/map-of-strings",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/server/properties/variables",
+      "keyField": "key"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/if"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/then/properties/$ref",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/then/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/then/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/body",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/operationId",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/operationRef",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/parameters",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/requestBody",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/body/anyOf/0/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/body/anyOf/0/properties/variables",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/body/anyOf/0/properties/variables/anyOf/0/items/properties/value/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/body/anyOf/0/properties/variables/anyOf/0/items/properties/value/properties/enum",
+      "originalRequired": false
+    },
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#",
+      "constraint": "if",
+      "value": {
+        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "then",
+      "value": {
+        "$comment": "https://spec.openapis.org/oas/v3.1.0#reference-object",
+        "additionalProperties": false,
+        "properties": {
+          "$ref": {
+            "anyOf": [
+              {
+                "format": "uri-reference",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "$ref",
+          "description",
+          "summary"
+        ],
+        "type": "object",
+        "unevaluatedProperties": false
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "else",
+      "value": {
+        "$comment": "https://spec.openapis.org/oas/v3.1.0#link-object",
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "required": [
+              "operationRef"
+            ]
+          },
+          {
+            "required": [
+              "operationId"
+            ]
+          }
+        ],
+        "patternProperties": {
+          "^x-": true
+        },
+        "properties": {
+          "body": {
+            "anyOf": [
+              {
+                "$comment": "https://spec.openapis.org/oas/v3.1.0#server-object",
+                "additionalProperties": false,
+                "patternProperties": {
+                  "^x-": true
+                },
+                "properties": {
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "url": {
+                    "format": "uri-reference",
+                    "type": "string"
+                  },
+                  "variables": {
+                    "anyOf": [
+                      {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "key": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "$comment": "https://spec.openapis.org/oas/v3.1.0#server-variable-object",
+                              "additionalProperties": false,
+                              "patternProperties": {
+                                "^x-": true
+                              },
+                              "properties": {
+                                "default": {
+                                  "type": "string"
+                                },
+                                "description": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "enum": {
+                                  "anyOf": [
+                                    {
+                                      "items": {
+                                        "type": "string"
+                                      },
+                                      "minItems": 1,
+                                      "type": "array"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "default",
+                                "description",
+                                "enum"
+                              ],
+                              "type": "object",
+                              "unevaluatedProperties": false
+                            }
+                          },
+                          "required": [
+                            "key",
+                            "value"
+                          ],
+                          "type": "object"
+                        },
+                        "type": "array"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "description",
+                  "url",
+                  "variables"
+                ],
+                "type": "object",
+                "unevaluatedProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "operationId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "operationRef": {
+            "anyOf": [
+              {
+                "format": "uri-reference",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "parameters": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "value"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requestBody": {
+            "anyOf": [
+              true,
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "body",
+          "description",
+          "operationId",
+          "operationRef",
+          "parameters",
+          "requestBody"
+        ],
+        "type": "object",
+        "unevaluatedProperties": false
+      }
+    }
+  ]
+}

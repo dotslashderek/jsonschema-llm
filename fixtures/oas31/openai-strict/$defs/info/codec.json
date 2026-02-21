@@ -1,0 +1,49 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/contact",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/license",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/termsOfService",
+      "originalRequired": false
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/contact/anyOf/0/patternProperties/^x-"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/license/anyOf/0/patternProperties/^x-"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/patternProperties/^x-"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/properties/termsOfService/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    }
+  ]
+}

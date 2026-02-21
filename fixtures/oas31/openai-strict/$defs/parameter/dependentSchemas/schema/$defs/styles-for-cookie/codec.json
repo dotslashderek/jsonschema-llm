@@ -1,0 +1,42 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "in": {
+            "const": "cookie"
+          }
+        },
+        "required": [
+          "in"
+        ]
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "then",
+      "value": {
+        "properties": {
+          "style": {
+            "const": "form",
+            "default": "form"
+          }
+        }
+      }
+    }
+  ]
+}

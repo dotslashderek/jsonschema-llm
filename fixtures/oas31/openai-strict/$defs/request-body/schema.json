@@ -1,0 +1,83 @@
+{
+  "$comment": "https://spec.openapis.org/oas/v3.1.0#request-body-object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-": {
+      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "content": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "properties": {
+              "example": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              },
+              "examples": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "value"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            }
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "required": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "content",
+    "description",
+    "required"
+  ],
+  "type": "object",
+  "unevaluatedProperties": false
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/externalDocs",
+      "originalRequired": false
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/externalDocs/anyOf/0/patternProperties/^x-"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/patternProperties/^x-"
+    }
+  ],
+  "droppedConstraints": []
+}

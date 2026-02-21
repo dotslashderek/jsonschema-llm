@@ -1,0 +1,69 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/map-of-strings",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/server/properties/variables",
+      "keyField": "key"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/body",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/operationId",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/operationRef",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/parameters",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/requestBody",
+      "originalRequired": false
+    },
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/properties/body/anyOf/0/patternProperties/^x-"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/properties/requestBody/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/patternProperties/^x-"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/properties/operationRef/anyOf/0",
+      "constraint": "format",
+      "value": "uri-reference"
+    }
+  ]
+}

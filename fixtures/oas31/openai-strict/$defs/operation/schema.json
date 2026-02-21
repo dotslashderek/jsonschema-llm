@@ -1,0 +1,216 @@
+{
+  "$comment": "https://spec.openapis.org/oas/v3.1.0#operation-object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-": {
+      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "callbacks": {
+      "anyOf": [
+        {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "deprecated": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "externalDocs": {
+      "anyOf": [
+        {
+          "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
+          "patternProperties": {
+            "^x-": {
+              "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "operationId": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "parameters": {
+      "anyOf": [
+        {
+          "items": {
+            "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "requestBody": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "responses": {
+      "anyOf": [
+        {
+          "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
+          "patternProperties": {
+            "^x-": {
+              "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "security": {
+      "anyOf": [
+        {
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "key",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "servers": {
+      "anyOf": [
+        {
+          "items": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
+            "patternProperties": {
+              "^x-": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              }
+            }
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "summary": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tags": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "callbacks",
+    "deprecated",
+    "description",
+    "externalDocs",
+    "operationId",
+    "parameters",
+    "requestBody",
+    "responses",
+    "security",
+    "servers",
+    "summary",
+    "tags"
+  ],
+  "type": "object",
+  "unevaluatedProperties": false
+}

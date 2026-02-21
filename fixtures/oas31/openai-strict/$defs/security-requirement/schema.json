@@ -1,0 +1,31 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "result": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "type": "object"
+}
