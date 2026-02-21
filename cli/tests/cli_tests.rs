@@ -505,6 +505,7 @@ fn test_gen_sdk_python_rejects_invalid_package() {
     let dir = TempDir::new().unwrap();
     let schema_dir = setup_gen_sdk_fixtures(&dir);
 
+    // Spaces + special chars
     cmd()
         .args(["gen-sdk", "--language", "python"])
         .args(["--schema", schema_dir.to_str().unwrap()])
@@ -514,6 +515,28 @@ fn test_gen_sdk_python_rejects_invalid_package() {
         .assert()
         .failure()
         .stderr(predicate::str::contains("Invalid Python package name"));
+
+    // PEP 508: leading dot disallowed
+    cmd()
+        .args(["gen-sdk", "--language", "python"])
+        .args(["--schema", schema_dir.to_str().unwrap()])
+        .args(["--package", ".my-sdk"])
+        .args(["--output", dir.path().join("out2").to_str().unwrap()])
+        .args(["--build-tool", "setuptools"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("PEP 508"));
+
+    // PEP 508: must start with alphanumeric
+    cmd()
+        .args(["gen-sdk", "--language", "python"])
+        .args(["--schema", schema_dir.to_str().unwrap()])
+        .args(["--package", "_my_sdk"])
+        .args(["--output", dir.path().join("out3").to_str().unwrap()])
+        .args(["--build-tool", "setuptools"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("PEP 508"));
 }
 
 #[test]

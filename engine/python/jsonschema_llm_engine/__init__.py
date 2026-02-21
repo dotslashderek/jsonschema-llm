@@ -3,6 +3,7 @@
 Public API re-exports for consumer convenience.
 """
 
+from jsonschema_llm_engine.engine import LlmRoundtripEngine
 from jsonschema_llm_engine.exceptions import (
     EngineError,
     RehydrationError,
@@ -23,6 +24,7 @@ __all__ = [
     "EngineError",
     "GeminiFormatter",
     "LlmRequest",
+    "LlmRoundtripEngine",
     "LlmTransport",
     "LlmTransportError",
     "OpenResponsesFormatter",

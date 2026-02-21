@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
+import functools
 import json
 from importlib.resources import files as importlib_files
 from typing import Any
 
 
+@functools.lru_cache(maxsize=1)
 def schema() -> Any:
     """Load the LLM-compatible schema for {{ component_name }}."""
     return _load_resource("schemas/{{ schema_path }}")
 
 
+@functools.lru_cache(maxsize=1)
 def codec() -> Any:
     """Load the codec (rehydration map) for {{ component_name }}."""
     return _load_resource("schemas/{{ codec_path }}")

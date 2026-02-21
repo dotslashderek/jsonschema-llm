@@ -396,12 +396,17 @@ fn main() -> Result<()> {
                     }
                 }
                 SdkLanguage::Python => {
-                    if !package
-                        .chars()
-                        .all(|c| c.is_alphanumeric() || c == '-' || c == '_' || c == '.')
-                    {
+                    // PEP 508: ^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$
+                    let valid = !package.is_empty()
+                        && package.starts_with(|c: char| c.is_ascii_alphanumeric())
+                        && package.ends_with(|c: char| c.is_ascii_alphanumeric())
+                        && package
+                            .chars()
+                            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.');
+                    if !valid {
                         anyhow::bail!(
-                            "Invalid Python package name '{}': must contain only alphanumeric, hyphen, underscore, and dot",
+                            "Invalid Python package name '{}': must start and end with alphanumeric, \
+                             contain only alphanumeric, hyphen, underscore, and dot (PEP 508)",
                             package
                         );
                     }
