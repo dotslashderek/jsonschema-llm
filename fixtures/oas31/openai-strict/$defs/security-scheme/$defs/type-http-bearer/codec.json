@@ -1,0 +1,46 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "scheme": {
+            "pattern": "^[Bb][Ee][Aa][Rr][Ee][Rr]$",
+            "type": "string"
+          },
+          "type": {
+            "const": "http"
+          }
+        },
+        "required": [
+          "type",
+          "scheme"
+        ]
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "then",
+      "value": {
+        "properties": {
+          "bearerFormat": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

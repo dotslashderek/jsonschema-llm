@@ -1,0 +1,46 @@
+{
+  "$comment": "https://spec.openapis.org/oas/v3.1.0#server-variable-object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-": {
+      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "default": {
+      "type": "string"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "enum": {
+      "anyOf": [
+        {
+          "description": "Constraints: minimum 1 item(s).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "default",
+    "description",
+    "enum"
+  ],
+  "type": "object",
+  "unevaluatedProperties": false
+}

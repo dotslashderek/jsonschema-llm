@@ -1,0 +1,45 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "type": {
+            "const": "openIdConnect"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "then",
+      "value": {
+        "properties": {
+          "openIdConnectUrl": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "openIdConnectUrl"
+        ]
+      }
+    }
+  ]
+}

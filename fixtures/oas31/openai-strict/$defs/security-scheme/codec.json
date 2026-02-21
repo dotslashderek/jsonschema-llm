@@ -1,0 +1,286 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/map-of-strings",
+      "keyField": "key"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/patternProperties/^x-"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "type": {
+            "const": "apiKey"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "then",
+      "value": {
+        "properties": {
+          "in": {
+            "enum": [
+              "query",
+              "header",
+              "cookie"
+            ]
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "in"
+        ]
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "type": {
+            "const": "http"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "then",
+      "value": {
+        "properties": {
+          "scheme": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "scheme"
+        ]
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "scheme": {
+            "pattern": "^[Bb][Ee][Aa][Rr][Ee][Rr]$",
+            "type": "string"
+          },
+          "type": {
+            "const": "http"
+          }
+        },
+        "required": [
+          "type",
+          "scheme"
+        ]
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "then",
+      "value": {
+        "properties": {
+          "bearerFormat": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "type": {
+            "const": "oauth2"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "then",
+      "value": {
+        "properties": {
+          "flows": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
+            "$defs": {
+              "authorization-code": {
+                "$ref": "#/$defs/specification-extensions",
+                "properties": {
+                  "authorizationUrl": {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  "refreshUrl": {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  "scopes": {
+                    "$ref": "#/$defs/map-of-strings"
+                  },
+                  "tokenUrl": {
+                    "format": "uri",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "authorizationUrl",
+                  "tokenUrl",
+                  "scopes"
+                ],
+                "type": "object",
+                "unevaluatedProperties": false
+              },
+              "client-credentials": {
+                "$ref": "#/$defs/specification-extensions",
+                "properties": {
+                  "refreshUrl": {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  "scopes": {
+                    "$ref": "#/$defs/map-of-strings"
+                  },
+                  "tokenUrl": {
+                    "format": "uri",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "tokenUrl",
+                  "scopes"
+                ],
+                "type": "object",
+                "unevaluatedProperties": false
+              },
+              "implicit": {
+                "$ref": "#/$defs/specification-extensions",
+                "properties": {
+                  "authorizationUrl": {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  "refreshUrl": {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  "scopes": {
+                    "$ref": "#/$defs/map-of-strings"
+                  }
+                },
+                "required": [
+                  "authorizationUrl",
+                  "scopes"
+                ],
+                "type": "object",
+                "unevaluatedProperties": false
+              },
+              "password": {
+                "$ref": "#/$defs/specification-extensions",
+                "properties": {
+                  "refreshUrl": {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  "scopes": {
+                    "$ref": "#/$defs/map-of-strings"
+                  },
+                  "tokenUrl": {
+                    "format": "uri",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "tokenUrl",
+                  "scopes"
+                ],
+                "type": "object",
+                "unevaluatedProperties": false
+              }
+            },
+            "patternProperties": {
+              "^x-": true
+            },
+            "properties": {
+              "authorizationCode": {
+                "$ref": "#/$defs/authorization-code"
+              },
+              "clientCredentials": {
+                "$ref": "#/$defs/client-credentials"
+              },
+              "implicit": {
+                "$ref": "#/$defs/implicit"
+              },
+              "password": {
+                "$ref": "#/$defs/password"
+              }
+            },
+            "type": "object",
+            "unevaluatedProperties": false
+          }
+        },
+        "required": [
+          "flows"
+        ]
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "type": {
+            "const": "openIdConnect"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "then",
+      "value": {
+        "properties": {
+          "openIdConnectUrl": {
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "openIdConnectUrl"
+        ]
+      }
+    }
+  ]
+}

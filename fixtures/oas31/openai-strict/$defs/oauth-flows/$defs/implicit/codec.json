@@ -1,0 +1,31 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/map-of-strings",
+      "keyField": "key"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/refreshUrl",
+      "originalRequired": false
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/patternProperties/^x-"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/properties/authorizationUrl",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/properties/refreshUrl/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    }
+  ]
+}

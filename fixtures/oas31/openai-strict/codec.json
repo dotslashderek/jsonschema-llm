@@ -1,0 +1,346 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "map_to_array",
+      "path": "#/properties/webhooks",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/callbacks",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/components/properties/callbacks",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/components/properties/examples",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/components/properties/headers",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/components/properties/links",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/components/properties/parameters",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/components/properties/pathItems",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/components/properties/requestBodies",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/components/properties/responses",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/components/properties/schemas",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/components/properties/securitySchemes",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/content",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/encoding/properties/headers",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/examples/properties/examples",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/map-of-strings",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/media-type/properties/encoding",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/operation/properties/callbacks",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/response/properties/headers",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/response/properties/links",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/security-requirement",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/$defs/server/properties/variables",
+      "keyField": "key"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/callbacks-or-reference/if"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/encoding/$defs/explode-default/then/properties/explode"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/encoding/$defs/explode-default/else/properties/explode"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/example-or-reference/if"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/header-or-reference/if"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/link-or-reference/if"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-form/then/properties/explode"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-form/else/properties/explode"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/parameter-or-reference/if"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/path-item-or-reference/if"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/request-body-or-reference/if"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/response-or-reference/if"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/security-scheme-or-reference/if"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/components",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/externalDocs",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/jsonSchemaDialect",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/paths",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/security",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/servers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/tags",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/webhooks",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/webhooks/anyOf/0/items/properties/value/then/properties/$ref",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/webhooks/anyOf/0/items/properties/value/then/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/webhooks/anyOf/0/items/properties/value/then/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/properties/components/anyOf/0/patternProperties/^x-"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/properties/externalDocs/anyOf/0/patternProperties/^x-"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/properties/info/patternProperties/^x-"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/properties/paths/anyOf/0/patternProperties/^x-"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/properties/servers/anyOf/0/items/patternProperties/^x-"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/properties/tags/anyOf/0/items/patternProperties/^x-"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/properties/webhooks/anyOf/0/items/properties/value"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/patternProperties/^x-"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/properties/jsonSchemaDialect/anyOf/0",
+      "constraint": "default",
+      "value": "https://spec.openapis.org/oas/3.1/dialect/base"
+    },
+    {
+      "path": "#/properties/jsonSchemaDialect/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/properties/servers/anyOf/0",
+      "constraint": "default",
+      "value": [
+        {
+          "url": "/"
+        }
+      ]
+    },
+    {
+      "path": "#/properties/webhooks/anyOf/0/items/properties/value",
+      "constraint": "if",
+      "value": {
+        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/properties/webhooks/anyOf/0/items/properties/value",
+      "constraint": "then",
+      "value": {
+        "$comment": "https://spec.openapis.org/oas/v3.1.0#reference-object",
+        "additionalProperties": false,
+        "properties": {
+          "$ref": {
+            "anyOf": [
+              {
+                "format": "uri-reference",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "$ref",
+          "description",
+          "summary"
+        ],
+        "type": "object",
+        "unevaluatedProperties": false
+      }
+    },
+    {
+      "path": "#/properties/webhooks/anyOf/0/items/properties/value",
+      "constraint": "else",
+      "value": {
+        "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
+        "patternProperties": {
+          "^x-": true
+        }
+      }
+    }
+  ]
+}

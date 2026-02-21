@@ -1,0 +1,58 @@
+{
+  "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-": {
+      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "authorizationUrl": {
+      "description": "Constraints: format: uri.",
+      "type": "string"
+    },
+    "refreshUrl": {
+      "anyOf": [
+        {
+          "description": "Constraints: format: uri.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "scopes": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "tokenUrl": {
+      "description": "Constraints: format: uri.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "authorizationUrl",
+    "refreshUrl",
+    "scopes",
+    "tokenUrl"
+  ],
+  "type": "object",
+  "unevaluatedProperties": false
+}

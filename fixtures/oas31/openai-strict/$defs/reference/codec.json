@@ -1,0 +1,27 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/$ref",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/summary",
+      "originalRequired": false
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/properties/$ref/anyOf/0",
+      "constraint": "format",
+      "value": "uri-reference"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "$comment": "https://spec.openapis.org/oas/v3.1.0#server-object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-": {
+      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "url": {
+      "description": "Constraints: format: uri-reference.",
+      "type": "string"
+    },
+    "variables": {
+      "anyOf": [
+        {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
+                "patternProperties": {
+                  "^x-": {
+                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "description",
+    "url",
+    "variables"
+  ],
+  "type": "object",
+  "unevaluatedProperties": false
+}

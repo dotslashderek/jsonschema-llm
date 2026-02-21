@@ -1,0 +1,64 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "json_string_parse",
+      "path": "#/then/properties/explode"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/else/properties/explode"
+    },
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#",
+      "constraint": "if",
+      "value": {
+        "properties": {
+          "style": {
+            "const": "form"
+          }
+        },
+        "required": [
+          "style"
+        ]
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "then",
+      "value": {
+        "properties": {
+          "explode": {
+            "default": true,
+            "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "path": "#",
+      "constraint": "else",
+      "value": {
+        "properties": {
+          "explode": {
+            "default": false,
+            "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}
