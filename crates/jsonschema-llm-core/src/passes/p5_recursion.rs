@@ -12,7 +12,6 @@ use serde_json::Value;
 use crate::codec::Transform;
 use crate::config::{ConvertOptions, Target};
 use crate::error::ConvertError;
-use crate::schema_utils::build_path;
 
 use super::pass_result::PassResult;
 
@@ -31,7 +30,13 @@ pub fn break_recursion(schema: Value, config: &ConvertOptions) -> Result<PassRes
     let mut transforms = Vec::new();
     let mut ref_counts: HashMap<String, usize> = HashMap::new();
 
-    let result = walk(schema, &defs, config, &mut ref_counts, &mut transforms, "#")?;
+    let mut folder = RecursionFolder {
+        defs: &defs,
+        config,
+        ref_counts: &mut ref_counts,
+        transforms: &mut transforms,
+    };
+    let result = crate::schema_walker::fold(schema, &mut folder, "#", 0)?;
 
     // Safety check: only strip $defs if no dangling $ref nodes remain
     let result = if has_remaining_refs(&result) {
@@ -44,121 +49,85 @@ pub fn break_recursion(schema: Value, config: &ConvertOptions) -> Result<PassRes
     Ok(PassResult::with_transforms(result, transforms))
 }
 
-/// Recursively walk the schema, inlining `$ref` nodes and breaking cycles.
-///
-/// **Why this doesn't delegate to `recurse_into_children`** (#41):
-/// This walker creates *new* `Value` trees (constructor pattern) rather than
-/// mutating in place, and it needs to inline `$ref` nodes before recursing
-/// into their children. The shared walker's `&mut Map` + callback signature
-/// is incompatible with both requirements.
-fn walk(
-    node: Value,
-    defs: &Value,
-    config: &ConvertOptions,
-    ref_counts: &mut HashMap<String, usize>,
-    transforms: &mut Vec<Transform>,
-    path: &str,
-) -> Result<Value, ConvertError> {
-    match node {
-        Value::Object(obj) => {
-            // Check for $ref
-            if let Some(ref_val) = obj.get("$ref") {
-                if let Some(ref_str) = ref_val.as_str() {
-                    return resolve_ref(ref_str, defs, config, ref_counts, transforms, path);
-                }
-            }
+// ---------------------------------------------------------------------------
+// RecursionFolder — SchemaFolder implementation
+// ---------------------------------------------------------------------------
 
-            // Recurse into all children
-            let mut new_obj = serde_json::Map::new();
-            for (key, value) in obj {
-                if path == "#" && key == "$defs" {
-                    // At the root, skip $defs during traversal — we resolve from the extracted copy
-                    continue;
-                }
-                let child_path = build_path(path, &[&key]);
-                let new_value = walk(value, defs, config, ref_counts, transforms, &child_path)?;
-                new_obj.insert(key, new_value);
-            }
-            Ok(Value::Object(new_obj))
-        }
-        Value::Array(arr) => {
-            let mut new_arr = Vec::with_capacity(arr.len());
-            for (i, item) in arr.into_iter().enumerate() {
-                let child_path = build_path(path, &[&i.to_string()]);
-                new_arr.push(walk(
-                    item,
-                    defs,
-                    config,
-                    ref_counts,
-                    transforms,
-                    &child_path,
-                )?);
-            }
-            Ok(Value::Array(new_arr))
-        }
-        // Scalars pass through
-        other => Ok(other),
-    }
+struct RecursionFolder<'a> {
+    defs: &'a Value,
+    config: &'a ConvertOptions,
+    ref_counts: &'a mut HashMap<String, usize>,
+    transforms: &'a mut Vec<Transform>,
 }
 
-/// Resolve a `$ref` by either inlining it or breaking the cycle.
-fn resolve_ref(
-    ref_str: &str,
-    defs: &Value,
-    config: &ConvertOptions,
-    ref_counts: &mut HashMap<String, usize>,
-    transforms: &mut Vec<Transform>,
-    path: &str,
-) -> Result<Value, ConvertError> {
-    // Extract the definition name from the $ref target (e.g., "#/$defs/TreeNode" → "TreeNode")
-    let type_name = extract_type_name(ref_str);
+impl crate::schema_walker::SchemaFolder for RecursionFolder<'_> {
+    type Error = ConvertError;
 
-    // Check current expansion count for this target
-    let count = ref_counts.get(ref_str).copied().unwrap_or(0);
+    fn fold_schema(
+        &mut self,
+        schema: Value,
+        path: &str,
+        depth: usize,
+    ) -> Result<crate::schema_walker::FoldAction, Self::Error> {
+        let Value::Object(mut obj) = schema else {
+            return Ok(crate::schema_walker::FoldAction::Continue(schema));
+        };
 
-    if count >= config.recursion_limit {
-        // Break: replace with opaque string
-        transforms.push(Transform::RecursiveInflate {
-            path: path.to_string(),
-            original_ref: ref_str.to_string(),
-        });
+        // Intercept `$ref` nodes — inline or break the cycle.
+        if let Some(ref_str) = obj.get("$ref").and_then(Value::as_str).map(String::from) {
+            let type_name = extract_type_name(&ref_str);
+            let count = self.ref_counts.get(&ref_str).copied().unwrap_or(0);
 
-        // Generate a concrete example from the definition's properties
-        let example = lookup_def(ref_str, defs)
-            .as_ref()
-            .map(|def| build_example_from_def(def, &type_name))
-            .unwrap_or_else(|| "{\\\"key\\\": \\\"value\\\"}".to_string());
+            if count >= self.config.recursion_limit {
+                // Break: replace with opaque string placeholder.
+                self.transforms.push(Transform::RecursiveInflate {
+                    path: path.to_string(),
+                    original_ref: ref_str.clone(),
+                });
 
-        return Ok(serde_json::json!({
-            "type": "string",
-            "description": format!(
-                "MUST be a valid JSON object serialized as a string. \
-                 This represents a {type_name} that was too deeply nested to inline. \
-                 Output a complete JSON object as a string value, e.g. \
-                 \"{example}\". \
-                 Do NOT output plain text — the value must parse as JSON.",
-            )
-        }));
-    }
+                let example = lookup_def(&ref_str, self.defs)
+                    .as_ref()
+                    .map(|def| build_example_from_def(def, &type_name))
+                    .unwrap_or_else(|| "{\\\"key\\\": \\\"value\\\"}".to_string());
 
-    // Inline: look up the definition and recurse
-    if let Some(def) = lookup_def(ref_str, defs) {
-        // Increment count before recursing
-        *ref_counts.entry(ref_str.to_string()).or_insert(0) += 1;
+                return Ok(crate::schema_walker::FoldAction::Replace(
+                    serde_json::json!({
+                        "type": "string",
+                        "description": format!(
+                            "MUST be a valid JSON object serialized as a string. \
+                             This represents a {type_name} that was too deeply nested to inline. \
+                             Output a complete JSON object as a string value, e.g. \
+                             \"{example}\". \
+                             Do NOT output plain text — the value must parse as JSON.",
+                        )
+                    }),
+                ));
+            }
 
-        let result = walk(def, defs, config, ref_counts, transforms, path)?;
+            // Inline: look up the definition and fold it.
+            if let Some(def) = lookup_def(&ref_str, self.defs) {
+                *self.ref_counts.entry(ref_str.clone()).or_insert(0) += 1;
+                let result = crate::schema_walker::fold(def, self, path, depth)?;
+                if let Some(c) = self.ref_counts.get_mut(&ref_str) {
+                    *c -= 1;
+                }
+                return Ok(crate::schema_walker::FoldAction::Replace(result));
+            }
 
-        // Decrement count after recursing (backtrack for sibling branches)
-        if let Some(c) = ref_counts.get_mut(ref_str) {
-            *c -= 1;
+            // Non-local ref — preserve as-is.
+            return Ok(crate::schema_walker::FoldAction::Replace(
+                serde_json::json!({ "$ref": ref_str }),
+            ));
         }
 
-        Ok(result)
-    } else {
-        // Non-local ref (e.g., external URL preserved from earlier passes) —
-        // leave as-is. The `has_remaining_refs` check will keep `$defs`
-        // intact if needed.
-        Ok(serde_json::json!({ "$ref": ref_str }))
+        // At the root, strip `$defs` — we resolve from the pre-extracted copy.
+        if depth == 0 {
+            obj.remove("$defs");
+        }
+
+        Ok(crate::schema_walker::FoldAction::Continue(Value::Object(
+            obj,
+        )))
     }
 }
 

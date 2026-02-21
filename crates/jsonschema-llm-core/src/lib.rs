@@ -31,6 +31,7 @@ pub mod extract;
 pub(crate) mod passes;
 pub mod rehydrator;
 pub(crate) mod schema_utils;
+pub(crate) mod schema_walker;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
