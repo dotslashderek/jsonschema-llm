@@ -380,8 +380,24 @@ fn main() -> Result<()> {
             git_init,
             build_tool,
         } => {
+            // Validate package name (only alphanumeric, underscore, dot)
+            if !package
+                .chars()
+                .all(|c| c.is_alphanumeric() || c == '.' || c == '_')
+            {
+                anyhow::bail!(
+                    "Invalid package name '{}': must contain only alphanumeric, dot, and underscore",
+                    package
+                );
+            }
+
             // Derive artifact name from package (last segment)
-            let artifact_name = package.rsplit('.').next().unwrap_or(&package).to_string();
+            let artifact_name = package
+                .trim_end_matches('.')
+                .rsplit('.')
+                .next()
+                .unwrap()
+                .to_string();
 
             let config = jsonschema_llm_codegen::SdkConfig {
                 package,
