@@ -152,5 +152,285 @@ fn test_convert_help() {
         .success()
         .stdout(predicate::str::contains("--target"))
         .stdout(predicate::str::contains("--codec"))
-        .stdout(predicate::str::contains("--polymorphism"));
+        .stdout(predicate::str::contains("--polymorphism"))
+        .stdout(predicate::str::contains("--output-dir"));
+}
+
+// ── #178: Extract subcommand ────────────────────────────────────────────────
+
+fn schema_with_defs() -> String {
+    serde_json::json!({
+        "type": "object",
+        "properties": {
+            "pet": { "$ref": "#/$defs/Pet" }
+        },
+        "$defs": {
+            "Pet": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "tag": { "$ref": "#/$defs/Tag" }
+                },
+                "required": ["name"]
+            },
+            "Tag": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "integer" },
+                    "label": { "type": "string" }
+                }
+            }
+        }
+    })
+    .to_string()
+}
+
+#[test]
+fn test_extract_to_stdout() {
+    let dir = TempDir::new().unwrap();
+    let input = dir.path().join("schema.json");
+    fs::write(&input, schema_with_defs()).unwrap();
+
+    cmd()
+        .args(["extract", input.to_str().unwrap()])
+        .args(["--pointer", "#/$defs/Pet"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("\"type\""))
+        .stdout(predicate::str::contains("\"name\""));
+}
+
+#[test]
+fn test_extract_to_file() {
+    let dir = TempDir::new().unwrap();
+    let input = dir.path().join("schema.json");
+    let output = dir.path().join("pet.json");
+    fs::write(&input, schema_with_defs()).unwrap();
+
+    cmd()
+        .args(["extract", input.to_str().unwrap()])
+        .args(["--pointer", "#/$defs/Pet"])
+        .args(["-o", output.to_str().unwrap()])
+        .assert()
+        .success();
+
+    let content = fs::read_to_string(&output).expect("output file should exist");
+    let val: serde_json::Value =
+        serde_json::from_str(&content).expect("output should be valid JSON");
+    // Extracted Pet should have Tag in $defs
+    assert!(val["$defs"]["Tag"].is_object(), "Tag dep should be inlined");
+}
+
+#[test]
+fn test_extract_missing_pointer() {
+    let dir = TempDir::new().unwrap();
+    let input = dir.path().join("schema.json");
+    fs::write(&input, schema_with_defs()).unwrap();
+
+    cmd()
+        .args(["extract", input.to_str().unwrap()])
+        .args(["--pointer", "#/$defs/DoesNotExist"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::is_empty().not());
+}
+
+// ── #178: ListComponents subcommand ─────────────────────────────────────────
+
+#[test]
+fn test_list_components() {
+    let dir = TempDir::new().unwrap();
+    let input = dir.path().join("schema.json");
+    fs::write(&input, schema_with_defs()).unwrap();
+
+    let output = cmd()
+        .args(["list-components", input.to_str().unwrap()])
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+
+    let stdout = String::from_utf8(output).unwrap();
+    let lines: Vec<&str> = stdout.lines().collect();
+
+    assert_eq!(lines.len(), 2, "should list 2 components");
+    // Sorted: Pet < Tag
+    assert_eq!(lines[0], "#/$defs/Pet");
+    assert_eq!(lines[1], "#/$defs/Tag");
+}
+
+#[test]
+fn test_list_components_empty() {
+    let dir = TempDir::new().unwrap();
+    let input = dir.path().join("schema.json");
+    fs::write(&input, simple_schema()).unwrap();
+
+    let output = cmd()
+        .args(["list-components", input.to_str().unwrap()])
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+
+    let stdout = String::from_utf8(output).unwrap();
+    assert!(stdout.trim().is_empty(), "no defs → empty output");
+}
+
+// ── #178: Convert --output-dir ──────────────────────────────────────────────
+
+#[test]
+fn test_convert_output_dir() {
+    let dir = TempDir::new().unwrap();
+    let input = dir.path().join("schema.json");
+    let out_dir = dir.path().join("output");
+    fs::write(&input, schema_with_defs()).unwrap();
+
+    cmd()
+        .args(["convert", input.to_str().unwrap()])
+        .args(["--output-dir", out_dir.to_str().unwrap()])
+        .assert()
+        .success();
+
+    // Root files
+    assert!(out_dir.join("schema.json").exists(), "root schema.json");
+    assert!(out_dir.join("codec.json").exists(), "root codec.json");
+    // Component directories (full pointer path: $defs/Pet, $defs/Tag)
+    assert!(
+        out_dir.join("$defs/Pet/schema.json").exists(),
+        "Pet schema.json"
+    );
+    assert!(
+        out_dir.join("$defs/Pet/codec.json").exists(),
+        "Pet codec.json"
+    );
+    assert!(
+        out_dir.join("$defs/Tag/schema.json").exists(),
+        "Tag schema.json"
+    );
+}
+
+#[test]
+fn test_convert_output_dir_skip_components() {
+    let dir = TempDir::new().unwrap();
+    let input = dir.path().join("schema.json");
+    let out_dir = dir.path().join("output");
+    fs::write(&input, schema_with_defs()).unwrap();
+
+    cmd()
+        .args(["convert", input.to_str().unwrap()])
+        .args(["--output-dir", out_dir.to_str().unwrap()])
+        .args(["--skip-components"])
+        .assert()
+        .success();
+
+    // Root files should exist
+    assert!(out_dir.join("schema.json").exists());
+    assert!(out_dir.join("codec.json").exists());
+    // No component directories
+    assert!(
+        !out_dir.join("$defs").exists(),
+        "skip-components should suppress component dirs"
+    );
+}
+
+// ── #179: Manifest ──────────────────────────────────────────────────────────
+
+#[test]
+fn test_convert_output_dir_manifest() {
+    let dir = TempDir::new().unwrap();
+    let input = dir.path().join("schema.json");
+    let out_dir = dir.path().join("output");
+    fs::write(&input, schema_with_defs()).unwrap();
+
+    cmd()
+        .args(["convert", input.to_str().unwrap()])
+        .args(["--output-dir", out_dir.to_str().unwrap()])
+        .assert()
+        .success();
+
+    let manifest_path = out_dir.join("manifest.json");
+    assert!(manifest_path.exists(), "manifest.json should exist");
+
+    let content = fs::read_to_string(&manifest_path).unwrap();
+    let manifest: serde_json::Value = serde_json::from_str(&content).unwrap();
+
+    assert_eq!(manifest["version"], "1");
+    assert!(manifest["generatedAt"].is_string());
+    assert_eq!(manifest["target"], "openai-strict");
+    assert_eq!(manifest["mode"], "strict");
+
+    let components = manifest["components"].as_array().unwrap();
+    assert_eq!(components.len(), 2, "should list Pet and Tag");
+
+    // Verify component entries have expected fields
+    for comp in components {
+        assert!(comp["name"].is_string());
+        assert!(comp["pointer"].is_string());
+        assert!(comp["schemaPath"].is_string());
+        assert!(comp["codecPath"].is_string());
+        assert!(comp["dependencyCount"].is_number());
+    }
+}
+
+// ── Mutual exclusion: --output-dir vs -o ────────────────────────────────────
+
+#[test]
+fn test_output_dir_conflicts_with_output() {
+    let dir = TempDir::new().unwrap();
+    let input = dir.path().join("schema.json");
+    fs::write(&input, simple_schema()).unwrap();
+
+    cmd()
+        .args(["convert", input.to_str().unwrap()])
+        .args(["--output-dir", dir.path().join("out").to_str().unwrap()])
+        .args(["-o", dir.path().join("file.json").to_str().unwrap()])
+        .assert()
+        .failure();
+}
+
+// ── Collision safety: same name at different paths ──────────────────────────
+
+#[test]
+fn test_output_dir_collision_safety() {
+    let schema = serde_json::json!({
+        "type": "object",
+        "$defs": {
+            "User": { "type": "object", "properties": { "name": { "type": "string" } } }
+        },
+        "components": {
+            "schemas": {
+                "User": { "type": "object", "properties": { "email": { "type": "string" } } }
+            }
+        }
+    })
+    .to_string();
+
+    let dir = TempDir::new().unwrap();
+    let input = dir.path().join("schema.json");
+    let out_dir = dir.path().join("output");
+    fs::write(&input, &schema).unwrap();
+
+    cmd()
+        .args(["convert", input.to_str().unwrap()])
+        .args(["--output-dir", out_dir.to_str().unwrap()])
+        .assert()
+        .success();
+
+    // Both should exist without collision
+    assert!(out_dir.join("$defs/User/schema.json").exists());
+    assert!(out_dir.join("components/schemas/User/schema.json").exists());
+}
+
+// ── Help shows new subcommands ──────────────────────────────────────────────
+
+#[test]
+fn test_help_shows_new_subcommands() {
+    cmd()
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("extract"))
+        .stdout(predicate::str::contains("list-components"));
 }
