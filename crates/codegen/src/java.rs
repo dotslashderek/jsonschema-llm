@@ -97,6 +97,16 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
     // Build component contexts and generate component classes
     let mut component_contexts = Vec::new();
     for component in &manifest.components {
+        // Validate paths are relative and don't contain traversal
+        for path in [&component.schema_path, &component.codec_path] {
+            if path.contains("..") || path.starts_with('/') {
+                anyhow::bail!(
+                    "Invalid path in manifest: '{}' (must be relative, no traversal)",
+                    path
+                );
+            }
+        }
+
         let class_name = component.name.to_upper_camel_case();
         let ctx = ComponentContext {
             package_name: config.package.clone(),
