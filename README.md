@@ -77,6 +77,15 @@ jsonschema-llm convert schema.json -o schema.llm.json --target gemini
 # Convert in permissive mode (skip strict enforcement)
 jsonschema-llm convert schema.json -o schema.llm.json --mode permissive
 
+# Convert to a directory (full schema + per-component schemas + manifest)
+jsonschema-llm convert schema.json --output-dir ./output/
+
+# Extract a single component by JSON Pointer
+jsonschema-llm extract schema.json --pointer '#/$defs/Address'
+
+# List all extractable components
+jsonschema-llm list-components schema.json
+
 # Rehydrate LLM output back to the original shape (pass original schema for type coercion)
 jsonschema-llm rehydrate output.json --codec codec.json --schema schema.json
 ```
@@ -335,20 +344,20 @@ The core library is written in **Rust** using `serde_json::Value` for schema man
 
 The 9-pass compiler pipeline, rehydrator, codec, and CLI are all implemented and green.
 
-| Component              | Status      | Notes                                                               |
-| ---------------------- | ----------- | ------------------------------------------------------------------- |
-| Pass 0: Normalization  | ✅ Complete | `$ref` resolution, cycle detection, draft normalization             |
-| Pass 1: Composition    | ✅ Complete | `allOf` merge with property/required union                          |
-| Pass 2: Polymorphism   | ✅ Complete | `oneOf` → `anyOf` rewrite                                           |
-| Pass 3: Dictionary     | ✅ Complete | Map → Array transpilation with codec                                |
-| Pass 4: Opaque Types   | ✅ Complete | Stringification with codec                                          |
-| Pass 5: Recursion      | ✅ Complete | Dynamic cycle detection, configurable depth limit                   |
-| Pass 6: Strict Mode    | ✅ Complete | `additionalProperties: false`, nullable optionals                   |
-| Pass 7: Constraints    | ✅ Complete | Constraint pruning, enum sorting, const→enum                        |
-| Rehydrator             | ✅ Complete | Full reverse transforms with advisory warnings                      |
-| Pipeline (`convert()`) | ✅ Complete | Wires all 9 passes with codec accumulation                          |
-| CLI                    | ✅ Complete | `convert` and `rehydrate` subcommands via `clap`                    |
-| `extract_component()`  | ✅ Complete | Extract self-contained sub-schema with transitive `$ref` resolution |
+| Component              | Status      | Notes                                                                |
+| ---------------------- | ----------- | -------------------------------------------------------------------- |
+| Pass 0: Normalization  | ✅ Complete | `$ref` resolution, cycle detection, draft normalization              |
+| Pass 1: Composition    | ✅ Complete | `allOf` merge with property/required union                           |
+| Pass 2: Polymorphism   | ✅ Complete | `oneOf` → `anyOf` rewrite                                            |
+| Pass 3: Dictionary     | ✅ Complete | Map → Array transpilation with codec                                 |
+| Pass 4: Opaque Types   | ✅ Complete | Stringification with codec                                           |
+| Pass 5: Recursion      | ✅ Complete | Dynamic cycle detection, configurable depth limit                    |
+| Pass 6: Strict Mode    | ✅ Complete | `additionalProperties: false`, nullable optionals                    |
+| Pass 7: Constraints    | ✅ Complete | Constraint pruning, enum sorting, const→enum                         |
+| Rehydrator             | ✅ Complete | Full reverse transforms with advisory warnings                       |
+| Pipeline (`convert()`) | ✅ Complete | Wires all 9 passes with codec accumulation                           |
+| CLI                    | ✅ Complete | `convert`, `rehydrate`, `extract`, `list-components`, `--output-dir` |
+| `extract_component()`  | ✅ Complete | Extract self-contained sub-schema with transitive `$ref` resolution  |
 
 Validated against production-grade schemas including the OpenAPI 3.1 Specification Schema. All accepted by OpenAI Strict Mode with full round-trip rehydration.
 
