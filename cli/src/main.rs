@@ -1,11 +1,16 @@
 use anyhow::{Context, Result};
+use chrono::Utc;
 use clap::{Parser, Subcommand, ValueEnum};
 use jsonschema_llm_core::config::PolymorphismStrategy;
-use jsonschema_llm_core::{convert, rehydrate, Codec, ConvertOptions, Mode, Target};
+use jsonschema_llm_core::{
+    convert, convert_all_components, extract_component, list_components, rehydrate, Codec,
+    ConvertOptions, ExtractOptions, Mode, Target,
+};
 use serde::Deserialize;
-use std::fs::File;
+use serde_json::Value;
+use std::fs::{self, File};
 use std::io::{self, BufReader, BufWriter, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tracing::level_filters::LevelFilter;
 
 #[derive(Parser)]
@@ -29,8 +34,12 @@ enum Commands {
         input: PathBuf,
 
         /// Output converted schema file (defaults to stdout if not specified)
-        #[arg(short, long)]
+        #[arg(short, long, conflicts_with = "output_dir")]
         output: Option<PathBuf>,
+
+        /// Output directory for multi-file output (schema + codec + per-component)
+        #[arg(long)]
+        output_dir: Option<PathBuf>,
 
         /// Output codec (rehydration metadata) file
         #[arg(long)]
@@ -85,6 +94,30 @@ enum Commands {
         /// Output format
         #[arg(long, value_enum, default_value_t = OutputFormat::Pretty)]
         format: OutputFormat,
+    },
+
+    /// Extract a single component from a schema by JSON Pointer
+    Extract {
+        /// Input JSON Schema file
+        input: PathBuf,
+
+        /// JSON Pointer to the component (e.g., "#/$defs/Pet")
+        #[arg(short, long)]
+        pointer: String,
+
+        /// Output file (defaults to stdout if not specified)
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+
+        /// Output format
+        #[arg(long, value_enum, default_value_t = OutputFormat::Pretty)]
+        format: OutputFormat,
+    },
+
+    /// List all extractable component paths in a schema
+    ListComponents {
+        /// Input JSON Schema file
+        input: PathBuf,
     },
 }
 
@@ -142,6 +175,31 @@ enum OutputFormat {
     Compact,
 }
 
+// ---------------------------------------------------------------------------
+// Manifest types (#179)
+// ---------------------------------------------------------------------------
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Manifest {
+    version: String,
+    generated_at: String,
+    source_schema: String,
+    target: String,
+    mode: String,
+    components: Vec<ManifestComponent>,
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ManifestComponent {
+    name: String,
+    pointer: String,
+    schema_path: String,
+    codec_path: String,
+    dependency_count: usize,
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
@@ -160,6 +218,7 @@ fn main() -> Result<()> {
         Commands::Convert {
             input,
             output,
+            output_dir,
             codec: codec_path,
             target,
             mode,
@@ -169,11 +228,7 @@ fn main() -> Result<()> {
             skip_components,
             format,
         } => {
-            let file = File::open(&input)
-                .with_context(|| format!("Failed to open input file: {}", input.display()))?;
-            let reader = BufReader::new(file);
-            let schema: serde_json::Value = serde_json::from_reader(reader)
-                .with_context(|| format!("Failed to parse schema from: {}", input.display()))?;
+            let schema = read_schema(&input)?;
 
             let mut options = ConvertOptions::default();
             options.target = target.into();
@@ -183,29 +238,35 @@ fn main() -> Result<()> {
             options.recursion_limit = recursion_limit;
             options.skip_components = skip_components;
 
-            let result = convert(&schema, &options)
-                .map_err(|e| anyhow::Error::from(e).context("Conversion failed"))?;
+            if let Some(ref dir) = output_dir {
+                // --output-dir mode: multi-file output with components
+                handle_output_dir(&schema, &input, dir, &options, format)?;
+            } else {
+                // Single-file output mode (original behavior)
+                let result = convert(&schema, &options)
+                    .map_err(|e| anyhow::Error::from(e).context("Conversion failed"))?;
 
-            // Warn if no codec file specified
-            if codec_path.is_none() {
-                eprintln!(
-                    "Warning: No codec file specified. You will not be able to rehydrate LLM outputs."
-                );
-            }
+                // Warn if no codec file specified
+                if codec_path.is_none() {
+                    eprintln!(
+                        "Warning: No codec file specified. You will not be able to rehydrate LLM outputs."
+                    );
+                }
 
-            // Write converted schema
-            write_json(&result.schema, output.as_ref(), format)?;
+                // Write converted schema
+                write_json(&result.schema, output.as_ref(), format)?;
 
-            // Write codec sidecar
-            if let Some(path) = codec_path {
-                write_json(&result.codec, Some(&path), format)?;
-            }
+                // Write codec sidecar
+                if let Some(path) = codec_path {
+                    write_json(&result.codec, Some(&path), format)?;
+                }
 
-            // Report provider compat diagnostics (informational — transforms were applied)
-            if !result.provider_compat_errors.is_empty() {
-                eprintln!("Provider compatibility diagnostics:");
-                for err in &result.provider_compat_errors {
-                    eprintln!("- {}", err);
+                // Report provider compat diagnostics (informational — transforms were applied)
+                if !result.provider_compat_errors.is_empty() {
+                    eprintln!("Provider compatibility diagnostics:");
+                    for err in &result.provider_compat_errors {
+                        eprintln!("- {}", err);
+                    }
                 }
             }
         }
@@ -254,9 +315,172 @@ fn main() -> Result<()> {
 
             write_json(&result.data, output.as_ref(), format)?;
         }
+        Commands::Extract {
+            input,
+            pointer,
+            output,
+            format,
+        } => {
+            let schema = read_schema(&input)?;
+            let extract_opts = ExtractOptions::default();
+            let result = extract_component(&schema, &pointer, &extract_opts)
+                .map_err(|e| anyhow::Error::from(e).context("Extraction failed"))?;
+
+            write_json(&result.schema, output.as_ref(), format)?;
+        }
+        Commands::ListComponents { input } => {
+            let schema = read_schema(&input)?;
+            let components = list_components(&schema);
+            for pointer in &components {
+                println!("{}", pointer);
+            }
+        }
     }
 
     Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/// Read and parse a JSON Schema from a file path.
+fn read_schema(input: &Path) -> Result<Value> {
+    let file = File::open(input)
+        .with_context(|| format!("Failed to open input file: {}", input.display()))?;
+    let reader = BufReader::new(file);
+    serde_json::from_reader(reader)
+        .with_context(|| format!("Failed to parse schema from: {}", input.display()))
+}
+
+/// Handle `--output-dir` mode: convert all components and write to directory.
+fn handle_output_dir(
+    schema: &Value,
+    input_path: &Path,
+    output_dir: &Path,
+    options: &ConvertOptions,
+    format: OutputFormat,
+) -> Result<()> {
+    let extract_opts = ExtractOptions::default();
+    let result = convert_all_components(schema, options, &extract_opts)
+        .map_err(|e| anyhow::Error::from(e).context("Conversion failed"))?;
+
+    // Create output directory
+    fs::create_dir_all(output_dir).with_context(|| {
+        format!(
+            "Failed to create output directory: {}",
+            output_dir.display()
+        )
+    })?;
+
+    // Write full schema and codec at root
+    write_json(
+        &result.full.schema,
+        Some(&output_dir.join("schema.json")),
+        format,
+    )?;
+    write_json(
+        &result.full.codec,
+        Some(&output_dir.join("codec.json")),
+        format,
+    )?;
+
+    // Report provider compat diagnostics
+    if !result.full.provider_compat_errors.is_empty() {
+        eprintln!("Provider compatibility diagnostics:");
+        for err in &result.full.provider_compat_errors {
+            eprintln!("- {}", err);
+        }
+    }
+
+    // Write per-component files
+    let mut manifest_components: Vec<ManifestComponent> = Vec::new();
+
+    for (pointer, conv_result) in &result.components {
+        let rel_dir = pointer_to_dir_path(pointer);
+        let comp_dir = output_dir.join(&rel_dir);
+        fs::create_dir_all(&comp_dir).with_context(|| {
+            format!(
+                "Failed to create component directory: {}",
+                comp_dir.display()
+            )
+        })?;
+
+        write_json(
+            &conv_result.schema,
+            Some(&comp_dir.join("schema.json")),
+            format,
+        )?;
+        write_json(
+            &conv_result.codec,
+            Some(&comp_dir.join("codec.json")),
+            format,
+        )?;
+
+        // Get dependency count by running extract_component independently
+        let dep_count = extract_component(schema, pointer, &extract_opts)
+            .map(|r| r.dependency_count)
+            .unwrap_or(0);
+
+        let name = pointer.rsplit('/').next().unwrap_or(pointer).to_string();
+
+        manifest_components.push(ManifestComponent {
+            name,
+            pointer: pointer.clone(),
+            schema_path: format!("{}/schema.json", rel_dir),
+            codec_path: format!("{}/codec.json", rel_dir),
+            dependency_count: dep_count,
+        });
+    }
+
+    // Write component errors to stderr
+    for (pointer, error) in &result.component_errors {
+        eprintln!("Component error ({}): {}", pointer, error);
+    }
+
+    // Derive target/mode strings for manifest
+    let target_str = serde_json::to_value(options.target)
+        .ok()
+        .and_then(|v| v.as_str().map(String::from))
+        .unwrap_or_else(|| "unknown".to_string());
+    let mode_str = serde_json::to_value(options.mode)
+        .ok()
+        .and_then(|v| v.as_str().map(String::from))
+        .unwrap_or_else(|| "unknown".to_string());
+
+    let source_name = input_path
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_else(|| "unknown".to_string());
+
+    let manifest = Manifest {
+        version: "1".to_string(),
+        generated_at: Utc::now().to_rfc3339(),
+        source_schema: source_name,
+        target: target_str,
+        mode: mode_str,
+        components: manifest_components,
+    };
+
+    write_json(
+        &manifest,
+        Some(&output_dir.join("manifest.json")),
+        OutputFormat::Pretty,
+    )?;
+
+    Ok(())
+}
+
+/// Convert a JSON Pointer to a relative directory path.
+///
+/// Strips the leading `#/` and uses the remaining segments as directory hierarchy.
+/// Example: `#/$defs/Pet` → `$defs/Pet`
+///          `#/components/schemas/User` → `components/schemas/User`
+fn pointer_to_dir_path(pointer: &str) -> String {
+    pointer
+        .strip_prefix("#/")
+        .unwrap_or(pointer.strip_prefix('#').unwrap_or(pointer))
+        .to_string()
 }
 
 fn write_json<T: serde::Serialize>(
