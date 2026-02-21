@@ -422,7 +422,12 @@ fn handle_output_dir(
             .map(|r| r.dependency_count)
             .unwrap_or(0);
 
-        let name = pointer.rsplit('/').next().unwrap_or(pointer).to_string();
+        let name = pointer
+            .rsplit('/')
+            .next()
+            .unwrap_or(pointer)
+            .replace("~1", "/")
+            .replace("~0", "~");
 
         manifest_components.push(ManifestComponent {
             name,
@@ -477,10 +482,15 @@ fn handle_output_dir(
 /// Example: `#/$defs/Pet` → `$defs/Pet`
 ///          `#/components/schemas/User` → `components/schemas/User`
 fn pointer_to_dir_path(pointer: &str) -> String {
-    pointer
+    let stripped = pointer
         .strip_prefix("#/")
-        .unwrap_or(pointer.strip_prefix('#').unwrap_or(pointer))
-        .to_string()
+        .unwrap_or(pointer.strip_prefix('#').unwrap_or(pointer));
+    // Sanitize: reject path traversal segments
+    stripped
+        .split('/')
+        .filter(|seg| !seg.is_empty() && *seg != ".." && *seg != ".")
+        .collect::<Vec<_>>()
+        .join("/")
 }
 
 fn write_json<T: serde::Serialize>(
