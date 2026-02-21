@@ -1,0 +1,296 @@
+{
+  "version": "1",
+  "generatedAt": "2026-02-21T07:50:26.087546+00:00",
+  "sourceSchema": "tmp.kFVkMjClPi",
+  "target": "openai-strict",
+  "mode": "strict",
+  "components": [
+    {
+      "name": "APIKeyHTTPSecurityScheme",
+      "pointer": "#/definitions/APIKeyHTTPSecurityScheme",
+      "schemaPath": "definitions/APIKeyHTTPSecurityScheme/schema.json",
+      "codecPath": "definitions/APIKeyHTTPSecurityScheme/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "BearerHTTPSecurityScheme",
+      "pointer": "#/definitions/BearerHTTPSecurityScheme",
+      "schemaPath": "definitions/BearerHTTPSecurityScheme/schema.json",
+      "codecPath": "definitions/BearerHTTPSecurityScheme/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "HTTPSecurityScheme",
+      "pointer": "#/definitions/HTTPSecurityScheme",
+      "schemaPath": "definitions/HTTPSecurityScheme/schema.json",
+      "codecPath": "definitions/HTTPSecurityScheme/codec.json",
+      "dependencyCount": 4
+    },
+    {
+      "name": "NonBearerHTTPSecurityScheme",
+      "pointer": "#/definitions/NonBearerHTTPSecurityScheme",
+      "schemaPath": "definitions/NonBearerHTTPSecurityScheme/schema.json",
+      "codecPath": "definitions/NonBearerHTTPSecurityScheme/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "Reference",
+      "pointer": "#/definitions/Reference",
+      "schemaPath": "definitions/Reference/schema.json",
+      "codecPath": "definitions/Reference/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "ReferenceObject",
+      "pointer": "#/definitions/ReferenceObject",
+      "schemaPath": "definitions/ReferenceObject/schema.json",
+      "codecPath": "definitions/ReferenceObject/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "SaslGssapiSecurityScheme",
+      "pointer": "#/definitions/SaslGssapiSecurityScheme",
+      "schemaPath": "definitions/SaslGssapiSecurityScheme/schema.json",
+      "codecPath": "definitions/SaslGssapiSecurityScheme/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "SaslPlainSecurityScheme",
+      "pointer": "#/definitions/SaslPlainSecurityScheme",
+      "schemaPath": "definitions/SaslPlainSecurityScheme/schema.json",
+      "codecPath": "definitions/SaslPlainSecurityScheme/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "SaslScramSecurityScheme",
+      "pointer": "#/definitions/SaslScramSecurityScheme",
+      "schemaPath": "definitions/SaslScramSecurityScheme/schema.json",
+      "codecPath": "definitions/SaslScramSecurityScheme/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "SaslSecurityScheme",
+      "pointer": "#/definitions/SaslSecurityScheme",
+      "schemaPath": "definitions/SaslSecurityScheme/schema.json",
+      "codecPath": "definitions/SaslSecurityScheme/codec.json",
+      "dependencyCount": 4
+    },
+    {
+      "name": "SecurityRequirement",
+      "pointer": "#/definitions/SecurityRequirement",
+      "schemaPath": "definitions/SecurityRequirement/schema.json",
+      "codecPath": "definitions/SecurityRequirement/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "SecurityScheme",
+      "pointer": "#/definitions/SecurityScheme",
+      "schemaPath": "definitions/SecurityScheme/schema.json",
+      "codecPath": "definitions/SecurityScheme/codec.json",
+      "dependencyCount": 18
+    },
+    {
+      "name": "X509",
+      "pointer": "#/definitions/X509",
+      "schemaPath": "definitions/X509/schema.json",
+      "codecPath": "definitions/X509/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "apiKey",
+      "pointer": "#/definitions/apiKey",
+      "schemaPath": "definitions/apiKey/schema.json",
+      "codecPath": "definitions/apiKey/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "asymmetricEncryption",
+      "pointer": "#/definitions/asymmetricEncryption",
+      "schemaPath": "definitions/asymmetricEncryption/schema.json",
+      "codecPath": "definitions/asymmetricEncryption/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "bindingsObject",
+      "pointer": "#/definitions/bindingsObject",
+      "schemaPath": "definitions/bindingsObject/schema.json",
+      "codecPath": "definitions/bindingsObject/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "channelItem",
+      "pointer": "#/definitions/channelItem",
+      "schemaPath": "definitions/channelItem/schema.json",
+      "codecPath": "definitions/channelItem/codec.json",
+      "dependencyCount": 14
+    },
+    {
+      "name": "components",
+      "pointer": "#/definitions/components",
+      "schemaPath": "definitions/components/schema.json",
+      "codecPath": "definitions/components/codec.json",
+      "dependencyCount": 39
+    },
+    {
+      "name": "contact",
+      "pointer": "#/definitions/contact",
+      "schemaPath": "definitions/contact/schema.json",
+      "codecPath": "definitions/contact/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "correlationId",
+      "pointer": "#/definitions/correlationId",
+      "schemaPath": "definitions/correlationId/schema.json",
+      "codecPath": "definitions/correlationId/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "externalDocs",
+      "pointer": "#/definitions/externalDocs",
+      "schemaPath": "definitions/externalDocs/schema.json",
+      "codecPath": "definitions/externalDocs/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "info",
+      "pointer": "#/definitions/info",
+      "schemaPath": "definitions/info/schema.json",
+      "codecPath": "definitions/info/codec.json",
+      "dependencyCount": 3
+    },
+    {
+      "name": "license",
+      "pointer": "#/definitions/license",
+      "schemaPath": "definitions/license/schema.json",
+      "codecPath": "definitions/license/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "messageTrait",
+      "pointer": "#/definitions/messageTrait",
+      "schemaPath": "definitions/messageTrait/schema.json",
+      "codecPath": "definitions/messageTrait/codec.json",
+      "dependencyCount": 7
+    },
+    {
+      "name": "oauth2Flow",
+      "pointer": "#/definitions/oauth2Flow",
+      "schemaPath": "definitions/oauth2Flow/schema.json",
+      "codecPath": "definitions/oauth2Flow/codec.json",
+      "dependencyCount": 2
+    },
+    {
+      "name": "oauth2Flows",
+      "pointer": "#/definitions/oauth2Flows",
+      "schemaPath": "definitions/oauth2Flows/schema.json",
+      "codecPath": "definitions/oauth2Flows/codec.json",
+      "dependencyCount": 3
+    },
+    {
+      "name": "oauth2Scopes",
+      "pointer": "#/definitions/oauth2Scopes",
+      "schemaPath": "definitions/oauth2Scopes/schema.json",
+      "codecPath": "definitions/oauth2Scopes/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "openIdConnect",
+      "pointer": "#/definitions/openIdConnect",
+      "schemaPath": "definitions/openIdConnect/schema.json",
+      "codecPath": "definitions/openIdConnect/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "operation",
+      "pointer": "#/definitions/operation",
+      "schemaPath": "definitions/operation/schema.json",
+      "codecPath": "definitions/operation/codec.json",
+      "dependencyCount": 11
+    },
+    {
+      "name": "operationTrait",
+      "pointer": "#/definitions/operationTrait",
+      "schemaPath": "definitions/operationTrait/schema.json",
+      "codecPath": "definitions/operationTrait/codec.json",
+      "dependencyCount": 5
+    },
+    {
+      "name": "parameter",
+      "pointer": "#/definitions/parameter",
+      "schemaPath": "definitions/parameter/schema.json",
+      "codecPath": "definitions/parameter/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "parameters",
+      "pointer": "#/definitions/parameters",
+      "schemaPath": "definitions/parameters/schema.json",
+      "codecPath": "definitions/parameters/codec.json",
+      "dependencyCount": 4
+    },
+    {
+      "name": "schemas",
+      "pointer": "#/definitions/schemas",
+      "schemaPath": "definitions/schemas/schema.json",
+      "codecPath": "definitions/schemas/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "server",
+      "pointer": "#/definitions/server",
+      "schemaPath": "definitions/server/schema.json",
+      "codecPath": "definitions/server/codec.json",
+      "dependencyCount": 9
+    },
+    {
+      "name": "serverVariable",
+      "pointer": "#/definitions/serverVariable",
+      "schemaPath": "definitions/serverVariable/schema.json",
+      "codecPath": "definitions/serverVariable/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "serverVariables",
+      "pointer": "#/definitions/serverVariables",
+      "schemaPath": "definitions/serverVariables/schema.json",
+      "codecPath": "definitions/serverVariables/codec.json",
+      "dependencyCount": 4
+    },
+    {
+      "name": "servers",
+      "pointer": "#/definitions/servers",
+      "schemaPath": "definitions/servers/schema.json",
+      "codecPath": "definitions/servers/codec.json",
+      "dependencyCount": 10
+    },
+    {
+      "name": "specificationExtension",
+      "pointer": "#/definitions/specificationExtension",
+      "schemaPath": "definitions/specificationExtension/schema.json",
+      "codecPath": "definitions/specificationExtension/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "symmetricEncryption",
+      "pointer": "#/definitions/symmetricEncryption",
+      "schemaPath": "definitions/symmetricEncryption/schema.json",
+      "codecPath": "definitions/symmetricEncryption/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "tag",
+      "pointer": "#/definitions/tag",
+      "schemaPath": "definitions/tag/schema.json",
+      "codecPath": "definitions/tag/codec.json",
+      "dependencyCount": 2
+    },
+    {
+      "name": "userPassword",
+      "pointer": "#/definitions/userPassword",
+      "schemaPath": "definitions/userPassword/schema.json",
+      "codecPath": "definitions/userPassword/codec.json",
+      "dependencyCount": 1
+    }
+  ]
+}

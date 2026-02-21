@@ -1,0 +1,168 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/amqp"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/amqp1"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/anypointmq"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/googlepubsub"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/http"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/ibmmq"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/jms"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/kafka"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/mqtt"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/mqtt5"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/nats"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/pulsar"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/redis"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/sns"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/solace"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/sqs"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/stomp"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/ws"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/amqp",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/amqp1",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/anypointmq",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/googlepubsub",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/http",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/ibmmq",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/jms",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/kafka",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/mqtt",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/mqtt5",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/nats",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/pulsar",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/redis",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/sns",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/solace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/sqs",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/stomp",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/ws",
+      "originalRequired": false
+    }
+  ],
+  "droppedConstraints": []
+}

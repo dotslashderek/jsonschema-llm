@@ -1,0 +1,79 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/contact",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/license",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/termsOfService",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/contact/anyOf/0/properties/email",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/contact/anyOf/0/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/contact/anyOf/0/properties/url",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/license/anyOf/0/properties/url",
+      "originalRequired": false
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/contact/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/license/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/properties/contact/anyOf/0/properties/email/anyOf/0",
+      "constraint": "format",
+      "value": "email"
+    },
+    {
+      "path": "#/properties/contact/anyOf/0/properties/url/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/properties/license/anyOf/0/properties/url/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/properties/termsOfService/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    }
+  ]
+}

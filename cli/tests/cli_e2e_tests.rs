@@ -281,13 +281,9 @@ fn test_cli_e2e_arazzo_fixtures() {
     assert_fixture_conversion(ARAZZO_SOURCE, "arazzo");
 }
 
-// ── E2E: AsyncAPI 2.6 fixture generation (#188) ────────────────────────────
-// DEFERRED: AsyncAPI 2.6 schema uses URI-based $refs (http://asyncapi.com/...)
-// and embeds Avro sub-schemas with nested relative definitions that the tool
-// can't resolve. Requires upstream support for:
-//   1. URI-to-local $ref canonicalization
-//   2. Nested sub-schema $ref scoping
-// Tracked in #198.
+// ── E2E: AsyncAPI 2.6 fixture generation (#198) ────────────────────────────
+// The bundled AsyncAPI 2.6 schema is pre-processed by scripts/preprocess-asyncapi.py
+// to strip examples arrays and problematic meta-schema definitions before conversion.
 
 const ASYNCAPI_SOURCE: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -295,7 +291,6 @@ const ASYNCAPI_SOURCE: &str = concat!(
 );
 
 #[test]
-#[ignore = "AsyncAPI 2.6 deferred: URI-based $refs + nested Avro sub-schemas unsupported (#198)"]
 fn test_cli_e2e_asyncapi_fixtures() {
     assert_fixture_conversion(ASYNCAPI_SOURCE, "asyncapi");
 }

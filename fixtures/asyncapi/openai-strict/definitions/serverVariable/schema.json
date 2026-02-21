@@ -1,0 +1,58 @@
+{
+  "additionalProperties": false,
+  "description": "An object representing a Server Variable for server URL template substitution.",
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "additionalItems": true,
+      "additionalProperties": {
+        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+        "type": "string"
+      },
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "properties": {
+    "default": {
+      "anyOf": [
+        {
+          "description": "The default value to use for substitution, and to send, if an alternate value is not supplied.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "description": {
+      "anyOf": [
+        {
+          "description": "An optional description for the server variable. ",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "enum": {
+      "anyOf": [
+        {
+          "description": "An enumeration of string values to be used if the substitution options are from a limited set. Constraints: items must be unique.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "default",
+    "description",
+    "enum"
+  ],
+  "type": "object"
+}

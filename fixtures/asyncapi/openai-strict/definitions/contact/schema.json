@@ -1,0 +1,55 @@
+{
+  "additionalProperties": false,
+  "description": "Contact information for the exposed API.",
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "additionalItems": true,
+      "additionalProperties": {
+        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+        "type": "string"
+      },
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "properties": {
+    "email": {
+      "anyOf": [
+        {
+          "description": "The email address of the contact person/organization. Constraints: format: email.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "name": {
+      "anyOf": [
+        {
+          "description": "The identifying name of the contact person/organization.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "url": {
+      "anyOf": [
+        {
+          "description": "The URL pointing to the contact information. Constraints: format: uri.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "email",
+    "name",
+    "url"
+  ],
+  "type": "object"
+}

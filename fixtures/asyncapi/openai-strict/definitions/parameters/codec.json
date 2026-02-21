@@ -1,0 +1,30 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "map_to_array",
+      "path": "#",
+      "keyField": "key"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/schema"
+    },
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/items/properties/value/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/items/properties/value/anyOf/0/properties/$ref",
+      "constraint": "format",
+      "value": "uri-reference"
+    }
+  ]
+}

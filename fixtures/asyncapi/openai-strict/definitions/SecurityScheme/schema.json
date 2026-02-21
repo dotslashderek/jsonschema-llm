@@ -1,0 +1,880 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "result": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-[\\w\\d\\.\\x2d_]+$": {
+              "additionalItems": true,
+              "additionalProperties": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              },
+              "description": "Any property starting with x- is valid."
+            }
+          },
+          "properties": {
+            "description": {
+              "anyOf": [
+                {
+                  "description": "A short description for security scheme.",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "description": "The type of the security scheme. ",
+              "enum": [
+                "userPassword"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-[\\w\\d\\.\\x2d_]+$": {
+              "additionalItems": true,
+              "additionalProperties": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              },
+              "description": "Any property starting with x- is valid."
+            }
+          },
+          "properties": {
+            "description": {
+              "anyOf": [
+                {
+                  "description": "A short description for security scheme.",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "in": {
+              "description": "The location of the API key. ",
+              "enum": [
+                "user",
+                "password"
+              ],
+              "type": "string"
+            },
+            "type": {
+              "description": "The type of the security scheme.",
+              "enum": [
+                "apiKey"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "in",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-[\\w\\d\\.\\x2d_]+$": {
+              "additionalItems": true,
+              "additionalProperties": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              },
+              "description": "Any property starting with x- is valid."
+            }
+          },
+          "properties": {
+            "description": {
+              "anyOf": [
+                {
+                  "description": "A short description for security scheme.",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "description": "The type of the security scheme.",
+              "enum": [
+                "X509"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-[\\w\\d\\.\\x2d_]+$": {
+              "additionalItems": true,
+              "additionalProperties": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              },
+              "description": "Any property starting with x- is valid."
+            }
+          },
+          "properties": {
+            "description": {
+              "anyOf": [
+                {
+                  "description": "A short description for security scheme.",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "description": "The type of the security scheme.",
+              "enum": [
+                "symmetricEncryption"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-[\\w\\d\\.\\x2d_]+$": {
+              "additionalItems": true,
+              "additionalProperties": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              },
+              "description": "Any property starting with x- is valid."
+            }
+          },
+          "properties": {
+            "description": {
+              "anyOf": [
+                {
+                  "description": "A short description for security scheme.",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "description": "The type of the security scheme.",
+              "enum": [
+                "asymmetricEncryption"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "anyOf": [
+            {
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-[\\w\\d\\.\\x2d_]+$": {
+                  "additionalItems": true,
+                  "additionalProperties": {
+                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
+                  },
+                  "description": "Any property starting with x- is valid."
+                }
+              },
+              "properties": {
+                "description": {
+                  "anyOf": [
+                    {
+                      "description": "A short description for security scheme.",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "scheme": {
+                  "description": "The name of the HTTP Authorization scheme to be used in the Authorization header as defined in RFC7235.",
+                  "type": "string"
+                },
+                "type": {
+                  "description": "The type of the security scheme. ",
+                  "enum": [
+                    "http"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "description",
+                "scheme",
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-[\\w\\d\\.\\x2d_]+$": {
+                  "additionalItems": true,
+                  "additionalProperties": {
+                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
+                  },
+                  "description": "Any property starting with x- is valid."
+                }
+              },
+              "properties": {
+                "bearerFormat": {
+                  "anyOf": [
+                    {
+                      "description": "A hint to the client to identify how the bearer token is formatted.",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "description": {
+                  "anyOf": [
+                    {
+                      "description": "A short description for security scheme.",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "scheme": {
+                  "description": "The name of the HTTP Authorization scheme to be used in the Authorization header as defined in RFC7235.",
+                  "enum": [
+                    "bearer"
+                  ],
+                  "type": "string"
+                },
+                "type": {
+                  "description": "The type of the security scheme. ",
+                  "enum": [
+                    "http"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "bearerFormat",
+                "description",
+                "scheme",
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-[\\w\\d\\.\\x2d_]+$": {
+                  "additionalItems": true,
+                  "additionalProperties": {
+                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
+                  },
+                  "description": "Any property starting with x- is valid."
+                }
+              },
+              "properties": {
+                "description": {
+                  "anyOf": [
+                    {
+                      "description": "A short description for security scheme.",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "in": {
+                  "description": "The location of the API key. ",
+                  "enum": [
+                    "header",
+                    "query",
+                    "cookie"
+                  ],
+                  "type": "string"
+                },
+                "name": {
+                  "description": "The name of the header, query or cookie parameter to be used.",
+                  "type": "string"
+                },
+                "type": {
+                  "description": "The type of the security scheme. ",
+                  "enum": [
+                    "httpApiKey"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "description",
+                "in",
+                "name",
+                "type"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        {
+          "additionalProperties": false,
+          "description": "Allows configuration of the supported OAuth Flows.",
+          "patternProperties": {
+            "^x-[\\w\\d\\.\\x2d_]+$": {
+              "additionalItems": true,
+              "additionalProperties": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              },
+              "description": "Any property starting with x- is valid."
+            }
+          },
+          "properties": {
+            "description": {
+              "anyOf": [
+                {
+                  "description": "A short description for security scheme.",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "flows": {
+              "additionalProperties": false,
+              "properties": {
+                "authorizationCode": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": false,
+                      "description": "Configuration for the OAuth Authorization Code flow.\nConfiguration details for a supported OAuth Flow",
+                      "patternProperties": {
+                        "^x-[\\w\\d\\.\\x2d_]+$": {
+                          "additionalItems": true,
+                          "additionalProperties": {
+                            "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                            "type": "string"
+                          },
+                          "description": "Any property starting with x- is valid."
+                        }
+                      },
+                      "properties": {
+                        "authorizationUrl": {
+                          "description": "The authorization URL to be used for this flow. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+                          "type": "string"
+                        },
+                        "refreshUrl": {
+                          "anyOf": [
+                            {
+                              "description": "The URL to be used for obtaining refresh tokens. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "scopes": {
+                          "description": "The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it.",
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "value"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "tokenUrl": {
+                          "description": "The token URL to be used for this flow. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "authorizationUrl",
+                        "refreshUrl",
+                        "scopes",
+                        "tokenUrl"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "clientCredentials": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": false,
+                      "description": "Configuration for the OAuth Client Credentials flow.\nConfiguration details for a supported OAuth Flow",
+                      "patternProperties": {
+                        "^x-[\\w\\d\\.\\x2d_]+$": {
+                          "additionalItems": true,
+                          "additionalProperties": {
+                            "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                            "type": "string"
+                          },
+                          "description": "Any property starting with x- is valid."
+                        }
+                      },
+                      "properties": {
+                        "authorizationUrl": {
+                          "anyOf": [
+                            {
+                              "description": "The authorization URL to be used for this flow. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "refreshUrl": {
+                          "anyOf": [
+                            {
+                              "description": "The URL to be used for obtaining refresh tokens. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "scopes": {
+                          "description": "The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it.",
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "value"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "tokenUrl": {
+                          "description": "The token URL to be used for this flow. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "authorizationUrl",
+                        "refreshUrl",
+                        "scopes",
+                        "tokenUrl"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "implicit": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": false,
+                      "description": "Configuration for the OAuth Implicit flow.\nConfiguration details for a supported OAuth Flow",
+                      "patternProperties": {
+                        "^x-[\\w\\d\\.\\x2d_]+$": {
+                          "additionalItems": true,
+                          "additionalProperties": {
+                            "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                            "type": "string"
+                          },
+                          "description": "Any property starting with x- is valid."
+                        }
+                      },
+                      "properties": {
+                        "authorizationUrl": {
+                          "description": "The authorization URL to be used for this flow. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+                          "type": "string"
+                        },
+                        "refreshUrl": {
+                          "anyOf": [
+                            {
+                              "description": "The URL to be used for obtaining refresh tokens. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "scopes": {
+                          "description": "The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it.",
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "value"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "tokenUrl": {
+                          "anyOf": [
+                            {
+                              "description": "The token URL to be used for this flow. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "authorizationUrl",
+                        "refreshUrl",
+                        "scopes",
+                        "tokenUrl"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "password": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": false,
+                      "description": "Configuration for the OAuth Resource Owner Protected Credentials flow.\nConfiguration details for a supported OAuth Flow",
+                      "patternProperties": {
+                        "^x-[\\w\\d\\.\\x2d_]+$": {
+                          "additionalItems": true,
+                          "additionalProperties": {
+                            "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                            "type": "string"
+                          },
+                          "description": "Any property starting with x- is valid."
+                        }
+                      },
+                      "properties": {
+                        "authorizationUrl": {
+                          "anyOf": [
+                            {
+                              "description": "The authorization URL to be used for this flow. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "refreshUrl": {
+                          "anyOf": [
+                            {
+                              "description": "The URL to be used for obtaining refresh tokens. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "scopes": {
+                          "description": "The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it.",
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "value"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "tokenUrl": {
+                          "description": "The token URL to be used for this flow. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "authorizationUrl",
+                        "refreshUrl",
+                        "scopes",
+                        "tokenUrl"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "authorizationCode",
+                "clientCredentials",
+                "implicit",
+                "password"
+              ],
+              "type": "object"
+            },
+            "type": {
+              "description": "A short description for security scheme.",
+              "enum": [
+                "oauth2"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "flows",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^x-[\\w\\d\\.\\x2d_]+$": {
+              "additionalItems": true,
+              "additionalProperties": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              },
+              "description": "Any property starting with x- is valid."
+            }
+          },
+          "properties": {
+            "description": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "openIdConnectUrl": {
+              "description": "Constraints: format: uri.",
+              "type": "string"
+            },
+            "type": {
+              "enum": [
+                "openIdConnect"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "openIdConnectUrl",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "anyOf": [
+            {
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-[\\w\\d\\.\\x2d_]+$": {
+                  "additionalItems": true,
+                  "additionalProperties": {
+                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
+                  },
+                  "description": "Any property starting with x- is valid."
+                }
+              },
+              "properties": {
+                "description": {
+                  "anyOf": [
+                    {
+                      "description": "A short description for security scheme.",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": {
+                  "description": "The type of the security scheme. Valid values",
+                  "enum": [
+                    "plain"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "description",
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-[\\w\\d\\.\\x2d_]+$": {
+                  "additionalItems": true,
+                  "additionalProperties": {
+                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
+                  },
+                  "description": "Any property starting with x- is valid."
+                }
+              },
+              "properties": {
+                "description": {
+                  "anyOf": [
+                    {
+                      "description": "A short description for security scheme.",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": {
+                  "description": "The type of the security scheme.",
+                  "enum": [
+                    "scramSha256",
+                    "scramSha512"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "description",
+                "type"
+              ],
+              "type": "object"
+            },
+            {
+              "additionalProperties": false,
+              "patternProperties": {
+                "^x-[\\w\\d\\.\\x2d_]+$": {
+                  "additionalItems": true,
+                  "additionalProperties": {
+                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
+                  },
+                  "description": "Any property starting with x- is valid."
+                }
+              },
+              "properties": {
+                "description": {
+                  "anyOf": [
+                    {
+                      "description": "A short description for security scheme.",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": {
+                  "description": "The type of the security scheme.",
+                  "enum": [
+                    "gssapi"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "description",
+                "type"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      ],
+      "description": "Defines a security scheme that can be used by the operations."
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "type": "object"
+}

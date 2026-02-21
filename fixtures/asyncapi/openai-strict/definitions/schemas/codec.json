@@ -1,0 +1,20 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "map_to_array",
+      "path": "#",
+      "keyField": "key"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value"
+    },
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    }
+  ],
+  "droppedConstraints": []
+}

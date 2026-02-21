@@ -1,0 +1,225 @@
+{
+  "additionalProperties": false,
+  "description": "Map describing protocol-specific definitions for a server.",
+  "properties": {
+    "amqp": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "amqp1": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "anypointmq": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "googlepubsub": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "http": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ibmmq": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "jms": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "kafka": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "mqtt": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "mqtt5": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nats": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "pulsar": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "redis": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sns": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "solace": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sqs": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "stomp": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ws": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "amqp",
+    "amqp1",
+    "anypointmq",
+    "googlepubsub",
+    "http",
+    "ibmmq",
+    "jms",
+    "kafka",
+    "mqtt",
+    "mqtt5",
+    "nats",
+    "pulsar",
+    "redis",
+    "sns",
+    "solace",
+    "sqs",
+    "stomp",
+    "ws"
+  ],
+  "type": "object"
+}

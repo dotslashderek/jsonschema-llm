@@ -1,0 +1,460 @@
+{
+  "additionalProperties": false,
+  "description": "Describes a trait that MAY be applied to an Operation Object.",
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "additionalItems": true,
+      "additionalProperties": {
+        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+        "type": "string"
+      },
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "properties": {
+    "bindings": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "description": "Map describing protocol-specific definitions for a server.",
+          "properties": {
+            "amqp": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "amqp1": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "anypointmq": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "googlepubsub": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "http": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "ibmmq": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "jms": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "kafka": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "mqtt": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "mqtt5": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "nats": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "pulsar": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "redis": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sns": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "solace": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "sqs": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "stomp": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "ws": {
+              "anyOf": [
+                {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "amqp",
+            "amqp1",
+            "anypointmq",
+            "googlepubsub",
+            "http",
+            "ibmmq",
+            "jms",
+            "kafka",
+            "mqtt",
+            "mqtt5",
+            "nats",
+            "pulsar",
+            "redis",
+            "sns",
+            "solace",
+            "sqs",
+            "stomp",
+            "ws"
+          ],
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "description": {
+      "anyOf": [
+        {
+          "description": "A verbose explanation of the operation.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "externalDocs": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "description": "Allows referencing an external resource for extended documentation.",
+          "patternProperties": {
+            "^x-[\\w\\d\\.\\x2d_]+$": {
+              "additionalItems": true,
+              "additionalProperties": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              },
+              "description": "Any property starting with x- is valid."
+            }
+          },
+          "properties": {
+            "description": {
+              "anyOf": [
+                {
+                  "description": "A short description of the target documentation.",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "url": {
+              "description": "The URL for the target documentation. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "url"
+          ],
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "operationId": {
+      "anyOf": [
+        {
+          "description": "Unique string used to identify the operation. The id MUST be unique among all operations described in the API.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "security": {
+      "anyOf": [
+        {
+          "description": "A declaration of which security mechanisms are associated with this operation. ",
+          "items": {
+            "description": "Lists of the required security schemes that can be used to execute an operation",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {
+                  "description": "Constraints: items must be unique.",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "key",
+                "value"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "summary": {
+      "anyOf": [
+        {
+          "description": "A short summary of what the operation is about.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tags": {
+      "anyOf": [
+        {
+          "description": "A list of tags for logical grouping and categorization of operations. Constraints: items must be unique.",
+          "items": {
+            "additionalProperties": false,
+            "description": "Allows adding meta data to a single tag.",
+            "patternProperties": {
+              "^x-[\\w\\d\\.\\x2d_]+$": {
+                "additionalItems": true,
+                "additionalProperties": {
+                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                  "type": "string"
+                },
+                "description": "Any property starting with x- is valid."
+              }
+            },
+            "properties": {
+              "description": {
+                "anyOf": [
+                  {
+                    "description": "A short description for the tag.",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "externalDocs": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "description": "Additional external documentation for this tag.",
+                    "patternProperties": {
+                      "^x-[\\w\\d\\.\\x2d_]+$": {
+                        "additionalItems": true,
+                        "additionalProperties": {
+                          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                          "type": "string"
+                        },
+                        "description": "Any property starting with x- is valid."
+                      }
+                    },
+                    "properties": {
+                      "description": {
+                        "anyOf": [
+                          {
+                            "description": "A short description of the target documentation.",
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "url": {
+                        "description": "The URL for the target documentation. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "description",
+                      "url"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "name": {
+                "description": "The name of the tag.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "description",
+              "externalDocs",
+              "name"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "bindings",
+    "description",
+    "externalDocs",
+    "operationId",
+    "security",
+    "summary",
+    "tags"
+  ],
+  "type": "object"
+}

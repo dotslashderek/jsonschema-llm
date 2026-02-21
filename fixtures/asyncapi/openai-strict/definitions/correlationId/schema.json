@@ -1,0 +1,37 @@
+{
+  "additionalProperties": false,
+  "description": "An object that specifies an identifier at design time that can used for message tracing and correlation.",
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "additionalItems": true,
+      "additionalProperties": {
+        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+        "type": "string"
+      },
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "properties": {
+    "description": {
+      "anyOf": [
+        {
+          "description": "A optional description of the correlation ID. GitHub Flavored Markdown is allowed.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "location": {
+      "description": "A runtime expression that specifies the location of the correlation ID",
+      "pattern": "^\\$message\\.(header|payload)#(\\/(([^\\/~])|(~[01]))*)*",
+      "type": "string"
+    }
+  },
+  "required": [
+    "description",
+    "location"
+  ],
+  "type": "object"
+}

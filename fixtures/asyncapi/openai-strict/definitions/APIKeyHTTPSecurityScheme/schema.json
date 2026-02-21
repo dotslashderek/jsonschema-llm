@@ -1,0 +1,53 @@
+{
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "additionalItems": true,
+      "additionalProperties": {
+        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+        "type": "string"
+      },
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "properties": {
+    "description": {
+      "anyOf": [
+        {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "in": {
+      "description": "The location of the API key. ",
+      "enum": [
+        "header",
+        "query",
+        "cookie"
+      ],
+      "type": "string"
+    },
+    "name": {
+      "description": "The name of the header, query or cookie parameter to be used.",
+      "type": "string"
+    },
+    "type": {
+      "description": "The type of the security scheme. ",
+      "enum": [
+        "httpApiKey"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "description",
+    "in",
+    "name",
+    "type"
+  ],
+  "type": "object"
+}

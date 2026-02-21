@@ -1,0 +1,72 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "result": {
+      "description": "JSON objects describing reusable channel parameters.",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "$ref": {
+                    "description": "A simple object to allow referencing other components in the specification, internally and externally. Constraints: format: uri-reference.",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "$ref"
+                ],
+                "type": "object"
+              },
+              {
+                "additionalProperties": false,
+                "description": "Describes a parameter included in a channel name.",
+                "patternProperties": {
+                  "^x-[\\w\\d\\.\\x2d_]+$": {
+                    "additionalItems": true,
+                    "additionalProperties": {
+                      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                      "type": "string"
+                    },
+                    "description": "Any property starting with x- is valid."
+                  }
+                },
+                "properties": {
+                  "description": {
+                    "description": "A brief description of the parameter. This could contain examples of use. GitHub Flavored Markdown is allowed.",
+                    "type": "string"
+                  },
+                  "location": {
+                    "description": "A runtime expression that specifies the location of the parameter value",
+                    "pattern": "^\\$message\\.(header|payload)#(\\/(([^\\/~])|(~[01]))*)*",
+                    "type": "string"
+                  },
+                  "schema": {
+                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "type": "object"
+}

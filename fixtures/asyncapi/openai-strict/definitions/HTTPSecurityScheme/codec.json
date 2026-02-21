@@ -1,0 +1,76 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/not/properties/scheme",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/1/properties/bearerFormat",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/2/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/2/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/anyOf/0",
+      "constraint": "not",
+      "value": {
+        "additionalProperties": false,
+        "properties": {
+          "scheme": {
+            "anyOf": [
+              {
+                "description": "A short description for security scheme.",
+                "enum": [
+                  "bearer"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "scheme"
+        ],
+        "type": "object"
+      }
+    }
+  ]
+}

@@ -1,0 +1,349 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "map_to_array",
+      "path": "#/anyOf/6/properties/flows/properties/authorizationCode/properties/scopes",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/anyOf/6/properties/flows/properties/clientCredentials/properties/scopes",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/anyOf/6/properties/flows/properties/implicit/properties/scopes",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/anyOf/6/properties/flows/properties/password/properties/scopes",
+      "keyField": "key"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/2/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/3/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/4/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/5/anyOf/0/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/5/anyOf/0/not/properties/scheme",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/5/anyOf/1/properties/bearerFormat",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/5/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/5/anyOf/2/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/6/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/6/properties/flows/properties/authorizationCode",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/6/properties/flows/properties/clientCredentials",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/6/properties/flows/properties/implicit",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/6/properties/flows/properties/password",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/6/properties/flows/properties/authorizationCode/anyOf/0/properties/refreshUrl",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/6/properties/flows/properties/clientCredentials/anyOf/0/properties/authorizationUrl",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/6/properties/flows/properties/clientCredentials/anyOf/0/properties/refreshUrl",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/6/properties/flows/properties/implicit/anyOf/0/properties/refreshUrl",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/6/properties/flows/properties/implicit/anyOf/0/properties/tokenUrl",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/6/properties/flows/properties/password/anyOf/0/properties/authorizationUrl",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/6/properties/flows/properties/password/anyOf/0/properties/refreshUrl",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/7/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/8/anyOf/0/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/8/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/8/anyOf/2/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/2/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/3/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/4/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/5/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/5/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/5/anyOf/2/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/6/properties/flows/properties/authorizationCode/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/6/properties/flows/properties/clientCredentials/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/6/properties/flows/properties/implicit/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/6/properties/flows/properties/password/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/6/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/7/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/8/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/8/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/8/anyOf/2/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/anyOf/5/anyOf/0",
+      "constraint": "not",
+      "value": {
+        "additionalProperties": false,
+        "properties": {
+          "scheme": {
+            "anyOf": [
+              {
+                "description": "A short description for security scheme.",
+                "enum": [
+                  "bearer"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "scheme"
+        ],
+        "type": "object"
+      }
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/authorizationCode/anyOf/0/properties/authorizationUrl",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/authorizationCode/anyOf/0/properties/refreshUrl/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/authorizationCode/anyOf/0/properties/tokenUrl",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/clientCredentials/anyOf/0",
+      "constraint": "not",
+      "value": {
+        "required": [
+          "authorizationUrl"
+        ]
+      }
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/clientCredentials/anyOf/0/properties/authorizationUrl/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/clientCredentials/anyOf/0/properties/refreshUrl/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/clientCredentials/anyOf/0/properties/tokenUrl",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/implicit/anyOf/0",
+      "constraint": "not",
+      "value": {
+        "required": [
+          "tokenUrl"
+        ]
+      }
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/implicit/anyOf/0/properties/authorizationUrl",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/implicit/anyOf/0/properties/refreshUrl/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/implicit/anyOf/0/properties/tokenUrl/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/password/anyOf/0",
+      "constraint": "not",
+      "value": {
+        "required": [
+          "authorizationUrl"
+        ]
+      }
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/password/anyOf/0/properties/authorizationUrl/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/password/anyOf/0/properties/refreshUrl/anyOf/0",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/anyOf/6/properties/flows/properties/password/anyOf/0/properties/tokenUrl",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/anyOf/7/properties/openIdConnectUrl",
+      "constraint": "format",
+      "value": "uri"
+    }
+  ]
+}

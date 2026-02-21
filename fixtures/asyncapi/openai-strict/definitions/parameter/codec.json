@@ -1,0 +1,34 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/schema"
+    },
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/result/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/result/properties/location",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/result/properties/schema",
+      "originalRequired": false
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    }
+  ],
+  "droppedConstraints": []
+}

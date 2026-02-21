@@ -1,0 +1,80 @@
+{
+  "additionalProperties": false,
+  "description": "Allows adding meta data to a single tag.",
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "additionalItems": true,
+      "additionalProperties": {
+        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+        "type": "string"
+      },
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "properties": {
+    "description": {
+      "anyOf": [
+        {
+          "description": "A short description for the tag.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "externalDocs": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "description": "Additional external documentation for this tag.",
+          "patternProperties": {
+            "^x-[\\w\\d\\.\\x2d_]+$": {
+              "additionalItems": true,
+              "additionalProperties": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              },
+              "description": "Any property starting with x- is valid."
+            }
+          },
+          "properties": {
+            "description": {
+              "anyOf": [
+                {
+                  "description": "A short description of the target documentation.",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "url": {
+              "description": "The URL for the target documentation. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "description",
+            "url"
+          ],
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "name": {
+      "description": "The name of the tag.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "description",
+    "externalDocs",
+    "name"
+  ],
+  "type": "object"
+}

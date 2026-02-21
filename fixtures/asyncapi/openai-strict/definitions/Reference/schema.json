@@ -1,0 +1,13 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "$ref": {
+      "description": "A simple object to allow referencing other components in the specification, internally and externally. Constraints: format: uri-reference.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "$ref"
+  ],
+  "type": "object"
+}

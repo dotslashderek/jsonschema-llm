@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "additionalItems": true,
+      "additionalProperties": {
+        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+        "type": "string"
+      },
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "properties": {
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "openIdConnectUrl": {
+      "description": "Constraints: format: uri.",
+      "type": "string"
+    },
+    "type": {
+      "enum": [
+        "openIdConnect"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "description",
+    "openIdConnectUrl",
+    "type"
+  ],
+  "type": "object"
+}

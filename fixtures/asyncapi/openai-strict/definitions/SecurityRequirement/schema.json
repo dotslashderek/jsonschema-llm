@@ -1,0 +1,33 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "result": {
+      "description": "Lists of the required security schemes that can be used to execute an operation",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "description": "Constraints: items must be unique.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "value"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "type": "object"
+}

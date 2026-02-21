@@ -1,0 +1,31 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/enum",
+      "originalRequired": false
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/properties/enum/anyOf/0",
+      "constraint": "uniqueItems",
+      "value": true
+    }
+  ]
+}

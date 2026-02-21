@@ -21,29 +21,32 @@ CLI="$PROJECT_ROOT/target/release/jsonschema-llm"
 
 spec_source() {
   case "$1" in
-    oas31)  echo "$PROJECT_ROOT/fixtures/oas31/source/oas31-schema.json" ;;
-    arazzo) echo "$PROJECT_ROOT/fixtures/arazzo/source/arazzo-schema.json" ;;
+    oas31)    echo "$PROJECT_ROOT/fixtures/oas31/source/oas31-schema.json" ;;
+    arazzo)   echo "$PROJECT_ROOT/fixtures/arazzo/source/arazzo-schema.json" ;;
+    asyncapi) echo "$PROJECT_ROOT/fixtures/asyncapi/source/asyncapi-2.6-schema-local.json" ;;
     *) echo "UNKNOWN"; return 1 ;;
   esac
 }
 
 spec_output() {
   case "$1" in
-    oas31)  echo "$PROJECT_ROOT/fixtures/oas31/openai-strict" ;;
-    arazzo) echo "$PROJECT_ROOT/fixtures/arazzo/openai-strict" ;;
+    oas31)    echo "$PROJECT_ROOT/fixtures/oas31/openai-strict" ;;
+    arazzo)   echo "$PROJECT_ROOT/fixtures/arazzo/openai-strict" ;;
+    asyncapi) echo "$PROJECT_ROOT/fixtures/asyncapi/openai-strict" ;;
     *) echo "UNKNOWN"; return 1 ;;
   esac
 }
 
 spec_url() {
   case "$1" in
-    oas31)  echo "https://spec.openapis.org/oas/3.1/schema/2022-10-07" ;;
-    arazzo) echo "https://raw.githubusercontent.com/OAI/Arazzo-Specification/main/_archive_/schemas/v1.0/schema.json" ;;
+    oas31)    echo "https://spec.openapis.org/oas/3.1/schema/2022-10-07" ;;
+    arazzo)   echo "https://raw.githubusercontent.com/OAI/Arazzo-Specification/main/_archive_/schemas/v1.0/schema.json" ;;
+    asyncapi) echo "https://raw.githubusercontent.com/asyncapi/spec-json-schemas/master/schemas/2.6.0-without-\$id.json" ;;
     *) echo "UNKNOWN"; return 1 ;;
   esac
 }
 
-ALL_SPECS="oas31 arazzo"
+ALL_SPECS="oas31 arazzo asyncapi"
 
 # ── Parse arguments ─────────────────────────────────────────────────────────
 
@@ -101,9 +104,21 @@ generate_spec() {
     rm -rf "$output"
   fi
 
+  # Pre-process if needed (asyncapi requires stripping examples + meta-schemas)
+  local convert_source="$source_path"
+  if [[ "$spec" == "asyncapi" ]]; then
+    local preprocess_script="$SCRIPT_DIR/preprocess-asyncapi.py"
+    if [[ ! -f "$preprocess_script" ]]; then
+      echo "ERROR: Pre-processing script not found: $preprocess_script"
+      exit 1
+    fi
+    convert_source=$(mktemp)
+    python3 "$preprocess_script" "$source_path" "$convert_source"
+  fi
+
   # Generate
   STDERR_FILE=$(mktemp)
-  "$CLI" convert "$source_path" --output-dir "$output" 2>"$STDERR_FILE"
+  "$CLI" convert "$convert_source" --output-dir "$output" 2>"$STDERR_FILE"
 
   # Report component errors (expected for some recursive/unsupported schemas)
   if grep -q "Component error" "$STDERR_FILE"; then

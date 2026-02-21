@@ -1,0 +1,83 @@
+{
+  "additionalProperties": false,
+  "description": "Configuration details for a supported OAuth Flow",
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "additionalItems": true,
+      "additionalProperties": {
+        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+        "type": "string"
+      },
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "properties": {
+    "authorizationUrl": {
+      "anyOf": [
+        {
+          "description": "The authorization URL to be used for this flow. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "refreshUrl": {
+      "anyOf": [
+        {
+          "description": "The URL to be used for obtaining refresh tokens. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "scopes": {
+      "anyOf": [
+        {
+          "description": "The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tokenUrl": {
+      "anyOf": [
+        {
+          "description": "The token URL to be used for this flow. This MUST be in the form of an absolute URL. Constraints: format: uri.",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "authorizationUrl",
+    "refreshUrl",
+    "scopes",
+    "tokenUrl"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,295 @@
+{
+  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "map_to_array",
+      "path": "#",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/items/properties/value/anyOf/1/properties/security/items",
+      "keyField": "key"
+    },
+    {
+      "type": "map_to_array",
+      "path": "#/items/properties/value/anyOf/1/properties/variables",
+      "keyField": "key"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/amqp"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/amqp1"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/anypointmq"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/googlepubsub"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/http"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/ibmmq"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/jms"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/kafka"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/mqtt"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/mqtt5"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/nats"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/pulsar"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/redis"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/sns"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/solace"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/sqs"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/stomp"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/properties/ws"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/protocolVersion",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/security",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/tags",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/variables",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/amqp",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/amqp1",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/anypointmq",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/googlepubsub",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/http",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/ibmmq",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/jms",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/kafka",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/mqtt",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/mqtt5",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/nats",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/pulsar",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/redis",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/sns",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/solace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/sqs",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/stomp",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/bindings/anyOf/0/properties/ws",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/tags/anyOf/0/items/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/tags/anyOf/0/items/properties/externalDocs",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/tags/anyOf/0/items/properties/externalDocs/anyOf/0/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/variables/anyOf/0/items/properties/value/anyOf/1/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/variables/anyOf/0/items/properties/value/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/properties/variables/anyOf/0/items/properties/value/anyOf/1/properties/enum",
+      "originalRequired": false
+    },
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/items/properties/value/anyOf/1/properties/tags/anyOf/0/items/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/items/properties/value/anyOf/1/properties/tags/anyOf/0/items/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/items/properties/value/anyOf/1/properties/variables/anyOf/0/items/properties/value/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/items/properties/value/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/items/properties/value/anyOf/0/properties/$ref",
+      "constraint": "format",
+      "value": "uri-reference"
+    },
+    {
+      "path": "#/items/properties/value/anyOf/1/properties/security/anyOf/0/items/items/properties/value",
+      "constraint": "uniqueItems",
+      "value": true
+    },
+    {
+      "path": "#/items/properties/value/anyOf/1/properties/tags/anyOf/0",
+      "constraint": "uniqueItems",
+      "value": true
+    },
+    {
+      "path": "#/items/properties/value/anyOf/1/properties/tags/anyOf/0/items/properties/externalDocs/anyOf/0/properties/url",
+      "constraint": "format",
+      "value": "uri"
+    },
+    {
+      "path": "#/items/properties/value/anyOf/1/properties/variables/anyOf/0/items/properties/value/anyOf/0/properties/$ref",
+      "constraint": "format",
+      "value": "uri-reference"
+    },
+    {
+      "path": "#/items/properties/value/anyOf/1/properties/variables/anyOf/0/items/properties/value/anyOf/1/properties/enum/anyOf/0",
+      "constraint": "uniqueItems",
+      "value": true
+    }
+  ]
+}
