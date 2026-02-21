@@ -54,6 +54,30 @@ export interface RehydrateResult {
   warnings?: Warning[];
 }
 
+export interface ExtractOptions {
+  "max-depth"?: number;
+}
+
+export interface ExtractResult {
+  apiVersion: string;
+  schema: Record<string, unknown>;
+  pointer: string;
+  dependencyCount: number;
+  missingRefs: string[];
+}
+
+export interface ListComponentsResult {
+  apiVersion: string;
+  components: string[];
+}
+
+export interface ConvertAllResult {
+  apiVersion: string;
+  full: Record<string, unknown>;
+  components: unknown[];
+  componentErrors?: unknown[];
+}
+
 export class JslError extends Error {
   constructor(
     public readonly code: string,
@@ -123,6 +147,51 @@ export class Engine {
       schemaJson
     );
     return payload as RehydrateResult;
+  }
+
+  async listComponents(schema: unknown): Promise<ListComponentsResult> {
+    const schemaJson = JSON.stringify(schema);
+    const payload = await this.callJsl("jsl_list_components", schemaJson);
+    return payload as ListComponentsResult;
+  }
+
+  async extractComponent(
+    schema: unknown,
+    pointer: string,
+    options?: ExtractOptions
+  ): Promise<ExtractResult> {
+    const schemaJson = JSON.stringify(schema);
+    const optsJson = JSON.stringify(options ?? {});
+    const payload = await this.callJsl(
+      "jsl_extract_component",
+      schemaJson,
+      pointer,
+      optsJson
+    );
+    return payload as ExtractResult;
+  }
+
+  async convertAllComponents(
+    schema: unknown,
+    convertOpts?: ConvertOptions,
+    extractOpts?: ExtractOptions
+  ): Promise<ConvertAllResult> {
+    const schemaJson = JSON.stringify(schema);
+    const convWasiOpts: Record<string, unknown> = {};
+    if (convertOpts) {
+      for (const [key, value] of Object.entries(convertOpts)) {
+        if (value !== undefined) convWasiOpts[key.replace(/_/g, "-")] = value;
+      }
+    }
+    const convOptsJson = JSON.stringify(convWasiOpts);
+    const extOptsJson = JSON.stringify(extractOpts ?? {});
+    const payload = await this.callJsl(
+      "jsl_convert_all_components",
+      schemaJson,
+      convOptsJson,
+      extOptsJson
+    );
+    return payload as ConvertAllResult;
   }
 
   private async callJsl(

@@ -54,6 +54,24 @@ module JsonSchemaLlm
       call_jsl("jsl_rehydrate", data_json, codec_json, schema_json)
     end
 
+    def list_components(schema)
+      schema_json = JSON.generate(schema)
+      call_jsl("jsl_list_components", schema_json)
+    end
+
+    def extract_component(schema, pointer, options = {})
+      schema_json = JSON.generate(schema)
+      opts_json = JSON.generate(options)
+      call_jsl("jsl_extract_component", schema_json, pointer, opts_json)
+    end
+
+    def convert_all_components(schema, convert_options = {}, extract_options = {})
+      schema_json = JSON.generate(schema)
+      conv_opts_json = JSON.generate(convert_options)
+      ext_opts_json = JSON.generate(extract_options)
+      call_jsl("jsl_convert_all_components", schema_json, conv_opts_json, ext_opts_json)
+    end
+
     def close
       # No persistent resources
     end

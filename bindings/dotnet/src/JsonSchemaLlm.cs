@@ -73,6 +73,34 @@ public sealed class JsonSchemaLlmEngine : IDisposable
         return CallJsl("jsl_rehydrate", dataJson, codecJson, schemaJson);
     }
 
+    public JsonElement ListComponents(object schema)
+    {
+        var schemaJson = JsonSerializer.Serialize(schema);
+        return CallJsl("jsl_list_components", schemaJson);
+    }
+
+    public JsonElement ExtractComponent(object schema, string pointer, object? options = null)
+    {
+        var schemaJson = JsonSerializer.Serialize(schema);
+        var optsJson = options != null
+            ? JsonSerializer.Serialize(options, KebabCaseOptions)
+            : "{}";
+        return CallJsl("jsl_extract_component", schemaJson, pointer, optsJson);
+    }
+
+    public JsonElement ConvertAllComponents(object schema, object? convertOptions = null,
+        object? extractOptions = null)
+    {
+        var schemaJson = JsonSerializer.Serialize(schema);
+        var convOptsJson = convertOptions != null
+            ? JsonSerializer.Serialize(convertOptions, KebabCaseOptions)
+            : "{}";
+        var extOptsJson = extractOptions != null
+            ? JsonSerializer.Serialize(extractOptions, KebabCaseOptions)
+            : "{}";
+        return CallJsl("jsl_convert_all_components", schemaJson, convOptsJson, extOptsJson);
+    }
+
     internal JsonElement CallJsl(string funcName, params string[] jsonArgs)
     {
         // Fresh store per call
