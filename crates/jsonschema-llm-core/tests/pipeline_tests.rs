@@ -10,10 +10,9 @@ fn openai_options() -> ConvertOptions {
 }
 
 fn gemini_options() -> ConvertOptions {
-    ConvertOptions {
-        target: Target::Gemini,
-        ..ConvertOptions::default()
-    }
+    let mut opts = ConvertOptions::default();
+    opts.target = Target::Gemini;
+    opts
 }
 
 // ── Basic Pipeline ──────────────────────────────────────────────────────────
@@ -228,10 +227,8 @@ fn test_convert_with_recursion() {
         }
     });
 
-    let options = ConvertOptions {
-        recursion_limit: 2,
-        ..openai_options()
-    };
+    let mut options = ConvertOptions::default();
+    options.recursion_limit = 2;
     let result = convert(&schema, &options).expect("convert should succeed");
 
     // The schema should not infinitely recurse — at some depth, the recursive
@@ -437,10 +434,8 @@ fn test_permissive_mode_skips_p6() {
         "required": ["name"]
     });
 
-    let options = ConvertOptions {
-        mode: Mode::Permissive,
-        ..openai_options()
-    };
+    let mut options = openai_options();
+    options.mode = Mode::Permissive;
 
     let result = convert(&schema, &options).expect("convert should succeed");
 
@@ -472,10 +467,8 @@ fn test_permissive_mode_still_runs_constraint_pruning() {
         "maximum": 100
     });
 
-    let options = ConvertOptions {
-        mode: Mode::Permissive,
-        ..openai_options()
-    };
+    let mut options = openai_options();
+    options.mode = Mode::Permissive;
 
     let result = convert(&schema, &options).expect("convert should succeed");
 
@@ -535,10 +528,8 @@ fn test_provider_compat_skips_for_permissive_mode() {
         }
     });
 
-    let options = ConvertOptions {
-        mode: Mode::Permissive,
-        ..openai_options()
-    };
+    let mut options = openai_options();
+    options.mode = Mode::Permissive;
 
     let result = convert(&schema, &options).expect("convert should succeed");
 

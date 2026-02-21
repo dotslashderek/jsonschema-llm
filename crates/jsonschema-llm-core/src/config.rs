@@ -33,6 +33,7 @@ pub enum Mode {
 /// This naming convention is part of the public API contract for FFI and config files.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case", default)]
+#[non_exhaustive]
 pub struct ConvertOptions {
     /// Target provider. Default: OpenAI Strict.
     pub target: Target,
@@ -91,7 +92,7 @@ mod tests {
             max_depth: 100,
             recursion_limit: 5,
             polymorphism: PolymorphismStrategy::Flatten,
-            skip_components: false,
+            ..ConvertOptions::default()
         };
 
         // Serialize to JSON

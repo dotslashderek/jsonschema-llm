@@ -175,15 +175,13 @@ fn main() -> Result<()> {
             let schema: serde_json::Value = serde_json::from_reader(reader)
                 .with_context(|| format!("Failed to parse schema from: {}", input.display()))?;
 
-            // All fields set explicitly; clippy enforces exhaustiveness
-            let options = ConvertOptions {
-                target: target.into(),
-                mode: mode.into(),
-                polymorphism: polymorphism.into(),
-                max_depth,
-                recursion_limit,
-                skip_components,
-            };
+            let mut options = ConvertOptions::default();
+            options.target = target.into();
+            options.mode = mode.into();
+            options.polymorphism = polymorphism.into();
+            options.max_depth = max_depth;
+            options.recursion_limit = recursion_limit;
+            options.skip_components = skip_components;
 
             let result = convert(&schema, &options)
                 .map_err(|e| anyhow::Error::from(e).context("Conversion failed"))?;

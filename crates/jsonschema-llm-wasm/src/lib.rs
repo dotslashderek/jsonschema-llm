@@ -80,15 +80,26 @@ struct WasmConvertOptions {
 
 impl From<WasmConvertOptions> for ConvertOptions {
     fn from(wasm: WasmConvertOptions) -> Self {
-        let defaults = ConvertOptions::default();
-        ConvertOptions {
-            target: wasm.target.unwrap_or(defaults.target),
-            mode: wasm.mode.unwrap_or(defaults.mode),
-            max_depth: wasm.max_depth.unwrap_or(defaults.max_depth),
-            recursion_limit: wasm.recursion_limit.unwrap_or(defaults.recursion_limit),
-            polymorphism: wasm.polymorphism.unwrap_or(defaults.polymorphism),
-            skip_components: wasm.skip_components.unwrap_or(defaults.skip_components),
+        let mut opts = ConvertOptions::default();
+        if let Some(target) = wasm.target {
+            opts.target = target;
         }
+        if let Some(mode) = wasm.mode {
+            opts.mode = mode;
+        }
+        if let Some(max_depth) = wasm.max_depth {
+            opts.max_depth = max_depth;
+        }
+        if let Some(recursion_limit) = wasm.recursion_limit {
+            opts.recursion_limit = recursion_limit;
+        }
+        if let Some(polymorphism) = wasm.polymorphism {
+            opts.polymorphism = polymorphism;
+        }
+        if let Some(skip_components) = wasm.skip_components {
+            opts.skip_components = skip_components;
+        }
+        opts
     }
 }
 
