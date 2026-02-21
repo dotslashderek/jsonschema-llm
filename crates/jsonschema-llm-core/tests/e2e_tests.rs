@@ -220,10 +220,8 @@ fn test_e2e_all_targets() {
     for name in fixture_names() {
         let schema = load_fixture(name);
         for target in all_targets() {
-            let options = ConvertOptions {
-                target,
-                ..ConvertOptions::default()
-            };
+            let mut options = ConvertOptions::default();
+            options.target = target;
             let result = convert(&schema, &options);
             assert!(
                 result.is_ok(),
@@ -272,11 +270,9 @@ fn test_e2e_error_malformed_json() {
 #[test]
 fn test_e2e_error_depth_exceeded() {
     let schema = load_fixture("recursive");
-    let options = ConvertOptions {
-        max_depth: 2,
-        recursion_limit: 1,
-        ..ConvertOptions::default()
-    };
+    let mut options = ConvertOptions::default();
+    options.max_depth = 2;
+    options.recursion_limit = 1;
     // With a very tight max_depth, P0's traversal guard triggers before
     // P5 can break the recursion — this should return an error.
     let result = convert(&schema, &options);
@@ -605,10 +601,8 @@ fn test_e2e_recursive_graph_nested_opaque() {
 
     let schema = load_fixture("stress/recursive_graph");
 
-    let options = ConvertOptions {
-        recursion_limit: 2,
-        ..openai_options()
-    };
+    let mut options = openai_options();
+    options.recursion_limit = 2;
     let result = convert(&schema, &options).expect("convert should succeed");
 
     // Verify expected transforms

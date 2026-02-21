@@ -17,21 +17,17 @@ use serde_json::{json, Value};
 
 /// Helper: convert with OpenAI Strict defaults.
 fn convert_strict(schema: &Value) -> jsonschema_llm_core::ConvertResult {
-    let opts = ConvertOptions {
-        target: Target::OpenaiStrict,
-        mode: Mode::Strict,
-        ..ConvertOptions::default()
-    };
+    let mut opts = ConvertOptions::default();
+    opts.target = Target::OpenaiStrict;
+    opts.mode = Mode::Strict;
     convert(schema, &opts).expect("conversion should not hard-fail")
 }
 
 /// Helper: convert with a non-OpenAI target (should skip p9 checks).
 fn convert_gemini(schema: &Value) -> jsonschema_llm_core::ConvertResult {
-    let opts = ConvertOptions {
-        target: Target::Gemini,
-        mode: Mode::Strict,
-        ..ConvertOptions::default()
-    };
+    let mut opts = ConvertOptions::default();
+    opts.target = Target::Gemini;
+    opts.mode = Mode::Strict;
     convert(schema, &opts).expect("conversion should not hard-fail")
 }
 
@@ -485,11 +481,9 @@ fn p9_permissive_mode_skips_all_checks() {
         "type": "array",
         "items": { "type": "string" }
     });
-    let opts = ConvertOptions {
-        target: Target::OpenaiStrict,
-        mode: Mode::Permissive,
-        ..ConvertOptions::default()
-    };
+    let mut opts = ConvertOptions::default();
+    opts.target = Target::OpenaiStrict;
+    opts.mode = Mode::Permissive;
     let result = convert(&schema, &opts).expect("conversion should succeed");
     assert!(
         result.provider_compat_errors.is_empty(),
