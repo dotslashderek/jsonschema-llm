@@ -222,6 +222,7 @@ pub fn extract_component(
     let resolver = crate::resolver::ResolverEngine::new(schema)?;
 
     // Phase 2: Transitive closure — DFS to collect all reachable deps.
+    let starting_base = resolver.parent_base_uri_for_pointer(schema, pointer);
     let mut ctx = DfsCtx {
         root_schema: schema,
         max_depth: options.max_depth.unwrap_or(usize::MAX),
@@ -229,7 +230,7 @@ pub fn extract_component(
         deps: BTreeMap::new(),
         missing_refs: Vec::new(),
         resolver: &resolver,
-        base_uri: resolver.base_uri().clone(),
+        base_uri: starting_base,
     };
     ctx.visited.insert(pointer.to_string());
 
@@ -330,12 +331,10 @@ fn collect_deps(
             // Save base URI — $id scoping is lexical (per-subtree), not global.
             let saved_base = ctx.base_uri.clone();
 
-            // Track $id for base URI scoping (skip exactly at root since it's already in ctx.base_uri)
-            if current_path != "#" {
-                if let Some(id_val) = obj.get("$id").and_then(Value::as_str) {
-                    if let Ok(new_base) = ctx.base_uri.join(id_val) {
-                        ctx.base_uri = new_base;
-                    }
+            // Track $id for base URI scoping.
+            if let Some(id_val) = obj.get("$id").and_then(Value::as_str) {
+                if let Ok(new_base) = ctx.base_uri.join(id_val) {
+                    ctx.base_uri = new_base;
                 }
             }
 
@@ -368,10 +367,19 @@ fn collect_deps(
                             let key = pointer_to_key(ref_val, &ctx.deps);
                             let resolved_clone = resolved.clone();
                             ctx.visited.insert(ref_val.to_string());
+                            
+                            let target_base_uri = ctx.resolver.parent_base_uri_for_pointer(ctx.root_schema, ref_val);
+                            
                             ctx.deps
-                                .insert(ref_val.to_string(), (key, resolved_clone.clone(), ctx.base_uri.clone()));
+                                .insert(ref_val.to_string(), (key, resolved_clone.clone(), target_base_uri.clone()));
+                                
+                            let saved_base = ctx.base_uri.clone();
+                            ctx.base_uri = target_base_uri;
+                                
                             // Only increment depth for $ref hops (not AST traversal).
                             collect_deps(&resolved_clone, ref_val, depth + 1, ctx)?;
+                            
+                            ctx.base_uri = saved_base;
                         }
                     }
                 }

@@ -97,7 +97,7 @@ pub fn normalize(
         resolved_cache: HashMap::new(),
         recursive_refs: Vec::new(),
         resolver: &resolver,
-        base_uri: resolver.base_uri().clone(),
+        base_uri: crate::anchor_utils::default_base_uri(),
     };
     let result = resolve_refs(root, "#", 0, &mut ctx)?;
 
@@ -394,12 +394,10 @@ fn resolve_refs(
     // Save base URI — $id scoping is lexical (per-subtree), not global.
     let saved_base = ctx.base_uri.clone();
 
-    // Track $id for base URI scoping (skip exactly at root since it's already in ctx.base_uri)
-    if path != "#" {
-        if let Some(id_val) = result.get("$id").and_then(Value::as_str).map(String::from) {
-            if let Ok(new_base) = ctx.base_uri.join(&id_val) {
-                ctx.base_uri = new_base;
-            }
+    // Track $id for base URI scoping.
+    if let Some(id_val) = result.get("$id").and_then(Value::as_str).map(String::from) {
+        if let Ok(new_base) = ctx.base_uri.join(&id_val) {
+            ctx.base_uri = new_base;
         }
     }
 
@@ -465,8 +463,13 @@ fn resolve_single_ref(
     // Mark as visiting for cycle detection.
     ctx.visiting.insert(ref_str.to_string());
 
+    let saved_base = ctx.base_uri.clone();
+    ctx.base_uri = ctx.resolver.parent_base_uri_for_pointer(ctx.root, ref_str);
+
     // Recursively resolve the target (handles chained refs like A→B→C).
     let resolved = resolve_refs(target.clone(), path, depth + 1, ctx)?;
+
+    ctx.base_uri = saved_base;
 
     // Unmark after resolution.
     ctx.visiting.remove(ref_str);

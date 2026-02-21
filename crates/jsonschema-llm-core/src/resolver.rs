@@ -61,6 +61,60 @@ impl ResolverEngine {
         crate::anchor_utils::resolve_ref(ref_str, current_base, &self.anchor_map)
     }
 
+    /// Compute the lexical base URI for the PARENT of a JSON Pointer by walking
+    /// from the root down to the parent, accumulating `$id` scopes.
+    pub fn parent_base_uri_for_pointer(&self, root_schema: &Value, pointer: &str) -> Url {
+        let mut current_base = crate::anchor_utils::default_base_uri();
+
+        let stripped = pointer.strip_prefix('#').unwrap_or(pointer);
+        if stripped.is_empty() || stripped == "/" {
+            return current_base;
+        }
+
+        // Apply root $id.
+        let mut current_node = root_schema;
+        if let Some(id_val) = current_node.get("$id").and_then(Value::as_str) {
+            if let Ok(new_base) = current_base.join(id_val) {
+                current_base = new_base;
+            }
+        }
+
+        let segments: Vec<&str> = stripped.split('/').filter(|s| !s.is_empty()).collect();
+        // Go up to the parent (len - 1)
+        for segment in segments.iter().take(segments.len().saturating_sub(1)) {
+            let unescaped = segment.replace("~1", "/").replace("~0", "~");
+            current_node = match current_node {
+                Value::Object(obj) => {
+                    if let Some(child) = obj.get(&unescaped) {
+                        child
+                    } else {
+                        break;
+                    }
+                }
+                Value::Array(arr) => {
+                    if let Ok(idx) = unescaped.parse::<usize>() {
+                        if let Some(child) = arr.get(idx) {
+                            child
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                _ => break,
+            };
+
+            if let Some(id_val) = current_node.get("$id").and_then(Value::as_str) {
+                if let Ok(new_base) = current_base.join(id_val) {
+                    current_base = new_base;
+                }
+            }
+        }
+
+        current_base
+    }
+
     /// The root base URI for this schema document.
     pub fn base_uri(&self) -> &Url {
         &self.base_uri
