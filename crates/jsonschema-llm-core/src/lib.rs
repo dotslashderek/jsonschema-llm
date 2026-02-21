@@ -378,6 +378,112 @@ pub fn rehydrate_json(
     serde_json::to_string(&bridge).map_err(|e| err_json(ConvertError::JsonError(e)))
 }
 
+/// FFI envelope for `convert_all_components` results. Injects `apiVersion` for FFI consumers.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BridgeConvertAllResult<'a> {
+    api_version: &'static str,
+    #[serde(flatten)]
+    inner: &'a ConvertAllResult,
+}
+
+/// List all extractable component JSON Pointers in a schema (as a JSON string).
+///
+/// This is the FFI-friendly entry point — accepts and returns plain JSON strings.
+/// The typed [`list_components`] API remains available for Rust consumers.
+///
+/// # Arguments
+///
+/// * `schema_json` — A JSON Schema document as a string
+///
+/// # Returns
+///
+/// * `Ok(String)` — `{"apiVersion": "1.0", "components": ["#/$defs/Foo", ...]}`
+/// * `Err(String)` — `{"code": "...", "message": "...", "path": ...}`
+pub fn list_components_json(schema_json: &str) -> Result<String, String> {
+    let schema: Value =
+        serde_json::from_str(schema_json).map_err(|e| err_json(ConvertError::JsonError(e)))?;
+    let components = list_components(&schema);
+    let result = serde_json::json!({
+        "apiVersion": API_VERSION,
+        "components": components,
+    });
+    serde_json::to_string(&result).map_err(|e| err_json(ConvertError::JsonError(e)))
+}
+
+/// Extract a single component from a schema by JSON Pointer (as a JSON string).
+///
+/// This is the FFI-friendly entry point — accepts and returns plain JSON strings.
+/// The typed [`extract_component`] API remains available for Rust consumers.
+///
+/// # Arguments
+///
+/// * `schema_json` — A JSON Schema document as a string
+/// * `pointer` — RFC 6901 JSON Pointer to the component (e.g. `#/$defs/Pet`)
+/// * `options_json` — Extraction options as a JSON string (kebab-case keys).
+///   Pass `"{}"` for defaults.
+///
+/// # Returns
+///
+/// * `Ok(String)` — `{"apiVersion": "1.0", "schema": {...}, "pointer": "...", ...}`
+/// * `Err(String)` — `{"code": "...", "message": "...", "path": ...}`
+pub fn extract_component_json(
+    schema_json: &str,
+    pointer: &str,
+    options_json: &str,
+) -> Result<String, String> {
+    let schema: Value =
+        serde_json::from_str(schema_json).map_err(|e| err_json(ConvertError::JsonError(e)))?;
+    let options: extract::ExtractOptions =
+        serde_json::from_str(options_json).map_err(|e| err_json(ConvertError::JsonError(e)))?;
+    let result = extract_component(&schema, pointer, &options).map_err(err_json)?;
+    let envelope = serde_json::json!({
+        "apiVersion": API_VERSION,
+        "schema": result.schema,
+        "pointer": result.pointer,
+        "dependencyCount": result.dependency_count,
+        "missingRefs": result.missing_refs,
+    });
+    serde_json::to_string(&envelope).map_err(|e| err_json(ConvertError::JsonError(e)))
+}
+
+/// Convert a JSON Schema and all its components in a single call (as JSON strings).
+///
+/// This is the FFI-friendly entry point — accepts and returns plain JSON strings.
+/// The typed [`convert_all_components`] API remains available for Rust consumers.
+///
+/// # Arguments
+///
+/// * `schema_json` — A JSON Schema document as a string
+/// * `convert_options_json` — Conversion options as a JSON string (kebab-case keys).
+///   Pass `"{}"` for defaults.
+/// * `extract_options_json` — Extraction options as a JSON string (kebab-case keys).
+///   Pass `"{}"` for defaults.
+///
+/// # Returns
+///
+/// * `Ok(String)` — `{"apiVersion": "1.0", "full": {...}, "components": [...], ...}`
+/// * `Err(String)` — `{"code": "...", "message": "...", "path": ...}`
+pub fn convert_all_components_json(
+    schema_json: &str,
+    convert_options_json: &str,
+    extract_options_json: &str,
+) -> Result<String, String> {
+    let schema: Value =
+        serde_json::from_str(schema_json).map_err(|e| err_json(ConvertError::JsonError(e)))?;
+    let convert_options: ConvertOptions = serde_json::from_str(convert_options_json)
+        .map_err(|e| err_json(ConvertError::JsonError(e)))?;
+    let extract_options: extract::ExtractOptions = serde_json::from_str(extract_options_json)
+        .map_err(|e| err_json(ConvertError::JsonError(e)))?;
+    let result =
+        convert_all_components(&schema, &convert_options, &extract_options).map_err(err_json)?;
+    let bridge = BridgeConvertAllResult {
+        api_version: API_VERSION,
+        inner: &result,
+    };
+    serde_json::to_string(&bridge).map_err(|e| err_json(ConvertError::JsonError(e)))
+}
+
 // ===========================================================================
 // Tests (TDD — written before implementation)
 // ===========================================================================
@@ -560,5 +666,133 @@ mod tests {
     fn test_skip_components_defaults_false() {
         let opts = ConvertOptions::default();
         assert!(!opts.skip_components);
+    }
+
+    // -----------------------------------------------------------------------
+    // Bridge JSON API — unit tests (#177)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_list_components_json_returns_sorted_pointers() {
+        let schema = json!({
+            "$defs": {
+                "B": { "type": "integer" },
+                "A": { "type": "string" }
+            }
+        });
+        let schema_json = serde_json::to_string(&schema).unwrap();
+        let result =
+            list_components_json(&schema_json).expect("list_components_json should succeed");
+        let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["apiVersion"], "1.0");
+        let components = parsed["components"].as_array().unwrap();
+        assert_eq!(components.len(), 2);
+        // Sorted A < B
+        assert_eq!(components[0], "#/$defs/A");
+        assert_eq!(components[1], "#/$defs/B");
+    }
+
+    #[test]
+    fn test_list_components_json_empty_schema() {
+        let schema_json = r#"{"type": "object"}"#;
+        let result = list_components_json(schema_json).expect("should succeed on plain schema");
+        let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert!(parsed["components"].as_array().unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_list_components_json_invalid_json_returns_err() {
+        let result = list_components_json("not json");
+        assert!(result.is_err(), "invalid JSON should return Err");
+        let err: serde_json::Value = serde_json::from_str(&result.unwrap_err()).unwrap();
+        assert!(err.get("code").is_some(), "error should have a code field");
+    }
+
+    #[test]
+    fn test_extract_component_json_happy_path() {
+        let schema = json!({
+            "$defs": {
+                "Pet": { "type": "object", "properties": { "name": { "type": "string" } } },
+                "Tag": { "type": "string" }
+            }
+        });
+        let schema_json = serde_json::to_string(&schema).unwrap();
+        let result = extract_component_json(&schema_json, "#/$defs/Pet", "{}")
+            .expect("extract_component_json should succeed");
+        let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["apiVersion"], "1.0");
+        assert_eq!(parsed["pointer"], "#/$defs/Pet");
+        assert!(parsed["schema"].is_object());
+        assert_eq!(parsed["dependencyCount"], 0);
+    }
+
+    #[test]
+    fn test_extract_component_json_missing_pointer_returns_err() {
+        let schema = json!({ "$defs": { "Foo": { "type": "string" } } });
+        let schema_json = serde_json::to_string(&schema).unwrap();
+        let result = extract_component_json(&schema_json, "#/$defs/DoesNotExist", "{}");
+        assert!(result.is_err(), "missing pointer should return Err");
+        let err: serde_json::Value = serde_json::from_str(&result.unwrap_err()).unwrap();
+        assert!(err.get("code").is_some());
+    }
+
+    #[test]
+    fn test_extract_component_json_with_max_depth_option() {
+        let schema = json!({
+            "$defs": {
+                "A": { "$ref": "#/$defs/B" },
+                "B": { "$ref": "#/$defs/C" },
+                "C": { "type": "string" }
+            }
+        });
+        let schema_json = serde_json::to_string(&schema).unwrap();
+        // max-depth=1 allows exactly 1 hop; A→B is hop 1, B→C is hop 2 → error
+        let result = extract_component_json(&schema_json, "#/$defs/A", r#"{"max-depth": 1}"#);
+        assert!(result.is_err(), "should fail with tight max-depth");
+    }
+
+    #[test]
+    fn test_convert_all_components_json_happy_path() {
+        let schema = json!({
+            "$defs": {
+                "X": { "type": "string" },
+                "Y": { "type": "integer" }
+            }
+        });
+        let schema_json = serde_json::to_string(&schema).unwrap();
+        let result = convert_all_components_json(&schema_json, "{}", "{}")
+            .expect("convert_all_components_json should succeed");
+        let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["apiVersion"], "1.0");
+        assert!(parsed["full"].is_object());
+        let components = parsed["components"].as_array().unwrap();
+        assert_eq!(components.len(), 2);
+    }
+
+    #[test]
+    fn test_convert_all_components_json_invalid_schema_returns_err() {
+        let result = convert_all_components_json("not json", "{}", "{}");
+        assert!(result.is_err());
+        let err: serde_json::Value = serde_json::from_str(&result.unwrap_err()).unwrap();
+        assert!(err.get("code").is_some());
+    }
+
+    #[test]
+    fn test_extract_options_serde_round_trip() {
+        let opts = ExtractOptions { max_depth: Some(5) };
+        let json = serde_json::to_string(&opts).unwrap();
+        assert!(
+            json.contains("\"max-depth\""),
+            "kebab-case field expected; got: {}",
+            json
+        );
+        let deserialized: ExtractOptions = serde_json::from_str(&json).unwrap();
+        assert_eq!(deserialized.max_depth, Some(5));
+    }
+
+    #[test]
+    fn test_extract_options_defaults_to_none() {
+        let opts = ExtractOptions::default();
+        assert!(opts.max_depth.is_none());
     }
 }

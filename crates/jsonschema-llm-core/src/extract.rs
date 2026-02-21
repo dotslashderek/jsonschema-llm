@@ -41,7 +41,9 @@ use crate::schema_utils::{escape_pointer_segment, resolve_pointer};
 // ---------------------------------------------------------------------------
 
 /// Options for component extraction.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[non_exhaustive]
+#[serde(rename_all = "kebab-case", default)]
 pub struct ExtractOptions {
     /// Maximum DFS depth for transitive dependency resolution.
     /// `None` means unbounded (default).

@@ -311,3 +311,142 @@ pub extern "C" fn jsl_rehydrate(
         &schema_str,
     )) as u32
 }
+
+/// List all extractable component JSON Pointers in a schema.
+///
+/// # Arguments
+///
+/// - `schema_ptr` / `schema_len`: JSON Schema document (UTF-8 bytes in linear memory)
+///
+/// # Returns
+///
+/// Pointer to a `JslResult`. `status=0` payload: `{"apiVersion":"1.0","components":[...]}`.
+#[no_mangle]
+pub extern "C" fn jsl_list_components(schema_ptr: u32, schema_len: u32) -> u32 {
+    let schema_str = match unsafe { read_guest_str(schema_ptr, schema_len) } {
+        Ok(s) => s,
+        Err(err_ptr) => return err_ptr as u32,
+    };
+    result_from_bridge(jsonschema_llm_core::list_components_json(&schema_str)) as u32
+}
+
+/// Extract a single component from a schema by JSON Pointer.
+///
+/// # Arguments
+///
+/// - `schema_ptr` / `schema_len`: JSON Schema document (UTF-8 bytes)
+/// - `pointer_ptr` / `pointer_len`: RFC 6901 JSON Pointer string (UTF-8 bytes)
+/// - `opts_ptr` / `opts_len`: Extraction options JSON (UTF-8 bytes). Pass 0/0 for defaults.
+///
+/// # Returns
+///
+/// Pointer to a `JslResult`. `status=0` payload: `{"apiVersion":"1.0","schema":{...},...}`.
+#[no_mangle]
+pub extern "C" fn jsl_extract_component(
+    schema_ptr: u32,
+    schema_len: u32,
+    pointer_ptr: u32,
+    pointer_len: u32,
+    opts_ptr: u32,
+    opts_len: u32,
+) -> u32 {
+    let schema_str = match unsafe { read_guest_str(schema_ptr, schema_len) } {
+        Ok(s) => s,
+        Err(err_ptr) => return err_ptr as u32,
+    };
+    let pointer_str = match unsafe { read_guest_str(pointer_ptr, pointer_len) } {
+        Ok(s) => s,
+        Err(err_ptr) => return err_ptr as u32,
+    };
+    let default_extract_opts =
+        serde_json::to_string(&jsonschema_llm_core::ExtractOptions::default())
+            .expect("default extract options serialize");
+    let effective_opts = if opts_ptr == 0 || opts_len == 0 {
+        default_extract_opts
+    } else {
+        let opts_str = match unsafe { read_guest_str(opts_ptr, opts_len) } {
+            Ok(s) => s,
+            Err(err_ptr) => return err_ptr as u32,
+        };
+        let is_empty = serde_json::from_str::<serde_json::Value>(&opts_str)
+            .map(|v| matches!(&v, serde_json::Value::Object(m) if m.is_empty()))
+            .unwrap_or(false);
+        if is_empty {
+            default_extract_opts
+        } else {
+            opts_str
+        }
+    };
+    result_from_bridge(jsonschema_llm_core::extract_component_json(
+        &schema_str,
+        &pointer_str,
+        &effective_opts,
+    )) as u32
+}
+
+/// Convert a JSON Schema and all its discoverable components in one call.
+///
+/// # Arguments
+///
+/// - `schema_ptr` / `schema_len`: JSON Schema document (UTF-8 bytes)
+/// - `conv_opts_ptr` / `conv_opts_len`: Conversion options JSON (UTF-8 bytes). Pass 0/0 for defaults.
+/// - `ext_opts_ptr` / `ext_opts_len`: Extraction options JSON (UTF-8 bytes). Pass 0/0 for defaults.
+///
+/// # Returns
+///
+/// Pointer to a `JslResult`. `status=0` payload: `{"apiVersion":"1.0","full":{...},"components":[...]}`.
+#[no_mangle]
+pub extern "C" fn jsl_convert_all_components(
+    schema_ptr: u32,
+    schema_len: u32,
+    conv_opts_ptr: u32,
+    conv_opts_len: u32,
+    ext_opts_ptr: u32,
+    ext_opts_len: u32,
+) -> u32 {
+    let schema_str = match unsafe { read_guest_str(schema_ptr, schema_len) } {
+        Ok(s) => s,
+        Err(err_ptr) => return err_ptr as u32,
+    };
+    let default_conv_opts = serde_json::to_string(&jsonschema_llm_core::ConvertOptions::default())
+        .expect("default convert options serialize");
+    let effective_conv_opts = if conv_opts_ptr == 0 || conv_opts_len == 0 {
+        default_conv_opts
+    } else {
+        let opts_str = match unsafe { read_guest_str(conv_opts_ptr, conv_opts_len) } {
+            Ok(s) => s,
+            Err(err_ptr) => return err_ptr as u32,
+        };
+        let is_empty = serde_json::from_str::<serde_json::Value>(&opts_str)
+            .map(|v| matches!(&v, serde_json::Value::Object(m) if m.is_empty()))
+            .unwrap_or(false);
+        if is_empty {
+            default_conv_opts
+        } else {
+            opts_str
+        }
+    };
+    let default_ext_opts = serde_json::to_string(&jsonschema_llm_core::ExtractOptions::default())
+        .expect("default extract options serialize");
+    let effective_ext_opts = if ext_opts_ptr == 0 || ext_opts_len == 0 {
+        default_ext_opts
+    } else {
+        let opts_str = match unsafe { read_guest_str(ext_opts_ptr, ext_opts_len) } {
+            Ok(s) => s,
+            Err(err_ptr) => return err_ptr as u32,
+        };
+        let is_empty = serde_json::from_str::<serde_json::Value>(&opts_str)
+            .map(|v| matches!(&v, serde_json::Value::Object(m) if m.is_empty()))
+            .unwrap_or(false);
+        if is_empty {
+            default_ext_opts
+        } else {
+            opts_str
+        }
+    };
+    result_from_bridge(jsonschema_llm_core::convert_all_components_json(
+        &schema_str,
+        &effective_conv_opts,
+        &effective_ext_opts,
+    )) as u32
+}
