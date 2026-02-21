@@ -31,158 +31,77 @@ pub fn compile_composition(
     config: &ConvertOptions,
 ) -> Result<PassResult, ConvertError> {
     let mut dropped = Vec::new();
-    let result = walk(schema, "#", 0, config, &mut dropped)?;
+    let mut folder = CompositionFolder {
+        config,
+        dropped: &mut dropped,
+    };
+    let result = crate::schema_walker::fold(schema, &mut folder, "#", 0)?;
     Ok(PassResult::with_dropped(result, dropped))
 }
 
 // ---------------------------------------------------------------------------
-// Recursive walker
+// CompositionFolder — SchemaFolder implementation
 // ---------------------------------------------------------------------------
 
-fn walk(
-    schema: Value,
-    path: &str,
-    depth: usize,
-    config: &ConvertOptions,
-    dropped: &mut Vec<DroppedConstraint>,
-) -> Result<Value, ConvertError> {
-    if depth > config.max_depth {
-        return Err(ConvertError::RecursionDepthExceeded {
-            path: path.to_string(),
-            max_depth: config.max_depth,
-        });
-    }
+struct CompositionFolder<'a> {
+    config: &'a ConvertOptions,
+    dropped: &'a mut Vec<DroppedConstraint>,
+}
 
-    let Value::Object(mut obj) = schema else {
-        return Ok(schema);
-    };
+impl crate::schema_walker::SchemaFolder for CompositionFolder<'_> {
+    type Error = ConvertError;
 
-    // --- 1. Recurse into children FIRST (bottom-up) ---
-    // Cross-reference: keyword list should match schema_utils::recurse_into_children.
-    // P1 cannot use the shared helper because it consumes values and handles
-    // allOf by merging siblings.
-
-    // properties
-    if let Some(Value::Object(props)) = obj.remove("properties") {
-        let mut new_props = Map::new();
-        for (key, val) in props {
-            let child_path = build_path(path, &["properties", &key]);
-            new_props.insert(key, walk(val, &child_path, depth + 1, config, dropped)?);
+    fn fold_schema(
+        &mut self,
+        schema: Value,
+        path: &str,
+        depth: usize,
+    ) -> Result<crate::schema_walker::FoldAction, Self::Error> {
+        if depth > self.config.max_depth {
+            return Err(ConvertError::RecursionDepthExceeded {
+                path: path.to_string(),
+                max_depth: self.config.max_depth,
+            });
         }
-        obj.insert("properties".to_string(), Value::Object(new_props));
-    }
 
-    // patternProperties
-    if let Some(Value::Object(props)) = obj.remove("patternProperties") {
-        let mut new_props = Map::new();
-        for (key, val) in props {
-            let child_path = build_path(path, &["patternProperties", &key]);
-            new_props.insert(key, walk(val, &child_path, depth + 1, config, dropped)?);
-        }
-        obj.insert("patternProperties".to_string(), Value::Object(new_props));
-    }
+        let Value::Object(mut obj) = schema else {
+            return Ok(crate::schema_walker::FoldAction::Replace(schema));
+        };
 
-    // $defs / definitions / dependentSchemas (map-of-schemas)
-    for keyword in ["$defs", "definitions", "dependentSchemas"] {
-        if let Some(Value::Object(defs)) = obj.remove(keyword) {
-            let mut new_defs = Map::new();
-            for (key, val) in defs {
-                let child_path = build_path(path, &[keyword, &key]);
-                new_defs.insert(key, walk(val, &child_path, depth + 1, config, dropped)?);
+        // If this node has `allOf`, handle it specially:
+        //   1. Fold non-allOf children via Continue → fold_children (bottom-up)
+        //   2. Fold each allOf sub-schema via fold() (bottom-up)
+        //   3. Merge siblings + walked sub-schemas
+        //   4. Return Replace (the merged result is already fully folded)
+        if let Some(Value::Array(sub_schemas)) = obj.remove("allOf") {
+            // First, fold all non-allOf children of `obj` so the sibling keywords
+            // are fully normalised before we merge them.
+            let siblings = crate::schema_walker::fold(Value::Object(obj), self, path, depth)?;
+
+            // Then, fold each allOf sub-schema.
+            let mut walked = Vec::new();
+            for (i, sub) in sub_schemas.into_iter().enumerate() {
+                let child_path = build_path(path, &["allOf", &i.to_string()]);
+                walked.push(crate::schema_walker::fold(
+                    sub,
+                    self,
+                    &child_path,
+                    depth + 1,
+                )?);
             }
-            obj.insert(keyword.to_string(), Value::Object(new_defs));
-        }
-    }
 
-    // items (object or array form)
-    if let Some(items) = obj.remove("items") {
-        match items {
-            Value::Object(_) => {
-                let child_path = build_path(path, &["items"]);
-                obj.insert(
-                    "items".to_string(),
-                    walk(items, &child_path, depth + 1, config, dropped)?,
-                );
-            }
-            Value::Array(arr) => {
-                let mut walked = Vec::with_capacity(arr.len());
-                for (i, item) in arr.into_iter().enumerate() {
-                    let child_path = build_path(path, &["items", &i.to_string()]);
-                    walked.push(walk(item, &child_path, depth + 1, config, dropped)?);
-                }
-                obj.insert("items".to_string(), Value::Array(walked));
-            }
-            other => {
-                obj.insert("items".to_string(), other);
-            }
-        }
-    }
-
-    // anyOf / oneOf
-    for keyword in &["anyOf", "oneOf"] {
-        if let Some(Value::Array(variants)) = obj.remove(*keyword) {
-            let mut new_variants = Vec::new();
-            for (i, v) in variants.into_iter().enumerate() {
-                let child_path = build_path(path, &[keyword, &i.to_string()]);
-                new_variants.push(walk(v, &child_path, depth + 1, config, dropped)?);
-            }
-            obj.insert(keyword.to_string(), Value::Array(new_variants));
-        }
-    }
-
-    // Single-schema keywords: additionalProperties, unevaluatedProperties,
-    // propertyNames, unevaluatedItems, contains, not, if, then, else
-    for keyword in [
-        "additionalProperties",
-        "unevaluatedProperties",
-        "propertyNames",
-        "unevaluatedItems",
-        "contains",
-        "not",
-        "if",
-        "then",
-        "else",
-    ] {
-        if let Some(val) = obj.remove(keyword) {
-            if val.is_object() {
-                let child_path = build_path(path, &[keyword]);
-                obj.insert(
-                    keyword.to_string(),
-                    walk(val, &child_path, depth + 1, config, dropped)?,
-                );
-            } else {
-                obj.insert(keyword.to_string(), val);
-            }
-        }
-    }
-
-    // prefixItems (array-of-schemas)
-    if let Some(Value::Array(items)) = obj.remove("prefixItems") {
-        let mut walked = Vec::with_capacity(items.len());
-        for (i, item) in items.into_iter().enumerate() {
-            let child_path = build_path(path, &["prefixItems", &i.to_string()]);
-            walked.push(walk(item, &child_path, depth + 1, config, dropped)?);
-        }
-        obj.insert("prefixItems".to_string(), Value::Array(walked));
-    }
-
-    // allOf — recurse into sub-schemas before merging
-    if let Some(Value::Array(sub_schemas)) = obj.remove("allOf") {
-        let mut walked = Vec::new();
-        for (i, sub) in sub_schemas.into_iter().enumerate() {
-            let child_path = build_path(path, &["allOf", &i.to_string()]);
-            walked.push(walk(sub, &child_path, depth + 1, config, dropped)?);
+            // Merge: siblings first, then allOf sub-schemas overlay.
+            let mut all = vec![siblings];
+            all.extend(walked);
+            let merged = merge_allof(all, path, self.dropped)?;
+            return Ok(crate::schema_walker::FoldAction::Replace(merged));
         }
 
-        // Collect sibling keywords as an implicit first sub-schema
-        let siblings = Value::Object(obj);
-        let mut all = vec![siblings];
-        all.extend(walked);
-
-        return merge_allof(all, path, dropped);
+        // No allOf — let the generic fold driver handle child recursion.
+        Ok(crate::schema_walker::FoldAction::Continue(Value::Object(
+            obj,
+        )))
     }
-
-    Ok(Value::Object(obj))
 }
 
 // ---------------------------------------------------------------------------
