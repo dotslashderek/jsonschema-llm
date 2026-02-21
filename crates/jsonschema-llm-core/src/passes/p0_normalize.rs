@@ -16,7 +16,7 @@
 //! - `$id` / `$anchor` scoped resolution is not implemented.
 //! - External (`http://...`) and dynamic refs are rejected with errors.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use serde_json::{Map, Value};
 
@@ -30,6 +30,10 @@ struct RefContext<'a> {
     root: &'a Value,
     config: &'a ConvertOptions,
     visiting: HashSet<String>,
+    /// Memoization cache: stores already-resolved values keyed by $ref string.
+    /// Prevents O(fan_out^depth) re-expansion when multiple sibling properties
+    /// reference the same definition (e.g., meta-schema defs with 10+ self-refs).
+    resolved_cache: HashMap<String, Value>,
     recursive_refs: Vec<String>,
 }
 
@@ -72,9 +76,13 @@ pub fn normalize(
     schema: &Value,
     config: &ConvertOptions,
 ) -> Result<NormalizePassResult, ConvertError> {
-    // Phase 1: normalize items array → prefixItems.
+    // Phase 1: normalize items array → prefixItems, strip annotations
+    // and meta-schema fragments that would break ref resolution.
     let mut root = schema.clone();
     normalize_items_recursive(&mut root);
+    strip_examples_recursive(&mut root);
+    strip_problematic_root_defs(&mut root);
+    strip_nested_defs_recursive(&mut root, true);
 
     // Phase 2: resolve $ref.
     let frozen_root = root.clone();
@@ -82,6 +90,7 @@ pub fn normalize(
         root: &frozen_root,
         config,
         visiting: HashSet::new(),
+        resolved_cache: HashMap::new(),
         recursive_refs: Vec::new(),
     };
     let result = resolve_refs(root, "#", 0, &mut ctx)?;
@@ -169,6 +178,260 @@ fn normalize_items_recursive(value: &mut Value) {
 }
 
 // ---------------------------------------------------------------------------
+// Phase 1b: Strip examples arrays (contain non-schema $ref strings)
+// ---------------------------------------------------------------------------
+
+/// Recursively remove all `examples` keys whose value is an array.
+///
+/// `examples` is an annotation keyword (not schema-bearing). In bundled
+/// spec schemas like AsyncAPI 2.6, examples arrays contain sample data with
+/// `$ref`-like strings (e.g., `#/components/schemas/signup`) that are NOT
+/// JSON Schema references. If left in, the ref resolver crashes on them.
+fn strip_examples_recursive(value: &mut Value) {
+    let Some(obj) = value.as_object_mut() else {
+        return;
+    };
+
+    // Remove examples if it's an array
+    if obj.get("examples").is_some_and(|v| v.is_array()) {
+        obj.remove("examples");
+    }
+
+    // Recurse into all values
+    for val in obj.values_mut() {
+        match val {
+            Value::Object(_) => strip_examples_recursive(val),
+            Value::Array(arr) => {
+                for item in arr.iter_mut() {
+                    strip_examples_recursive(item);
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 1b': Strip problematic root-level definitions (meta-schemas)
+// ---------------------------------------------------------------------------
+
+/// Maximum self-references before a definition is considered problematic.
+const SELF_REF_THRESHOLD: usize = 5;
+
+/// Detect and remove root-level definitions that are meta-schemas (e.g.,
+/// Draft-07, OpenAPI 3.0, Avro). These defs contain nested `definitions`
+/// blocks and/or 5+ self-referential `$ref`s, causing exponential blowup
+/// during ref resolution.
+///
+/// Stripped defs' `$ref` pointers are neutralized to `{}` (accept-all).
+fn strip_problematic_root_defs(schema: &mut Value) {
+    let Some(root) = schema.as_object_mut() else {
+        return;
+    };
+
+    // Identify which root-level definitions container to inspect.
+    let defs_key = if root.contains_key("definitions") {
+        "definitions"
+    } else if root.contains_key("$defs") {
+        "$defs"
+    } else {
+        return;
+    };
+
+    // Phase 1: Identify problematic def names.
+    let problematic_names: Vec<String> = {
+        let defs = match root.get(defs_key).and_then(|v| v.as_object()) {
+            Some(m) => m,
+            None => return,
+        };
+        defs.iter()
+            .filter(|(name, defn)| is_problematic_def(name, defn, defs_key))
+            .map(|(name, _)| name.clone())
+            .collect()
+    };
+
+    if problematic_names.is_empty() {
+        return;
+    }
+
+    // Phase 2: Remove problematic defs from the definitions map.
+    if let Some(Value::Object(defs)) = root.get_mut(defs_key) {
+        for name in &problematic_names {
+            defs.remove(name);
+        }
+    }
+
+    // Phase 3: Build ref patterns to neutralize.
+    let dead_prefixes: Vec<String> = problematic_names
+        .iter()
+        .flat_map(|name| {
+            vec![
+                format!("#/{}/{}", defs_key, name),
+                // Also match the alternate key (definitions vs $defs)
+                if defs_key == "definitions" {
+                    format!("#/$defs/{}", name)
+                } else {
+                    format!("#/definitions/{}", name)
+                },
+            ]
+        })
+        .collect();
+
+    // Phase 4: Neutralize all $ref pointers to stripped defs.
+    neutralize_dead_refs(schema, &dead_prefixes);
+}
+
+/// Returns true if a definition is a problematic meta-schema.
+///
+/// Heuristic (matches Python `preprocess-asyncapi.py`):
+/// 1. Contains nested `definitions` or `$defs` blocks, OR
+/// 2. Has 5+ self-referential `$ref` pointers.
+fn is_problematic_def(name: &str, defn: &Value, defs_key: &str) -> bool {
+    if !defn.is_object() {
+        return false;
+    }
+
+    // Check for nested definitions blocks
+    if has_nested_defs(defn) {
+        return true;
+    }
+
+    // Count self-referential $refs
+    let self_ref_pattern = format!("#/{}/{}", defs_key, name);
+    let count = count_ref_occurrences(defn, &self_ref_pattern);
+    count >= SELF_REF_THRESHOLD
+}
+
+/// Recursively check if a value contains `definitions` or `$defs` keys.
+fn has_nested_defs(value: &Value) -> bool {
+    match value {
+        Value::Object(obj) => {
+            if obj.contains_key("definitions") || obj.contains_key("$defs") {
+                return true;
+            }
+            obj.values().any(has_nested_defs)
+        }
+        Value::Array(arr) => arr.iter().any(has_nested_defs),
+        _ => false,
+    }
+}
+
+/// Count how many `$ref` values in a subtree match a given pattern.
+fn count_ref_occurrences(value: &Value, pattern: &str) -> usize {
+    match value {
+        Value::Object(obj) => {
+            let self_hit = obj
+                .get("$ref")
+                .and_then(Value::as_str)
+                .is_some_and(|s| s == pattern);
+            let child_count: usize = obj
+                .values()
+                .map(|v| count_ref_occurrences(v, pattern))
+                .sum();
+            (if self_hit { 1 } else { 0 }) + child_count
+        }
+        Value::Array(arr) => arr.iter().map(|v| count_ref_occurrences(v, pattern)).sum(),
+        _ => 0,
+    }
+}
+
+/// Recursively replace `$ref` nodes whose value starts with any dead prefix
+/// with `{}` (accept-all schema).
+fn neutralize_dead_refs(value: &mut Value, dead_prefixes: &[String]) {
+    let Some(obj) = value.as_object_mut() else {
+        if let Value::Array(arr) = value {
+            for item in arr.iter_mut() {
+                neutralize_dead_refs(item, dead_prefixes);
+            }
+        }
+        return;
+    };
+
+    // Check if this node's $ref points to a dead prefix
+    if let Some(ref_str) = obj.get("$ref").and_then(Value::as_str).map(String::from) {
+        if dead_prefixes
+            .iter()
+            .any(|p| ref_str == *p || ref_str.starts_with(&format!("{}/", p)))
+        {
+            obj.clear();
+            return;
+        }
+    }
+
+    for val in obj.values_mut() {
+        neutralize_dead_refs(val, dead_prefixes);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 1c: Strip nested definitions blocks (meta-schema fragments)
+// ---------------------------------------------------------------------------
+
+/// Recursively remove `definitions` and `$defs` blocks that appear INSIDE
+/// definitions — i.e., meta-schema fragments.
+///
+/// Bundled spec schemas (e.g., AsyncAPI 2.6) embed meta-schemas like Draft-07
+/// as definitions. These meta-schemas contain their own nested `definitions`
+/// blocks (e.g., `schemaArray`, `nonNegativeInteger`). When the ref resolver
+/// walks into these nested blocks, it creates pointer chains that fail after
+/// the `definitions→$defs` rename.
+///
+/// Also neutralizes `$ref` pointers that reference paths INSIDE nested
+/// definitions (e.g., `#/definitions/X/definitions/Y`) since those targets
+/// no longer exist after stripping.
+///
+/// The `is_root` parameter preserves the root-level `definitions`/`$defs`
+/// (the actual schema definitions) while stripping nested ones.
+fn strip_nested_defs_recursive(value: &mut Value, is_root: bool) {
+    let Some(obj) = value.as_object_mut() else {
+        return;
+    };
+
+    // At non-root levels, strip definitions and $defs entirely
+    if !is_root {
+        obj.remove("definitions");
+        obj.remove("$defs");
+    }
+
+    // Neutralize $ref pointers into nested definition paths.
+    // A ref like "#/definitions/X/definitions/Y" has "definitions" appearing
+    // twice — meaning it points into a nested block we just stripped.
+    if let Some(ref_val) = obj.get("$ref").and_then(Value::as_str).map(String::from) {
+        if refs_into_nested_defs(&ref_val) {
+            // Replace the entire node with accept-all {} (remove all keys)
+            obj.clear();
+            return;
+        }
+    }
+
+    // Recurse into all values (children are never root)
+    for val in obj.values_mut() {
+        match val {
+            Value::Object(_) => strip_nested_defs_recursive(val, false),
+            Value::Array(arr) => {
+                for item in arr.iter_mut() {
+                    strip_nested_defs_recursive(item, false);
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+/// Returns true if a `$ref` pointer references a path inside a nested
+/// definitions block (i.e., `definitions` or `$defs` appears more than
+/// once in the JSON Pointer path segments).
+fn refs_into_nested_defs(ref_str: &str) -> bool {
+    let path = ref_str.strip_prefix('#').unwrap_or(ref_str);
+    let segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
+    let def_count = segments
+        .iter()
+        .filter(|s| **s == "definitions" || **s == "$defs")
+        .count();
+    def_count >= 2
+}
+
+// ---------------------------------------------------------------------------
 // Phase 2: $ref resolution via DFS with cycle detection
 // ---------------------------------------------------------------------------
 
@@ -228,6 +491,18 @@ fn resolve_single_ref(
         });
     }
 
+    // Check memoization cache — if we've already resolved this ref, reuse it.
+    // This turns O(fan_out^depth) into O(unique_defs) for schemas with
+    // multiple sibling $refs pointing to the same definition.
+    if let Some(cached) = ctx.resolved_cache.get(ref_str).cloned() {
+        let siblings: Map<String, Value> = obj
+            .iter()
+            .filter(|(k, _)| k.as_str() != "$ref")
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect();
+        return merge_ref_siblings(cached, siblings);
+    }
+
     // Check for cycles.
     if ctx.visiting.contains(ref_str) {
         ctx.recursive_refs.push(path.to_string());
@@ -250,6 +525,10 @@ fn resolve_single_ref(
     // Unmark after resolution.
     ctx.visiting.remove(ref_str);
 
+    // Cache the resolved value for future reuse (only non-recursive refs).
+    ctx.resolved_cache
+        .insert(ref_str.to_string(), resolved.clone());
+
     // Handle sibling keywords alongside $ref.
     let siblings: Map<String, Value> = obj
         .iter()
@@ -257,6 +536,17 @@ fn resolve_single_ref(
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect();
 
+    merge_ref_siblings(resolved, siblings)
+}
+
+/// Merge sibling keywords from a `$ref` site into the resolved definition.
+///
+/// Annotations (description, title, etc.) override; structural siblings are
+/// wrapped into an `allOf` for Pass 1 to handle.
+fn merge_ref_siblings(
+    resolved: Value,
+    siblings: Map<String, Value>,
+) -> Result<Value, ConvertError> {
     if siblings.is_empty() {
         return Ok(resolved);
     }
@@ -1107,5 +1397,96 @@ mod tests {
         // additionalItems had a $ref that should be resolved and migrated to items
         assert_eq!(output["items"], json!({ "type": "number" }));
         assert!(output.get("additionalItems").is_none());
+    }
+
+    // -----------------------------------------------------------------------
+    // Test: examples arrays with non-schema $ref strings (#201)
+    // examples are annotation data, not schema-bearing — $ref strings
+    // inside examples (e.g., "#/components/schemas/signup") are sample data,
+    // not JSON Schema $refs. They must be stripped before ref resolution.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_examples_with_fake_refs_stripped() {
+        let input = json!({
+            "type": "object",
+            "properties": {
+                "channel": {
+                    "type": "object",
+                    "properties": {
+                        "subscribe": { "type": "object" }
+                    },
+                    "examples": [
+                        {
+                            "subscribe": {
+                                "message": {
+                                    "payload": {
+                                        "$ref": "#/components/schemas/signup"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        });
+
+        let config = ConvertOptions::default();
+        let result = normalize(&input, &config);
+
+        // Should not crash on the fake $ref inside examples
+        assert!(
+            result.is_ok(),
+            "examples with non-schema $ref should not cause an error: {:?}",
+            result.unwrap_err()
+        );
+
+        // examples should be stripped from the output
+        let output = result.unwrap().pass.schema;
+        assert!(
+            output["properties"]["channel"].get("examples").is_none(),
+            "examples should be stripped during normalization"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Test: Nested definitions inside defs don't break ref resolution (#201)
+    // Meta-schema defs like Draft-07 contain nested `definitions` blocks.
+    // These should not be traversed for ref resolution since their internal
+    // refs point into meta-schema scope, not the parent document.
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_nested_definitions_inside_defs_skipped() {
+        // Simulates a def with nested definitions (like Draft-07 meta-schema)
+        let input = json!({
+            "type": "object",
+            "properties": {
+                "config": { "$ref": "#/$defs/MetaSchema" }
+            },
+            "$defs": {
+                "MetaSchema": {
+                    "type": "object",
+                    "definitions": {
+                        "schemaArray": {
+                            "type": "array",
+                            "items": { "$ref": "#/definitions/MetaSchema" }
+                        }
+                    },
+                    "properties": {
+                        "title": { "type": "string" },
+                        "allOf": { "$ref": "#/definitions/MetaSchema/definitions/schemaArray" }
+                    }
+                }
+            }
+        });
+
+        let config = ConvertOptions::default();
+        let result = normalize(&input, &config);
+
+        // Should not crash on unresolvable refs inside nested definitions
+        assert!(
+            result.is_ok(),
+            "nested definitions inside defs should not cause crash: {:?}",
+            result.unwrap_err()
+        );
     }
 }

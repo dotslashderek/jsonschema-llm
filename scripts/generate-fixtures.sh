@@ -104,22 +104,10 @@ generate_spec() {
     rm -rf "$output"
   fi
 
-  # Pre-process if needed (asyncapi requires stripping examples + meta-schemas)
-  local convert_source="$source_path"
-  if [[ "$spec" == "asyncapi" ]]; then
-    local preprocess_script="$SCRIPT_DIR/preprocess-asyncapi.py"
-    if [[ ! -f "$preprocess_script" ]]; then
-      echo "ERROR: Pre-processing script not found: $preprocess_script"
-      exit 1
-    fi
-    convert_source=$(mktemp)
-    trap "rm -f '$convert_source'" EXIT
-    python3 "$preprocess_script" "$source_path" "$convert_source"
-  fi
 
   # Generate
   STDERR_FILE=$(mktemp)
-  "$CLI" convert "$convert_source" --output-dir "$output" 2>"$STDERR_FILE"
+  "$CLI" convert "$source_path" --output-dir "$output" 2>"$STDERR_FILE"
 
   # Report component errors (expected for some recursive/unsupported schemas)
   if grep -q "Component error" "$STDERR_FILE"; then
