@@ -165,6 +165,22 @@ var original = Rehydrator.rehydrate(llmOutput, codec, schema);
 
 </details>
 
+### Pre-built Fixtures
+
+Pre-built schema/codec pairs are available for the **OpenAPI 3.1** specification schema — ready to use without running the conversion pipeline:
+
+```bash
+# Use a single OAS 3.1 component schema with your LLM
+cat fixtures/oas31/openai-strict/$defs/operation/schema.json
+
+# Rehydrate LLM output back to the original OAS shape
+jsonschema-llm rehydrate llm-output.json \
+  --codec fixtures/oas31/openai-strict/$defs/operation/codec.json \
+  --schema fixtures/oas31/source/oas31-schema.json
+```
+
+**46 components** extracted including `schema`, `operation`, `path-item`, `parameter`, `request-body`, `response`, `header`, `security-scheme`, and more. See [`fixtures/oas31/README.md`](fixtures/oas31/README.md) for the full component listing and regeneration instructions.
+
 ---
 
 <a id="why"></a>
