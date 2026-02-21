@@ -18,7 +18,12 @@ SOURCE_SCHEMA="$PROJECT_ROOT/fixtures/oas31/source/oas31-schema.json"
 OUTPUT_DIR="$PROJECT_ROOT/fixtures/oas31/openai-strict"
 CLI="$PROJECT_ROOT/target/release/jsonschema-llm"
 
-# ── Step 1: Verify source schema exists ──────────────────────────────────────
+# ── Step 1: Pre-flight checks (dependencies \u0026 source) ──────────────────────
+
+if ! command -v jq >/dev/null 2>&1; then
+  echo >&2 "ERROR: jq is required but not installed."
+  exit 1
+fi
 
 if [[ ! -f "$SOURCE_SCHEMA" ]]; then
   echo "ERROR: Source schema not found at $SOURCE_SCHEMA"
