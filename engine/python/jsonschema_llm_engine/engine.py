@@ -64,8 +64,8 @@ class LlmRoundtripEngine:
             RoundtripResult with rehydrated data and validation status.
         """
         # Step 1: Convert schema to LLM-compatible form
-        convert_result = self._call_wasi("jsl_convert", schema_json)
-        llm_schema = convert_result.get("data", {})
+        convert_result = self._call_wasi("jsl_convert", schema_json, "{}")
+        llm_schema = convert_result.get("schema", {})
         codec = convert_result.get("codec", {})
 
         return self.generate_with_preconverted(
@@ -140,12 +140,18 @@ class LlmRoundtripEngine:
         """Validate data against JSON Schema using the jsonschema library."""
         try:
             import jsonschema
+            import jsonschema.exceptions
 
             schema = json.loads(schema_json)
             validator = jsonschema.Draft202012Validator(schema)
             return [str(e.message) for e in validator.iter_errors(data)]
-        except Exception:
+        except ImportError:
             return []
+        except (
+            jsonschema.exceptions.SchemaError,
+            jsonschema.exceptions.UnknownType,
+        ) as e:
+            return [f"Schema validation error: {e}"]
 
     # ─── WASI Internals ─────────────────────────────────────────────────
 
