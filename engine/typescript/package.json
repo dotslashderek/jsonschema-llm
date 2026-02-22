@@ -1,0 +1,27 @@
+{
+  "name": "@json-schema-llm/engine",
+  "version": "0.1.0",
+  "description": "LLM Roundtrip Engine for json-schema-llm — orchestrates convert → format → call → rehydrate → validate",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@json-schema-llm/wasi": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39"
+}
