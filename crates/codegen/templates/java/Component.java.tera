@@ -38,6 +38,19 @@ public class {{ class_name }} {
         return loadResource("schemas/{{ codec_path }}");
     }
 
+    /**
+     * Load the original (pre-conversion) sub-schema for {{ component_name }}.
+     *
+     * <p>Use this as the validation/rehydration schema when calling
+     * {@code LlmRoundtripEngine.generateWithPreconverted()}.
+     *
+     * @return parsed original JSON schema node
+     * @throws IOException if the schema resource cannot be read
+     */
+    public static JsonNode original() throws IOException {
+        return loadResource("schemas/{{ original_path }}");
+    }
+
     private static JsonNode loadResource(String path) throws IOException {
         try (InputStream is = {{ class_name }}.class.getClassLoader().getResourceAsStream(path)) {
             if (is == null) {

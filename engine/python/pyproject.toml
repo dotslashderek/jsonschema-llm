@@ -22,3 +22,6 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = ["e2e: end-to-end tests requiring the WASM binary"]
+
+[tool.setuptools.package-data]
+json_schema_llm_engine = ["wasm/*.wasm"]

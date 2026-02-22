@@ -259,7 +259,20 @@ def _resolve_wasm_bytes(explicit: str | None) -> bytes:
         if p.is_file():
             return p.read_bytes()
 
-    # Tier 3: Repo-relative fallback (dev/CI)
+    # Tier 3: Bundled in package resources (pip install scenario)
+    try:
+        from importlib.resources import files as importlib_files
+
+        wasm_ref = importlib_files("json_schema_llm_engine").joinpath(
+            "wasm", "json_schema_llm_wasi.wasm"
+        )
+        wasm_bytes = wasm_ref.read_bytes()
+        if wasm_bytes:
+            return wasm_bytes
+    except (FileNotFoundError, ModuleNotFoundError):
+        pass
+
+    # Tier 4: Repo-relative fallback (dev/CI)
     repo_path = (
         Path(__file__).resolve().parent.parent.parent.parent
         / "target"
@@ -271,5 +284,5 @@ def _resolve_wasm_bytes(explicit: str | None) -> bytes:
         return repo_path.read_bytes()
 
     raise FileNotFoundError(
-        "WASM binary not found. Set JSON_SCHEMA_LLM_WASM_PATH or build the WASI target."
+        "WASM binary not found. Install json-schema-llm-engine[wasm] or set JSON_SCHEMA_LLM_WASM_PATH."
     )

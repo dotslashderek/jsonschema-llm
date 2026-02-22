@@ -20,6 +20,12 @@ def codec() -> Any:
     return _load_resource("schemas/{{ codec_path }}")
 
 
+@functools.lru_cache(maxsize=1)
+def original() -> Any:
+    """Load the original (pre-conversion) sub-schema for {{ component_name }}."""
+    return _load_resource("schemas/{{ original_path }}")
+
+
 def _load_resource(path: str) -> Any:
     ref = importlib_files("{{ package_name }}").joinpath(path)
     return json.loads(ref.read_text(encoding="utf-8"))

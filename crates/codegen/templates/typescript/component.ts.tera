@@ -16,6 +16,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 let _schemaCache: unknown | null = null;
 let _codecCache: unknown | null = null;
+let _originalCache: unknown | null = null;
 
 /** Load the LLM-compatible schema for {{ component_name }}. */
 export function schema(): unknown {
@@ -33,4 +34,13 @@ export function codec(): unknown {
     _codecCache = JSON.parse(raw);
   }
   return _codecCache;
+}
+
+/** Load the original (pre-conversion) sub-schema for {{ component_name }}. */
+export function original(): unknown {
+  if (_originalCache === null) {
+    const raw = readFileSync(join(__dirname, "..", "schemas", "{{ original_path }}"), "utf-8");
+    _originalCache = JSON.parse(raw);
+  }
+  return _originalCache;
 }
