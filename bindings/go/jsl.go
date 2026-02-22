@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/dotslashderek/jsonschema-llm/bindings/go/wasm"
+	"github.com/dotslashderek/json-schema-llm/bindings/go/wasm"
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 )
