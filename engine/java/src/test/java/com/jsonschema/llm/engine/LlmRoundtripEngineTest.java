@@ -3,9 +3,12 @@ package com.jsonschema.llm.engine;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -13,12 +16,17 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Acceptance tests for LlmRoundtripEngine.
+ * E2E acceptance tests for LlmRoundtripEngine.
  *
  * <p>
- * Uses a mock LlmTransport that returns deterministic responses,
- * allowing full roundtrip testing without HTTP calls.
+ * These tests load the real jsonschema_llm_wasi.wasm binary via Chicory
+ * and exercise the full convert → format → rehydrate pipeline. A mock
+ * LlmTransport returns deterministic responses to avoid HTTP calls.
+ *
+ * <p>
+ * Skipped gracefully if the WASM binary has not been built yet.
  */
+@Tag("e2e")
 class LlmRoundtripEngineTest {
 
         private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -38,13 +46,11 @@ class LlmRoundtripEngineTest {
 
         @BeforeAll
         static void setUp() {
-                String wasmPath = System.getenv("JSL_WASM_PATH");
-                if (wasmPath != null && !wasmPath.isEmpty()) {
-                        engine = LlmRoundtripEngine.create(Paths.get(wasmPath));
-                } else {
-                        Path fallback = Paths.get("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm");
-                        engine = LlmRoundtripEngine.create(fallback);
-                }
+                Path wasmFile = wasmPath();
+                Assumptions.assumeTrue(
+                                Files.exists(wasmFile),
+                                "WASM binary not found at " + wasmFile + ". Build with: make build-wasi");
+                engine = LlmRoundtripEngine.create(wasmFile);
         }
 
         @AfterAll
