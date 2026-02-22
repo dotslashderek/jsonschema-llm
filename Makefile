@@ -25,7 +25,7 @@ verify-bindings: build-wasi test-wasm-smoke test-wasi-host test-wrappers test-en
 	@echo "✅ All binding verification targets passed!"
 
 ## Full CI mirror: check + test + bindings
-verify-all: check test-rust verify-bindings test-engines
+verify-all: check test-rust verify-bindings
 	@echo ""
 	@echo "✅ Full CI verification passed!"
 

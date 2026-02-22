@@ -341,6 +341,11 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
+      - name: Build Java WASI bindings (local Maven)
+        if: matrix.engine == 'java'
+        run: ./gradlew publishToMavenLocal -x test
+        working-directory: bindings/java
+
       - name: Run Java engine tests
         if: matrix.engine == 'java'
         run: mvn test

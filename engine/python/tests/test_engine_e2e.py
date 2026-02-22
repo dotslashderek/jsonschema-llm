@@ -14,19 +14,29 @@ Written RED before implementation (TDD gate).
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pytest
 
-# WASM binary path: repo-relative fallback
-_WASM_PATH = (
-    Path(__file__).resolve().parent.parent.parent.parent
-    / "target"
-    / "wasm32-wasip1"
-    / "release"
-    / "jsonschema_llm_wasi.wasm"
-)
 
+# WASM binary path: env var → repo-relative fallback
+def _find_wasm_path() -> Path:
+    env = os.environ.get("JSONSCHEMA_LLM_WASM_PATH")
+    if env:
+        p = Path(env)
+        if p.is_file():
+            return p
+    return (
+        Path(__file__).resolve().parent.parent.parent.parent
+        / "target"
+        / "wasm32-wasip1"
+        / "release"
+        / "jsonschema_llm_wasi.wasm"
+    )
+
+
+_WASM_PATH = _find_wasm_path()
 _WASM_EXISTS = _WASM_PATH.is_file()
 
 e2e = pytest.mark.skipif(
