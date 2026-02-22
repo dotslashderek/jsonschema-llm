@@ -1,0 +1,23 @@
+{{ "{" }}
+  "name": "{{ package_name }}",
+  "version": "0.1.0",
+  "description": "Generated SDK for {{ package_name }}",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"no tests yet\""
+  },
+  "dependencies": {
+    "@json-schema-llm/wasi": "^0.1.0",
+    "@json-schema-llm/engine": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0"
+  }
+{{ "}" }}

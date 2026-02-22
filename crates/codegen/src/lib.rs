@@ -1,5 +1,6 @@
 pub mod java;
 pub mod python;
+pub mod typescript;
 
 use std::path::PathBuf;
 
@@ -11,6 +12,7 @@ use serde::{Deserialize, Serialize};
 pub enum BuildTool {
     Maven,
     Setuptools,
+    Npm,
 }
 
 impl std::fmt::Display for BuildTool {
@@ -18,6 +20,7 @@ impl std::fmt::Display for BuildTool {
         match self {
             BuildTool::Maven => write!(f, "maven"),
             BuildTool::Setuptools => write!(f, "setuptools"),
+            BuildTool::Npm => write!(f, "npm"),
         }
     }
 }
@@ -67,5 +70,6 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
     match config.build_tool {
         BuildTool::Maven => java::generate(config),
         BuildTool::Setuptools => python::generate(config),
+        BuildTool::Npm => typescript::generate(config),
     }
 }

@@ -206,12 +206,15 @@ enum OutputFormat {
 enum SdkLanguage {
     Java,
     Python,
+    #[value(name = "typescript")]
+    TypeScript,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 enum BuildToolArg {
     Maven,
     Setuptools,
+    Npm,
 }
 
 // ---------------------------------------------------------------------------
@@ -411,6 +414,20 @@ fn main() -> Result<()> {
                         );
                     }
                 }
+                SdkLanguage::TypeScript => {
+                    // npm package names: lowercase, may be scoped (@scope/name)
+                    let valid = !package.is_empty()
+                        && package
+                            .chars()
+                            .all(|c| c.is_ascii_alphanumeric() || "-_@/.".contains(c));
+                    if !valid {
+                        anyhow::bail!(
+                            "Invalid npm package name '{}': must contain only lowercase alphanumeric, \
+                             hyphen, underscore, @, /, and dot",
+                            package
+                        );
+                    }
+                }
             }
 
             // Derive artifact name from package
@@ -422,6 +439,10 @@ fn main() -> Result<()> {
                     .unwrap()
                     .to_string(),
                 SdkLanguage::Python => package.clone(),
+                SdkLanguage::TypeScript => {
+                    // For scoped packages like @scope/name, use "name" as artifact
+                    package.rsplit('/').next().unwrap_or(&package).to_string()
+                }
             };
 
             // Resolve build tool: validate combo, then apply language default if omitted
@@ -432,6 +453,9 @@ fn main() -> Result<()> {
                 }
                 (SdkLanguage::Python, Some(BuildToolArg::Setuptools)) => {
                     json_schema_llm_codegen::BuildTool::Setuptools
+                }
+                (SdkLanguage::TypeScript, Some(BuildToolArg::Npm)) => {
+                    json_schema_llm_codegen::BuildTool::Npm
                 }
                 // Invalid combos
                 (SdkLanguage::Python, Some(BuildToolArg::Maven)) => {
@@ -446,9 +470,22 @@ fn main() -> Result<()> {
                          (setuptools is a Python build tool)"
                     );
                 }
+                (SdkLanguage::Java, Some(BuildToolArg::Npm))
+                | (SdkLanguage::Python, Some(BuildToolArg::Npm)) => {
+                    anyhow::bail!(
+                        "Invalid combination: --build-tool npm requires --language typescript"
+                    );
+                }
+                (SdkLanguage::TypeScript, Some(BuildToolArg::Maven))
+                | (SdkLanguage::TypeScript, Some(BuildToolArg::Setuptools)) => {
+                    anyhow::bail!(
+                        "Invalid combination: --language typescript requires --build-tool npm"
+                    );
+                }
                 // Language defaults when --build-tool is omitted
                 (SdkLanguage::Java, None) => json_schema_llm_codegen::BuildTool::Maven,
                 (SdkLanguage::Python, None) => json_schema_llm_codegen::BuildTool::Setuptools,
+                (SdkLanguage::TypeScript, None) => json_schema_llm_codegen::BuildTool::Npm,
             };
 
             let config = json_schema_llm_codegen::SdkConfig {

@@ -1,0 +1,21 @@
+# {{ package_name }}
+
+Generated TypeScript SDK for {{ source_schema }}.
+
+## Installation
+
+```bash
+npm install {{ package_name }}
+```
+
+## Usage
+
+```typescript
+import { {{ '{' }}{% for component in components %} {{ component.module_name }}{{ '{' }}{% if not loop.last %},{% endif %}{{ '}' }}{% endfor %} {{ '}' }} from "{{ package_name }}";
+
+// Access the LLM-compatible schema
+const llmSchema = {{ components.0.module_name }}.schema();
+
+// Access the rehydration codec
+const codec = {{ components.0.module_name }}.codec();
+```

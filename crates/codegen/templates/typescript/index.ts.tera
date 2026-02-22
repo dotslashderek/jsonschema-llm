@@ -1,0 +1,13 @@
+/**
+ * {{ package_name }} — generated SDK entry point.
+ *
+ * Re-exports all component accessors for convenient access.
+ */
+
+{% for component in components %}
+import * as {{ component.module_name }} from "./{{ component.module_name }}.js";
+{% endfor %}
+
+{% for component in components %}
+export { {{ component.module_name }} };
+{% endfor %}

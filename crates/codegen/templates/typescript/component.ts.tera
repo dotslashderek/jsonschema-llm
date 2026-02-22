@@ -1,0 +1,33 @@
+/**
+ * {{ component_name }} — generated component accessor.
+ *
+ * Provides pre-loaded LLM schema and codec for this component.
+ * Use with @json-schema-llm/engine for full roundtrip orchestration.
+ */
+
+import { readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+let _schemaCache: unknown | null = null;
+let _codecCache: unknown | null = null;
+
+/** Load the LLM-compatible schema for {{ component_name }}. */
+export function schema(): unknown {
+  if (_schemaCache === null) {
+    const raw = readFileSync(join(__dirname, "..", "schemas", "{{ schema_path }}"), "utf-8");
+    _schemaCache = JSON.parse(raw);
+  }
+  return _schemaCache;
+}
+
+/** Load the codec (rehydration map) for {{ component_name }}. */
+export function codec(): unknown {
+  if (_codecCache === null) {
+    const raw = readFileSync(join(__dirname, "..", "schemas", "{{ codec_path }}"), "utf-8");
+    _codecCache = JSON.parse(raw);
+  }
+  return _codecCache;
+}
