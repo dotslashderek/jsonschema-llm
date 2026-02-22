@@ -204,6 +204,5 @@
     "summary",
     "trace"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

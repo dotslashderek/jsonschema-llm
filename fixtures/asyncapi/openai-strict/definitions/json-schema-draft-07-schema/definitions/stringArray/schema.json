@@ -1,0 +1,16 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "result": {
+      "description": "Constraints: items must be unique.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "type": "object"
+}

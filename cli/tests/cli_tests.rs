@@ -7,7 +7,7 @@ use tempfile::TempDir;
 
 #[allow(deprecated)]
 fn cmd() -> Command {
-    Command::cargo_bin("jsonschema-llm").expect("binary should exist")
+    Command::cargo_bin("json-schema-llm").expect("binary should exist")
 }
 
 fn simple_schema() -> String {

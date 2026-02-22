@@ -290,6 +290,5 @@
     "schemas",
     "securitySchemes"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

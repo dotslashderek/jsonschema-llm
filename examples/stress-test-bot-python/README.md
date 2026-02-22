@@ -1,6 +1,6 @@
 # Stress Test Bot — Python
 
-Stress test client for jsonschema-llm Python (PyO3) bindings. Mirrors the TS reference client (`examples/stress-test-bot/src/index.ts`).
+Stress test client for json-schema-llm Python (PyO3) bindings. Mirrors the TS reference client (`examples/stress-test-bot/src/index.ts`).
 
 ## Pipeline
 
@@ -11,7 +11,7 @@ Stress test client for jsonschema-llm Python (PyO3) bindings. Mirrors the TS ref
 1. **Build the Python binding** (from repo root):
 
    ```bash
-   cd crates/jsonschema-llm-python && maturin develop && cd ../..
+   cd crates/json-schema-llm-python && maturin develop && cd ../..
    ```
 
 2. **Install dependencies**:
@@ -78,6 +78,6 @@ Exit code is `0` if all schemas pass, `1` if any fail.
 
 ```bash
 # Build binding first, then run tests
-cd crates/jsonschema-llm-python && maturin develop && cd ../..
+cd crates/json-schema-llm-python && maturin develop && cd ../..
 cd examples/stress-test-bot-python && python -m pytest test_client.py -v
 ```

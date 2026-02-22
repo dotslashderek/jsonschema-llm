@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#",
+      "constraint": "uniqueItems",
+      "value": true
+    },
+    {
+      "path": "#",
+      "constraint": "default",
+      "value": []
+    }
+  ]
+}

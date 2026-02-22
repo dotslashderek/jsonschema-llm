@@ -1,0 +1,26 @@
+{
+  "additionalProperties": false,
+  "description": "A primitive type with metadata attached.",
+  "properties": {
+    "type": {
+      "description": "Basic type primitives.",
+      "enum": [
+        "null",
+        "boolean",
+        "int",
+        "long",
+        "float",
+        "double",
+        "bytes",
+        "string"
+      ],
+      "title": "Primitive Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type"
+  ],
+  "title": "Primitive Type With Metadata",
+  "type": "object"
+}

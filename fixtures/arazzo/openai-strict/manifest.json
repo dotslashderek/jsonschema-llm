@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-02-21T20:05:34.052560+00:00",
+  "generatedAt": "2026-02-22T17:16:07.166727+00:00",
   "sourceSchema": "arazzo-schema.json",
   "target": "openai-strict",
   "mode": "strict",

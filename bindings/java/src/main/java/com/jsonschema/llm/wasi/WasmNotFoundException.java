@@ -34,12 +34,12 @@ public class WasmNotFoundException extends RuntimeException {
         }
 
         // Level 3: Classpath
-        sb.append("  3. Classpath resource '/wasm/jsonschema_llm_wasi.wasm': not found\n");
+        sb.append("  3. Classpath resource '/wasm/json_schema_llm_wasi.wasm': not found\n");
 
         sb.append("\nTo fix, either:\n");
-        sb.append("  - Set -Djsl.wasm.path=/path/to/jsonschema_llm_wasi.wasm\n");
-        sb.append("  - Set JSL_WASM_PATH=/path/to/jsonschema_llm_wasi.wasm\n");
-        sb.append("  - Include the WASM binary on the classpath at /wasm/jsonschema_llm_wasi.wasm");
+        sb.append("  - Set -Djsl.wasm.path=/path/to/json_schema_llm_wasi.wasm\n");
+        sb.append("  - Set JSL_WASM_PATH=/path/to/json_schema_llm_wasi.wasm\n");
+        sb.append("  - Include the WASM binary on the classpath at /wasm/json_schema_llm_wasi.wasm");
 
         return sb.toString();
     }

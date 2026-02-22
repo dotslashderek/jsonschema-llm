@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema-llm.dev/codec/v1",
+  "transforms": [],
+  "droppedConstraints": [
+    {
+      "path": "#/patternProperties/^\\$ref$",
+      "constraint": "format",
+      "value": "uri-reference"
+    }
+  ]
+}

@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Generated SDK for LLM-powered structured output"
 requires-python = ">=3.10"
 dependencies = [
-    "jsonschema-llm-engine>=0.1.0",
+    "json-schema-llm-engine>=0.1.0",
 ]
 
 [tool.setuptools.packages.find]

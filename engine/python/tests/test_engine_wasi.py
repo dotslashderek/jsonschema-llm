@@ -21,8 +21,8 @@ class TestGeneratePassesOptionsToConvert:
     """generate() must call _call_wasi("jsl_convert", schema_json, "{}") — 2 JSON args."""
 
     def test_generate_passes_two_json_args_to_convert(self):
-        from jsonschema_llm_engine.engine import LlmRoundtripEngine
-        from jsonschema_llm_engine.types import ProviderConfig
+        from json_schema_llm_engine.engine import LlmRoundtripEngine
+        from json_schema_llm_engine.types import ProviderConfig
 
         schema_json = json.dumps(
             {"type": "object", "properties": {"name": {"type": "string"}}}
@@ -30,7 +30,7 @@ class TestGeneratePassesOptionsToConvert:
 
         # Create engine with mocked WASM loading
         with patch(
-            "jsonschema_llm_engine.engine._resolve_wasm_bytes", return_value=b"fake"
+            "json_schema_llm_engine.engine._resolve_wasm_bytes", return_value=b"fake"
         ):
             with patch("wasmtime.Engine"):
                 with patch("wasmtime.Module"):
@@ -96,8 +96,8 @@ class TestGenerateReadsSchemaKey:
     """generate() must read the 'schema' key, not 'data', from convert result."""
 
     def test_generate_uses_schema_key_from_convert_result(self):
-        from jsonschema_llm_engine.engine import LlmRoundtripEngine
-        from jsonschema_llm_engine.types import ProviderConfig
+        from json_schema_llm_engine.engine import LlmRoundtripEngine
+        from json_schema_llm_engine.types import ProviderConfig
 
         schema_json = json.dumps(
             {"type": "object", "properties": {"name": {"type": "string"}}}
@@ -164,7 +164,7 @@ class TestValidateSurfacesErrors:
     """_validate() must surface validation errors, not silently return []."""
 
     def test_validate_returns_errors_for_invalid_data(self):
-        from jsonschema_llm_engine.engine import LlmRoundtripEngine
+        from json_schema_llm_engine.engine import LlmRoundtripEngine
 
         engine = LlmRoundtripEngine.__new__(LlmRoundtripEngine)
 
@@ -188,7 +188,7 @@ class TestValidateSurfacesErrors:
         )
 
     def test_validate_does_not_swallow_json_decode_error(self):
-        from jsonschema_llm_engine.engine import LlmRoundtripEngine
+        from json_schema_llm_engine.engine import LlmRoundtripEngine
 
         engine = LlmRoundtripEngine.__new__(LlmRoundtripEngine)
 
@@ -197,7 +197,7 @@ class TestValidateSurfacesErrors:
             engine._validate({"name": "Alice"}, "NOT VALID JSON")
 
     def test_validate_graceful_on_missing_jsonschema(self):
-        from jsonschema_llm_engine.engine import LlmRoundtripEngine
+        from json_schema_llm_engine.engine import LlmRoundtripEngine
 
         engine = LlmRoundtripEngine.__new__(LlmRoundtripEngine)
 
@@ -215,7 +215,7 @@ class TestValidateSurfacesErrors:
 
     def test_validate_reports_schema_error(self):
         """SchemaError should appear as a synthetic validation error, not crash or be swallowed."""
-        from jsonschema_llm_engine.engine import LlmRoundtripEngine
+        from json_schema_llm_engine.engine import LlmRoundtripEngine
 
         engine = LlmRoundtripEngine.__new__(LlmRoundtripEngine)
 

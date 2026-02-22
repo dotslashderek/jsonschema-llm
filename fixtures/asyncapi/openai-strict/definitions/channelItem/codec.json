@@ -1,5 +1,5 @@
 {
-  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     {
       "type": "map_to_array",
@@ -248,6 +248,14 @@
     },
     {
       "type": "json_string_parse",
+      "path": "#/properties/publish/properties/message/anyOf/1/anyOf/1/properties/examples/items/properties/headers"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/publish/properties/message/anyOf/1/anyOf/1/properties/examples/items/properties/payload"
+    },
+    {
+      "type": "json_string_parse",
       "path": "#/properties/publish/properties/message/anyOf/1/anyOf/1/properties/payload"
     },
     {
@@ -321,6 +329,14 @@
     {
       "type": "json_string_parse",
       "path": "#/properties/publish/properties/message/anyOf/1/anyOf/1/properties/traits/items/anyOf/1/properties/bindings/properties/ws"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/publish/properties/message/anyOf/1/anyOf/1/properties/traits/items/anyOf/1/properties/examples/items/properties/headers"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/publish/properties/message/anyOf/1/anyOf/1/properties/traits/items/anyOf/1/properties/examples/items/properties/payload"
     },
     {
       "type": "json_string_parse",
@@ -540,6 +556,14 @@
     },
     {
       "type": "json_string_parse",
+      "path": "#/properties/subscribe/properties/message/anyOf/1/anyOf/1/properties/examples/items/properties/headers"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/subscribe/properties/message/anyOf/1/anyOf/1/properties/examples/items/properties/payload"
+    },
+    {
+      "type": "json_string_parse",
       "path": "#/properties/subscribe/properties/message/anyOf/1/anyOf/1/properties/payload"
     },
     {
@@ -613,6 +637,14 @@
     {
       "type": "json_string_parse",
       "path": "#/properties/subscribe/properties/message/anyOf/1/anyOf/1/properties/traits/items/anyOf/1/properties/bindings/properties/ws"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/subscribe/properties/message/anyOf/1/anyOf/1/properties/traits/items/anyOf/1/properties/examples/items/properties/headers"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/subscribe/properties/message/anyOf/1/anyOf/1/properties/traits/items/anyOf/1/properties/examples/items/properties/payload"
     },
     {
       "type": "json_string_parse",
@@ -760,6 +792,14 @@
     },
     {
       "type": "json_string_parse",
+      "path": "#/$defs/message/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/items/properties/headers"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/message/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/items/properties/payload"
+    },
+    {
+      "type": "json_string_parse",
       "path": "#/$defs/message/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/payload"
     },
     {
@@ -836,6 +876,14 @@
     },
     {
       "type": "json_string_parse",
+      "path": "#/$defs/message/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/items/anyOf/1/properties/examples/items/properties/headers"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/message/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/items/anyOf/1/properties/examples/items/properties/payload"
+    },
+    {
+      "type": "json_string_parse",
       "path": "#/$defs/message/anyOf/1/anyOf/1/properties/bindings/properties/amqp"
     },
     {
@@ -905,6 +953,14 @@
     {
       "type": "json_string_parse",
       "path": "#/$defs/message/anyOf/1/anyOf/1/properties/bindings/properties/ws"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/message/anyOf/1/anyOf/1/properties/examples/items/properties/headers"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/message/anyOf/1/anyOf/1/properties/examples/items/properties/payload"
     },
     {
       "type": "json_string_parse",
@@ -981,6 +1037,14 @@
     {
       "type": "json_string_parse",
       "path": "#/$defs/message/anyOf/1/anyOf/1/properties/traits/items/anyOf/1/properties/bindings/properties/ws"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/message/anyOf/1/anyOf/1/properties/traits/items/anyOf/1/properties/examples/items/properties/headers"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/message/anyOf/1/anyOf/1/properties/traits/items/anyOf/1/properties/examples/items/properties/payload"
     },
     {
       "type": "recursive_inflate",
@@ -1289,6 +1353,11 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs",
       "originalRequired": false
     },
@@ -1434,6 +1503,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -1475,6 +1564,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -1614,6 +1708,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -1655,6 +1769,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -1804,6 +1923,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -1845,6 +1984,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -1984,6 +2128,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -2025,6 +2189,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -2174,6 +2343,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -2215,6 +2404,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -2354,6 +2548,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -2395,6 +2609,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -2544,6 +2763,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -2585,6 +2824,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -2724,6 +2968,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -2765,6 +3029,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -2914,6 +3183,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -2955,6 +3244,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -3094,6 +3388,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -3135,6 +3449,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -3284,6 +3603,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -3325,6 +3664,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -3464,6 +3808,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -3505,6 +3869,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -3654,6 +4023,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -3695,6 +4084,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -3830,6 +4224,26 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/correlationId/anyOf/0/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
       "originalRequired": false
     },
     {
@@ -4179,6 +4593,11 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs",
       "originalRequired": false
     },
@@ -4324,6 +4743,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -4365,6 +4804,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -4504,6 +4948,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -4545,6 +5009,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -4694,6 +5163,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -4735,6 +5224,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -4874,6 +5368,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -4915,6 +5429,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -5064,6 +5583,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -5105,6 +5644,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -5244,6 +5788,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -5285,6 +5849,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -5434,6 +6003,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -5475,6 +6064,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -5614,6 +6208,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -5655,6 +6269,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -5804,6 +6423,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -5845,6 +6484,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -5984,6 +6628,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -6025,6 +6689,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -6174,6 +6843,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -6215,6 +6904,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -6354,6 +7048,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -6395,6 +7109,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -6544,6 +7263,26 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
     },
@@ -6585,6 +7324,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {
@@ -6720,6 +7464,26 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/correlationId/anyOf/0/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items/properties/summary",
       "originalRequired": false
     },
     {
@@ -6920,6 +7684,10 @@
     },
     {
       "type": "json_string_parse",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items"
+    },
+    {
+      "type": "json_string_parse",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$"
     },
     {
@@ -6957,6 +7725,10 @@
     {
       "type": "json_string_parse",
       "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/correlationId/anyOf/0/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items"
     },
     {
       "type": "json_string_parse",
@@ -7100,6 +7872,10 @@
     },
     {
       "type": "json_string_parse",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/examples/anyOf/0/items"
+    },
+    {
+      "type": "json_string_parse",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$"
     },
     {
@@ -7137,6 +7913,10 @@
     {
       "type": "json_string_parse",
       "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/correlationId/anyOf/0/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/0/properties/oneOf/items/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/examples/anyOf/0/items"
     },
     {
       "type": "json_string_parse",

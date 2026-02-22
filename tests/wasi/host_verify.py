@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-WASI host verification for jsonschema-llm.
+WASI host verification for json-schema-llm.
 
 End-to-end test of the JslResult protocol: allocate guest memory, write JSON,
 call jsl_convert / jsl_rehydrate, read results, free memory.
@@ -8,7 +8,7 @@ call jsl_convert / jsl_rehydrate, read results, free memory.
 Usage:
     python3 tests/wasi/host_verify.py [path-to-wasm]
 
-Default WASM path: target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm
+Default WASM path: target/wasm32-wasip1/release/json_schema_llm_wasi.wasm
 """
 
 import json
@@ -447,18 +447,18 @@ def test_convert_real_world(store, instance, memory, schema_path: str):
 
 def main():
     project_root = Path(__file__).resolve().parent.parent.parent
-    default_wasm = project_root / "target" / "wasm32-wasip1" / "release" / "jsonschema_llm_wasi.wasm"
+    default_wasm = project_root / "target" / "wasm32-wasip1" / "release" / "json_schema_llm_wasi.wasm"
 
     wasm_path = sys.argv[1] if len(sys.argv) > 1 else str(default_wasm)
 
     if not Path(wasm_path).exists():
         print(f"❌ WASM binary not found: {wasm_path}")
-        print("   Build with: cargo build --target wasm32-wasip1 --release -p jsonschema-llm-wasi")
+        print("   Build with: cargo build --target wasm32-wasip1 --release -p json-schema-llm-wasi")
         sys.exit(1)
 
     wasm_size = Path(wasm_path).stat().st_size
     print(f"\n{'='*60}")
-    print(f"WASI Host Verification — jsonschema-llm")
+    print(f"WASI Host Verification — json-schema-llm")
     print(f"{'='*60}")
     print(f"Binary: {wasm_path}")
     print(f"Size: {wasm_size / (1024*1024):.2f} MB")

@@ -96,7 +96,7 @@ public class SchemaLlmEngine implements AutoCloseable {
      * <ol>
      * <li>System property {@code jsl.wasm.path}</li>
      * <li>Environment variable {@code JSL_WASM_PATH}</li>
-     * <li>Classpath resource {@code /wasm/jsonschema_llm_wasi.wasm}</li>
+     * <li>Classpath resource {@code /wasm/json_schema_llm_wasi.wasm}</li>
      * </ol>
      *
      * @return a new engine instance

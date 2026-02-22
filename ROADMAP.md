@@ -1,6 +1,6 @@
-# jsonschema-llm Roadmap
+# json-schema-llm Roadmap
 
-> **Status:** Alpha · Last updated: 2026-02-16 · Tracking issue: [#100](https://github.com/dotslashderek/jsonschema-llm/issues/100)
+> **Status:** Alpha · Last updated: 2026-02-16 · Tracking issue: [#100](https://github.com/dotslashderek/json-schema-llm/issues/100)
 
 ---
 
@@ -8,16 +8,16 @@
 
 | Epic                                                                                    | Status         | Open | Closed | Progress |
 | --------------------------------------------------------------------------------------- | -------------- | :--: | :----: | :------: |
-| [#77 Strict Mode](https://github.com/dotslashderek/jsonschema-llm/issues/77)            | ✅ Done        |  0   |   4    |   100%   |
-| [#37 FFI Facade](https://github.com/dotslashderek/jsonschema-llm/issues/37)             | ✅ Done        |  0   |   5    |   100%   |
-| [#38 TypeScript WASM](https://github.com/dotslashderek/jsonschema-llm/issues/38)        | ✅ Done        |  0   |   4    |   100%   |
-| [#115 Test Harness](https://github.com/dotslashderek/jsonschema-llm/issues/115)         | ✅ Done        |  0   |   7    |   100%   |
-| [#148 WASI Wrappers](https://github.com/dotslashderek/jsonschema-llm/issues/148)        | ✅ Done        |  0   |   4    |   100%   |
-| [#154 Conformance Fixtures](https://github.com/dotslashderek/jsonschema-llm/issues/154) | ✅ Done        |  0   |   1    |   100%   |
-| [#39 Python PyO3](https://github.com/dotslashderek/jsonschema-llm/issues/39)            | 🚨 Retired     |  —   |   —    |    —     |
-| [#40 Java JNI](https://github.com/dotslashderek/jsonschema-llm/issues/40)               | 🚨 Retired     |  —   |   —    |    —     |
-| [#36 Core Improvements](https://github.com/dotslashderek/jsonschema-llm/issues/36)      | 🟡 Active      |  3   |   9    |   75%    |
-| [#76 Conformance Suite](https://github.com/dotslashderek/jsonschema-llm/issues/76)      | ⬜ Not started |  10  |   0    |    0%    |
+| [#77 Strict Mode](https://github.com/dotslashderek/json-schema-llm/issues/77)            | ✅ Done        |  0   |   4    |   100%   |
+| [#37 FFI Facade](https://github.com/dotslashderek/json-schema-llm/issues/37)             | ✅ Done        |  0   |   5    |   100%   |
+| [#38 TypeScript WASM](https://github.com/dotslashderek/json-schema-llm/issues/38)        | ✅ Done        |  0   |   4    |   100%   |
+| [#115 Test Harness](https://github.com/dotslashderek/json-schema-llm/issues/115)         | ✅ Done        |  0   |   7    |   100%   |
+| [#148 WASI Wrappers](https://github.com/dotslashderek/json-schema-llm/issues/148)        | ✅ Done        |  0   |   4    |   100%   |
+| [#154 Conformance Fixtures](https://github.com/dotslashderek/json-schema-llm/issues/154) | ✅ Done        |  0   |   1    |   100%   |
+| [#39 Python PyO3](https://github.com/dotslashderek/json-schema-llm/issues/39)            | 🚨 Retired     |  —   |   —    |    —     |
+| [#40 Java JNI](https://github.com/dotslashderek/json-schema-llm/issues/40)               | 🚨 Retired     |  —   |   —    |    —     |
+| [#36 Core Improvements](https://github.com/dotslashderek/json-schema-llm/issues/36)      | 🟡 Active      |  3   |   9    |   75%    |
+| [#76 Conformance Suite](https://github.com/dotslashderek/json-schema-llm/issues/76)      | ⬜ Not started |  10  |   0    |    0%    |
 
 ---
 

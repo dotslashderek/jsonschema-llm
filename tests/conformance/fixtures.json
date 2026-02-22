@@ -1,5 +1,5 @@
 {
-  "description": "Cross-language conformance fixtures for jsonschema-llm WASI wrappers",
+  "description": "Cross-language conformance fixtures for json-schema-llm WASI wrappers",
   "version": "1.0",
   "suites": {
     "convert": {

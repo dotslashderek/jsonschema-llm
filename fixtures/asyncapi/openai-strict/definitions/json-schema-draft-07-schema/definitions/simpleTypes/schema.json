@@ -1,0 +1,20 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "result": {
+      "enum": [
+        "array",
+        "boolean",
+        "integer",
+        "null",
+        "number",
+        "object",
+        "string"
+      ]
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "type": "object"
+}

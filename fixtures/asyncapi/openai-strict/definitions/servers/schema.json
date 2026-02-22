@@ -500,12 +500,27 @@
                                           "type": "null"
                                         }
                                       ]
+                                    },
+                                    "examples": {
+                                      "anyOf": [
+                                        {
+                                          "description": "An array of examples of the server variable.",
+                                          "items": {
+                                            "type": "string"
+                                          },
+                                          "type": "array"
+                                        },
+                                        {
+                                          "type": "null"
+                                        }
+                                      ]
                                     }
                                   },
                                   "required": [
                                     "default",
                                     "description",
-                                    "enum"
+                                    "enum",
+                                    "examples"
                                   ],
                                   "type": "object"
                                 }

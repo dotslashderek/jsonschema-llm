@@ -1,0 +1,15 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "result": {
+      "description": "Reference to a ComplexType",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*$",
+      "title": "Custom Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,13 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "result": {
+      "description": "Constraints: minimum value: 0.",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "type": "object"
+}

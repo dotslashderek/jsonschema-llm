@@ -14,7 +14,7 @@ import pytest
 
 class TestProviderConfig:
     def test_creation(self):
-        from jsonschema_llm_engine.types import ProviderConfig
+        from json_schema_llm_engine.types import ProviderConfig
 
         config = ProviderConfig(
             url="https://api.openai.com/v1/chat/completions",
@@ -26,13 +26,13 @@ class TestProviderConfig:
         assert config.headers["Authorization"] == "Bearer sk-test"
 
     def test_empty_url_raises(self):
-        from jsonschema_llm_engine.types import ProviderConfig
+        from json_schema_llm_engine.types import ProviderConfig
 
         with pytest.raises(ValueError):
             ProviderConfig(url="", model="gpt-4o")
 
     def test_empty_model_raises(self):
-        from jsonschema_llm_engine.types import ProviderConfig
+        from json_schema_llm_engine.types import ProviderConfig
 
         with pytest.raises(ValueError):
             ProviderConfig(url="https://example.com", model="")
@@ -40,7 +40,7 @@ class TestProviderConfig:
 
 class TestLlmRequest:
     def test_creation(self):
-        from jsonschema_llm_engine.types import LlmRequest
+        from json_schema_llm_engine.types import LlmRequest
 
         req = LlmRequest(
             url="https://api.openai.com/v1/chat/completions",
@@ -51,7 +51,7 @@ class TestLlmRequest:
         assert req.body == '{"model": "gpt-4o"}'
 
     def test_empty_url_raises(self):
-        from jsonschema_llm_engine.types import LlmRequest
+        from json_schema_llm_engine.types import LlmRequest
 
         with pytest.raises(ValueError):
             LlmRequest(url="", headers={}, body="{}")
@@ -59,7 +59,7 @@ class TestLlmRequest:
 
 class TestRoundtripResult:
     def test_is_valid_when_no_errors(self):
-        from jsonschema_llm_engine.types import RoundtripResult
+        from json_schema_llm_engine.types import RoundtripResult
 
         result = RoundtripResult(
             data={"name": "test"},
@@ -70,7 +70,7 @@ class TestRoundtripResult:
         assert result.is_valid is True
 
     def test_is_not_valid_when_errors(self):
-        from jsonschema_llm_engine.types import RoundtripResult
+        from json_schema_llm_engine.types import RoundtripResult
 
         result = RoundtripResult(
             data={"name": "test"},
@@ -86,7 +86,7 @@ class TestRoundtripResult:
 
 class TestExceptions:
     def test_engine_error_hierarchy(self):
-        from jsonschema_llm_engine.exceptions import (
+        from json_schema_llm_engine.exceptions import (
             EngineError,
             RehydrationError,
             ResponseParsingError,
@@ -98,7 +98,7 @@ class TestExceptions:
         assert issubclass(ResponseParsingError, EngineError)
 
     def test_transport_error(self):
-        from jsonschema_llm_engine.transport import LlmTransportError
+        from json_schema_llm_engine.transport import LlmTransportError
 
         err = LlmTransportError("timeout", status_code=-1)
         assert err.status_code == -1
@@ -110,10 +110,10 @@ class TestExceptions:
 
 class TestChatCompletionsFormatter:
     def test_format_produces_valid_request(self):
-        from jsonschema_llm_engine.formatters.chat_completions import (
+        from json_schema_llm_engine.formatters.chat_completions import (
             ChatCompletionsFormatter,
         )
-        from jsonschema_llm_engine.types import ProviderConfig
+        from json_schema_llm_engine.types import ProviderConfig
 
         formatter = ChatCompletionsFormatter()
         config = ProviderConfig(
@@ -135,7 +135,7 @@ class TestChatCompletionsFormatter:
         assert body["response_format"]["json_schema"]["strict"] is True
 
     def test_extract_content_valid(self):
-        from jsonschema_llm_engine.formatters.chat_completions import (
+        from json_schema_llm_engine.formatters.chat_completions import (
             ChatCompletionsFormatter,
         )
 
@@ -147,8 +147,8 @@ class TestChatCompletionsFormatter:
         assert content == '{"name": "Alice"}'
 
     def test_extract_content_missing_choices_raises(self):
-        from jsonschema_llm_engine.exceptions import ResponseParsingError
-        from jsonschema_llm_engine.formatters.chat_completions import (
+        from json_schema_llm_engine.exceptions import ResponseParsingError
+        from json_schema_llm_engine.formatters.chat_completions import (
             ChatCompletionsFormatter,
         )
 
@@ -162,10 +162,10 @@ class TestChatCompletionsFormatter:
 
 class TestOpenResponsesFormatter:
     def test_format_produces_valid_request(self):
-        from jsonschema_llm_engine.formatters.open_responses import (
+        from json_schema_llm_engine.formatters.open_responses import (
             OpenResponsesFormatter,
         )
-        from jsonschema_llm_engine.types import ProviderConfig
+        from json_schema_llm_engine.types import ProviderConfig
 
         formatter = OpenResponsesFormatter()
         config = ProviderConfig(
@@ -182,7 +182,7 @@ class TestOpenResponsesFormatter:
         assert body["text"]["format"]["type"] == "json_schema"
 
     def test_extract_content_valid(self):
-        from jsonschema_llm_engine.formatters.open_responses import (
+        from json_schema_llm_engine.formatters.open_responses import (
             OpenResponsesFormatter,
         )
 
@@ -201,8 +201,8 @@ class TestOpenResponsesFormatter:
         assert content == '{"result": 42}'
 
     def test_extract_content_missing_output_raises(self):
-        from jsonschema_llm_engine.exceptions import ResponseParsingError
-        from jsonschema_llm_engine.formatters.open_responses import (
+        from json_schema_llm_engine.exceptions import ResponseParsingError
+        from json_schema_llm_engine.formatters.open_responses import (
             OpenResponsesFormatter,
         )
 
@@ -216,8 +216,8 @@ class TestOpenResponsesFormatter:
 
 class TestClaudeFormatter:
     def test_format_produces_valid_request(self):
-        from jsonschema_llm_engine.formatters.claude import ClaudeFormatter
-        from jsonschema_llm_engine.types import ProviderConfig
+        from json_schema_llm_engine.formatters.claude import ClaudeFormatter
+        from json_schema_llm_engine.types import ProviderConfig
 
         formatter = ClaudeFormatter()
         config = ProviderConfig(
@@ -235,7 +235,7 @@ class TestClaudeFormatter:
         assert body["tool_choice"]["type"] == "tool"
 
     def test_extract_content_valid(self):
-        from jsonschema_llm_engine.formatters.claude import ClaudeFormatter
+        from json_schema_llm_engine.formatters.claude import ClaudeFormatter
 
         formatter = ClaudeFormatter()
         response = json.dumps(
@@ -246,8 +246,8 @@ class TestClaudeFormatter:
         assert parsed["name"] == "Bob"
 
     def test_extract_content_no_tool_use_raises(self):
-        from jsonschema_llm_engine.exceptions import ResponseParsingError
-        from jsonschema_llm_engine.formatters.claude import ClaudeFormatter
+        from json_schema_llm_engine.exceptions import ResponseParsingError
+        from json_schema_llm_engine.formatters.claude import ClaudeFormatter
 
         formatter = ClaudeFormatter()
         with pytest.raises(ResponseParsingError):
@@ -259,8 +259,8 @@ class TestClaudeFormatter:
 
 class TestGeminiFormatter:
     def test_format_produces_valid_request(self):
-        from jsonschema_llm_engine.formatters.gemini import GeminiFormatter
-        from jsonschema_llm_engine.types import ProviderConfig
+        from json_schema_llm_engine.formatters.gemini import GeminiFormatter
+        from json_schema_llm_engine.types import ProviderConfig
 
         formatter = GeminiFormatter()
         config = ProviderConfig(
@@ -277,7 +277,7 @@ class TestGeminiFormatter:
         assert body["generationConfig"]["responseSchema"] == schema
 
     def test_extract_content_valid(self):
-        from jsonschema_llm_engine.formatters.gemini import GeminiFormatter
+        from json_schema_llm_engine.formatters.gemini import GeminiFormatter
 
         formatter = GeminiFormatter()
         response = json.dumps(
@@ -287,8 +287,8 @@ class TestGeminiFormatter:
         assert content == '{"val": 1}'
 
     def test_extract_content_safety_block_raises(self):
-        from jsonschema_llm_engine.exceptions import ResponseParsingError
-        from jsonschema_llm_engine.formatters.gemini import GeminiFormatter
+        from json_schema_llm_engine.exceptions import ResponseParsingError
+        from json_schema_llm_engine.formatters.gemini import GeminiFormatter
 
         formatter = GeminiFormatter()
         response = json.dumps(
@@ -298,8 +298,8 @@ class TestGeminiFormatter:
             formatter.extract_content(response)
 
     def test_extract_content_missing_candidates_raises(self):
-        from jsonschema_llm_engine.exceptions import ResponseParsingError
-        from jsonschema_llm_engine.formatters.gemini import GeminiFormatter
+        from json_schema_llm_engine.exceptions import ResponseParsingError
+        from json_schema_llm_engine.formatters.gemini import GeminiFormatter
 
         formatter = GeminiFormatter()
         with pytest.raises(ResponseParsingError):
@@ -311,13 +311,13 @@ class TestGeminiFormatter:
 
 class TestTransportProtocol:
     def test_transport_protocol_exists(self):
-        from jsonschema_llm_engine.transport import LlmTransport
+        from json_schema_llm_engine.transport import LlmTransport
 
         # Protocol should be importable — structural subtyping
         assert hasattr(LlmTransport, "execute")
 
     def test_formatter_protocol_exists(self):
-        from jsonschema_llm_engine.formatter import ProviderFormatter
+        from json_schema_llm_engine.formatter import ProviderFormatter
 
         assert hasattr(ProviderFormatter, "format")
         assert hasattr(ProviderFormatter, "extract_content")

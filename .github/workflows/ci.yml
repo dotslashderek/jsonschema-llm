@@ -124,20 +124,20 @@ jobs:
         run: |
           echo "::group::Validate package.json fields"
           jq -e '.name == "jsonschema-llm"' dist/package.json
-          jq -e '.exports["."].types == "./jsonschema_llm_wasm.d.ts"' dist/package.json
-          jq -e '.exports["."].node == "./jsonschema_llm_wasm.js"' dist/package.json
-          jq -e '.exports["."].default == "./web/jsonschema_llm_wasm.js"' dist/package.json
-          jq -e '.exports["./web"].types == "./web/jsonschema_llm_wasm.d.ts"' dist/package.json
-          jq -e '.exports["./web"].default == "./web/jsonschema_llm_wasm.js"' dist/package.json
+          jq -e '.exports["."].types == "./json_schema_llm_wasm.d.ts"' dist/package.json
+          jq -e '.exports["."].node == "./json_schema_llm_wasm.js"' dist/package.json
+          jq -e '.exports["."].default == "./web/json_schema_llm_wasm.js"' dist/package.json
+          jq -e '.exports["./web"].types == "./web/json_schema_llm_wasm.d.ts"' dist/package.json
+          jq -e '.exports["./web"].default == "./web/json_schema_llm_wasm.js"' dist/package.json
           echo "::endgroup::"
 
           echo "::group::Validate critical files exist"
-          test -f dist/jsonschema_llm_wasm_bg.wasm
-          test -f dist/jsonschema_llm_wasm.js
-          test -f dist/jsonschema_llm_wasm.d.ts
-          test -f dist/web/jsonschema_llm_wasm_bg.wasm
-          test -f dist/web/jsonschema_llm_wasm.js
-          test -f dist/web/jsonschema_llm_wasm.d.ts
+          test -f dist/json_schema_llm_wasm_bg.wasm
+          test -f dist/json_schema_llm_wasm.js
+          test -f dist/json_schema_llm_wasm.d.ts
+          test -f dist/web/json_schema_llm_wasm_bg.wasm
+          test -f dist/web/json_schema_llm_wasm.js
+          test -f dist/web/json_schema_llm_wasm.d.ts
           echo "::endgroup::"
 
           echo "✅ npm package validation passed"
@@ -161,7 +161,7 @@ jobs:
 
       - name: Check binary size (must be ≤3 MB)
         run: |
-          SIZE=$(stat --format=%s target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm)
+          SIZE=$(stat --format=%s target/wasm32-wasip1/release/json_schema_llm_wasi.wasm)
           SIZE_MB=$(echo "scale=2; $SIZE / 1048576" | bc)
           echo "Binary size: ${SIZE_MB} MB"
           if [ "$SIZE" -gt 3145728 ]; then
@@ -188,7 +188,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wasi-binary
-          path: target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm
+          path: target/wasm32-wasip1/release/json_schema_llm_wasi.wasm
           retention-days: 1
 
   wasi-wrappers:
@@ -215,7 +215,7 @@ jobs:
 
       - name: Copy WASM for Go embed
         if: matrix.lang == 'go'
-        run: cp target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm bindings/go/wasm/
+        run: cp target/wasm32-wasip1/release/json_schema_llm_wasi.wasm bindings/go/wasm/
 
       - name: Run Go wrapper tests
         if: matrix.lang == 'go'
@@ -285,7 +285,7 @@ jobs:
         run: bundle exec rake test
         working-directory: bindings/ruby
         env:
-          JSL_WASM_PATH: ${{ github.workspace }}/target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm
+          JSL_WASM_PATH: ${{ github.workspace }}/target/wasm32-wasip1/release/json_schema_llm_wasi.wasm
 
       - name: Setup .NET
         if: matrix.lang == 'dotnet'
@@ -298,7 +298,7 @@ jobs:
         run: dotnet test test/JsonSchemaLlmTests.csproj -v normal
         working-directory: bindings/dotnet
         env:
-          JSL_WASM_PATH: ${{ github.workspace }}/target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm
+          JSL_WASM_PATH: ${{ github.workspace }}/target/wasm32-wasip1/release/json_schema_llm_wasi.wasm
 
   engine-tests:
     name: Engine Tests (${{ matrix.engine }})

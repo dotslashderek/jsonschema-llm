@@ -116,8 +116,7 @@
         "parameters",
         "requestBody"
       ],
-      "type": "object",
-      "unevaluatedProperties": false
+      "type": "object"
     }
   },
   "required": [

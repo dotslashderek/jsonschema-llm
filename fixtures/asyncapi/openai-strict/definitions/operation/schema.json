@@ -462,6 +462,10 @@
                                                                                 }
                                                                               ]
                                                                             },
+                                                                            "examples": {
+                                                                              "description": "MUST be a valid JSON value serialized as a string. Structure: any. Do NOT output plain text — the value must parse with JSON.parse().",
+                                                                              "type": "string"
+                                                                            },
                                                                             "externalDocs": {
                                                                               "description": "MUST be a valid JSON value serialized as a string. Structure: any. Do NOT output plain text — the value must parse with JSON.parse().",
                                                                               "type": "string"
@@ -549,6 +553,7 @@
                                                                             "correlationId",
                                                                             "deprecated",
                                                                             "description",
+                                                                            "examples",
                                                                             "externalDocs",
                                                                             "headers",
                                                                             "messageId",
@@ -912,6 +917,85 @@
                                                                   }
                                                                 ]
                                                               },
+                                                              "examples": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "description": "List of examples.",
+                                                                    "items": {
+                                                                      "additionalProperties": false,
+                                                                      "anyOf": [
+                                                                        {
+                                                                          "required": [
+                                                                            "payload"
+                                                                          ]
+                                                                        },
+                                                                        {
+                                                                          "required": [
+                                                                            "headers"
+                                                                          ]
+                                                                        }
+                                                                      ],
+                                                                      "properties": {
+                                                                        "headers": {
+                                                                          "anyOf": [
+                                                                            {
+                                                                              "description": "Schema definition of the application headers.\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                                                              "type": "string"
+                                                                            },
+                                                                            {
+                                                                              "type": "null"
+                                                                            }
+                                                                          ]
+                                                                        },
+                                                                        "name": {
+                                                                          "anyOf": [
+                                                                            {
+                                                                              "description": "Machine readable name of the message example.",
+                                                                              "type": "string"
+                                                                            },
+                                                                            {
+                                                                              "type": "null"
+                                                                            }
+                                                                          ]
+                                                                        },
+                                                                        "payload": {
+                                                                          "anyOf": [
+                                                                            {
+                                                                              "description": "Definition of the message payload. It can be of any type\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                                                              "type": "string"
+                                                                            },
+                                                                            {
+                                                                              "type": "null"
+                                                                            }
+                                                                          ]
+                                                                        },
+                                                                        "summary": {
+                                                                          "anyOf": [
+                                                                            {
+                                                                              "description": "A brief summary of the message example.",
+                                                                              "type": "string"
+                                                                            },
+                                                                            {
+                                                                              "type": "null"
+                                                                            }
+                                                                          ]
+                                                                        }
+                                                                      },
+                                                                      "required": [
+                                                                        "headers",
+                                                                        "name",
+                                                                        "payload",
+                                                                        "summary"
+                                                                      ],
+                                                                      "type": "object"
+                                                                    },
+                                                                    "type": "array"
+                                                                  },
+                                                                  {
+                                                                    "type": "null"
+                                                                  }
+                                                                ]
+                                                              },
                                                               "externalDocs": {
                                                                 "anyOf": [
                                                                   {
@@ -1151,6 +1235,10 @@
                                                                                 }
                                                                               ]
                                                                             },
+                                                                            "examples": {
+                                                                              "description": "MUST be a valid JSON value serialized as a string. Structure: any. Do NOT output plain text — the value must parse with JSON.parse().",
+                                                                              "type": "string"
+                                                                            },
                                                                             "externalDocs": {
                                                                               "description": "MUST be a valid JSON value serialized as a string. Structure: any. Do NOT output plain text — the value must parse with JSON.parse().",
                                                                               "type": "string"
@@ -1225,6 +1313,7 @@
                                                                             "correlationId",
                                                                             "deprecated",
                                                                             "description",
+                                                                            "examples",
                                                                             "externalDocs",
                                                                             "headers",
                                                                             "messageId",
@@ -1252,6 +1341,7 @@
                                                               "correlationId",
                                                               "deprecated",
                                                               "description",
+                                                              "examples",
                                                               "externalDocs",
                                                               "headers",
                                                               "messageId",
@@ -1609,6 +1699,85 @@
                                                     {
                                                       "description": "A longer description of the message. CommonMark is allowed.",
                                                       "type": "string"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
+                                                "examples": {
+                                                  "anyOf": [
+                                                    {
+                                                      "description": "List of examples.",
+                                                      "items": {
+                                                        "additionalProperties": false,
+                                                        "anyOf": [
+                                                          {
+                                                            "required": [
+                                                              "payload"
+                                                            ]
+                                                          },
+                                                          {
+                                                            "required": [
+                                                              "headers"
+                                                            ]
+                                                          }
+                                                        ],
+                                                        "properties": {
+                                                          "headers": {
+                                                            "anyOf": [
+                                                              {
+                                                                "description": "Schema definition of the application headers.\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "type": "null"
+                                                              }
+                                                            ]
+                                                          },
+                                                          "name": {
+                                                            "anyOf": [
+                                                              {
+                                                                "description": "Machine readable name of the message example.",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "type": "null"
+                                                              }
+                                                            ]
+                                                          },
+                                                          "payload": {
+                                                            "anyOf": [
+                                                              {
+                                                                "description": "Definition of the message payload. It can be of any type\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "type": "null"
+                                                              }
+                                                            ]
+                                                          },
+                                                          "summary": {
+                                                            "anyOf": [
+                                                              {
+                                                                "description": "A brief summary of the message example.",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "type": "null"
+                                                              }
+                                                            ]
+                                                          }
+                                                        },
+                                                        "required": [
+                                                          "headers",
+                                                          "name",
+                                                          "payload",
+                                                          "summary"
+                                                        ],
+                                                        "type": "object"
+                                                      },
+                                                      "type": "array"
                                                     },
                                                     {
                                                       "type": "null"
@@ -2187,6 +2356,85 @@
                                                                   }
                                                                 ]
                                                               },
+                                                              "examples": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "description": "List of examples.",
+                                                                    "items": {
+                                                                      "additionalProperties": false,
+                                                                      "anyOf": [
+                                                                        {
+                                                                          "required": [
+                                                                            "payload"
+                                                                          ]
+                                                                        },
+                                                                        {
+                                                                          "required": [
+                                                                            "headers"
+                                                                          ]
+                                                                        }
+                                                                      ],
+                                                                      "properties": {
+                                                                        "headers": {
+                                                                          "anyOf": [
+                                                                            {
+                                                                              "description": "Schema definition of the application headers.\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                                                              "type": "string"
+                                                                            },
+                                                                            {
+                                                                              "type": "null"
+                                                                            }
+                                                                          ]
+                                                                        },
+                                                                        "name": {
+                                                                          "anyOf": [
+                                                                            {
+                                                                              "description": "Machine readable name of the message example.",
+                                                                              "type": "string"
+                                                                            },
+                                                                            {
+                                                                              "type": "null"
+                                                                            }
+                                                                          ]
+                                                                        },
+                                                                        "payload": {
+                                                                          "anyOf": [
+                                                                            {
+                                                                              "description": "Definition of the message payload. It can be of any type\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                                                              "type": "string"
+                                                                            },
+                                                                            {
+                                                                              "type": "null"
+                                                                            }
+                                                                          ]
+                                                                        },
+                                                                        "summary": {
+                                                                          "anyOf": [
+                                                                            {
+                                                                              "description": "A brief summary of the message example.",
+                                                                              "type": "string"
+                                                                            },
+                                                                            {
+                                                                              "type": "null"
+                                                                            }
+                                                                          ]
+                                                                        }
+                                                                      },
+                                                                      "required": [
+                                                                        "headers",
+                                                                        "name",
+                                                                        "payload",
+                                                                        "summary"
+                                                                      ],
+                                                                      "type": "object"
+                                                                    },
+                                                                    "type": "array"
+                                                                  },
+                                                                  {
+                                                                    "type": "null"
+                                                                  }
+                                                                ]
+                                                              },
                                                               "externalDocs": {
                                                                 "anyOf": [
                                                                   {
@@ -2357,6 +2605,7 @@
                                                               "correlationId",
                                                               "deprecated",
                                                               "description",
+                                                              "examples",
                                                               "externalDocs",
                                                               "headers",
                                                               "messageId",
@@ -2384,6 +2633,7 @@
                                                 "correlationId",
                                                 "deprecated",
                                                 "description",
+                                                "examples",
                                                 "externalDocs",
                                                 "headers",
                                                 "messageId",
@@ -2741,6 +2991,85 @@
                                       {
                                         "description": "A longer description of the message. CommonMark is allowed.",
                                         "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "examples": {
+                                    "anyOf": [
+                                      {
+                                        "description": "List of examples.",
+                                        "items": {
+                                          "additionalProperties": false,
+                                          "anyOf": [
+                                            {
+                                              "required": [
+                                                "payload"
+                                              ]
+                                            },
+                                            {
+                                              "required": [
+                                                "headers"
+                                              ]
+                                            }
+                                          ],
+                                          "properties": {
+                                            "headers": {
+                                              "anyOf": [
+                                                {
+                                                  "description": "Schema definition of the application headers.\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            },
+                                            "name": {
+                                              "anyOf": [
+                                                {
+                                                  "description": "Machine readable name of the message example.",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            },
+                                            "payload": {
+                                              "anyOf": [
+                                                {
+                                                  "description": "Definition of the message payload. It can be of any type\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            },
+                                            "summary": {
+                                              "anyOf": [
+                                                {
+                                                  "description": "A brief summary of the message example.",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "headers",
+                                            "name",
+                                            "payload",
+                                            "summary"
+                                          ],
+                                          "type": "object"
+                                        },
+                                        "type": "array"
                                       },
                                       {
                                         "type": "null"
@@ -3319,6 +3648,85 @@
                                                     }
                                                   ]
                                                 },
+                                                "examples": {
+                                                  "anyOf": [
+                                                    {
+                                                      "description": "List of examples.",
+                                                      "items": {
+                                                        "additionalProperties": false,
+                                                        "anyOf": [
+                                                          {
+                                                            "required": [
+                                                              "payload"
+                                                            ]
+                                                          },
+                                                          {
+                                                            "required": [
+                                                              "headers"
+                                                            ]
+                                                          }
+                                                        ],
+                                                        "properties": {
+                                                          "headers": {
+                                                            "anyOf": [
+                                                              {
+                                                                "description": "Schema definition of the application headers.\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "type": "null"
+                                                              }
+                                                            ]
+                                                          },
+                                                          "name": {
+                                                            "anyOf": [
+                                                              {
+                                                                "description": "Machine readable name of the message example.",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "type": "null"
+                                                              }
+                                                            ]
+                                                          },
+                                                          "payload": {
+                                                            "anyOf": [
+                                                              {
+                                                                "description": "Definition of the message payload. It can be of any type\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "type": "null"
+                                                              }
+                                                            ]
+                                                          },
+                                                          "summary": {
+                                                            "anyOf": [
+                                                              {
+                                                                "description": "A brief summary of the message example.",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "type": "null"
+                                                              }
+                                                            ]
+                                                          }
+                                                        },
+                                                        "required": [
+                                                          "headers",
+                                                          "name",
+                                                          "payload",
+                                                          "summary"
+                                                        ],
+                                                        "type": "object"
+                                                      },
+                                                      "type": "array"
+                                                    },
+                                                    {
+                                                      "type": "null"
+                                                    }
+                                                  ]
+                                                },
                                                 "externalDocs": {
                                                   "anyOf": [
                                                     {
@@ -3532,6 +3940,7 @@
                                                 "correlationId",
                                                 "deprecated",
                                                 "description",
+                                                "examples",
                                                 "externalDocs",
                                                 "headers",
                                                 "messageId",
@@ -3559,6 +3968,7 @@
                                   "correlationId",
                                   "deprecated",
                                   "description",
+                                  "examples",
                                   "externalDocs",
                                   "headers",
                                   "messageId",
@@ -3916,6 +4326,85 @@
                         {
                           "description": "A longer description of the message. CommonMark is allowed.",
                           "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "examples": {
+                      "anyOf": [
+                        {
+                          "description": "List of examples.",
+                          "items": {
+                            "additionalProperties": false,
+                            "anyOf": [
+                              {
+                                "required": [
+                                  "payload"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "headers"
+                                ]
+                              }
+                            ],
+                            "properties": {
+                              "headers": {
+                                "anyOf": [
+                                  {
+                                    "description": "Schema definition of the application headers.\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "name": {
+                                "anyOf": [
+                                  {
+                                    "description": "Machine readable name of the message example.",
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "payload": {
+                                "anyOf": [
+                                  {
+                                    "description": "Definition of the message payload. It can be of any type\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "summary": {
+                                "anyOf": [
+                                  {
+                                    "description": "A brief summary of the message example.",
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "headers",
+                              "name",
+                              "payload",
+                              "summary"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
                         },
                         {
                           "type": "null"
@@ -4494,6 +4983,85 @@
                                       }
                                     ]
                                   },
+                                  "examples": {
+                                    "anyOf": [
+                                      {
+                                        "description": "List of examples.",
+                                        "items": {
+                                          "additionalProperties": false,
+                                          "anyOf": [
+                                            {
+                                              "required": [
+                                                "payload"
+                                              ]
+                                            },
+                                            {
+                                              "required": [
+                                                "headers"
+                                              ]
+                                            }
+                                          ],
+                                          "properties": {
+                                            "headers": {
+                                              "anyOf": [
+                                                {
+                                                  "description": "Schema definition of the application headers.\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            },
+                                            "name": {
+                                              "anyOf": [
+                                                {
+                                                  "description": "Machine readable name of the message example.",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            },
+                                            "payload": {
+                                              "anyOf": [
+                                                {
+                                                  "description": "Definition of the message payload. It can be of any type\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            },
+                                            "summary": {
+                                              "anyOf": [
+                                                {
+                                                  "description": "A brief summary of the message example.",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "null"
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "headers",
+                                            "name",
+                                            "payload",
+                                            "summary"
+                                          ],
+                                          "type": "object"
+                                        },
+                                        "type": "array"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
                                   "externalDocs": {
                                     "anyOf": [
                                       {
@@ -4707,6 +5275,7 @@
                                   "correlationId",
                                   "deprecated",
                                   "description",
+                                  "examples",
                                   "externalDocs",
                                   "headers",
                                   "messageId",
@@ -4734,6 +5303,7 @@
                     "correlationId",
                     "deprecated",
                     "description",
+                    "examples",
                     "externalDocs",
                     "headers",
                     "messageId",

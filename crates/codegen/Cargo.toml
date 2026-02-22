@@ -1,10 +1,10 @@
 [package]
-name = "jsonschema-llm-codegen"
+name = "json-schema-llm-codegen"
 version = "0.1.0"
 edition = "2021"
-description = "SDK code generator for jsonschema-llm"
+description = "SDK code generator for json-schema-llm"
 license = "Apache-2.0"
-repository = "https://github.com/dotslashderek/jsonschema-llm"
+repository = "https://github.com/dotslashderek/json-schema-llm"
 
 [dependencies]
 tera = "1"

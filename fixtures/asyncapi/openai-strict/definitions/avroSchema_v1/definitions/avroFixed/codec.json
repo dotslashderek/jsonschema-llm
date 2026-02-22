@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/namespace",
+      "originalRequired": false
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    }
+  ]
+}

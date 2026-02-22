@@ -1,11 +1,11 @@
 <p align="center">
-  <h1 align="center">jsonschema-llm</h1>
+  <h1 align="center">json-schema-llm</h1>
   <p align="center">
     Convert any JSON Schema into an LLM-compatible structured output schema.<br/>
     Full round-trip: <strong>Schema → Convert → Generate → Rehydrate → Original Shape</strong>
   </p>
   <p align="center">
-    <a href="https://github.com/dotslashderek/jsonschema-llm/releases"><img src="https://img.shields.io/badge/status-alpha-orange" alt="Status: Alpha"></a>
+    <a href="https://github.com/dotslashderek/json-schema-llm/releases"><img src="https://img.shields.io/badge/status-alpha-orange" alt="Status: Alpha"></a>
     <a href="COMPATIBILITY.md"><img src="https://img.shields.io/badge/compatibility-matrix-blue" alt="Compatibility Matrix"></a>
   </p>
 </p>
@@ -39,7 +39,7 @@ You're left hand-converting schemas, losing information, and writing custom pars
 
 ## The Solution
 
-`jsonschema-llm` is a **schema-to-schema compiler**. Feed it any JSON Schema (Draft 2020-12 or earlier) and it produces:
+`json-schema-llm` is a **schema-to-schema compiler**. Feed it any JSON Schema (Draft 2020-12 or earlier) and it produces:
 
 1. **A converted schema** — the most faithful LLM-compatible projection possible
 2. **A codec** — rehydration metadata to reconstruct the original shape from LLM output
@@ -66,28 +66,28 @@ This is a standalone, deterministic transformer.
 
 ```bash
 # Install
-cargo install jsonschema-llm
+cargo install json-schema-llm
 
 # Convert a schema for OpenAI Strict (default)
-jsonschema-llm convert schema.json -o schema.llm.json --codec codec.json
+json-schema-llm convert schema.json -o schema.llm.json --codec codec.json
 
 # Convert for Gemini (relaxed — preserves more features)
-jsonschema-llm convert schema.json -o schema.llm.json --target gemini
+json-schema-llm convert schema.json -o schema.llm.json --target gemini
 
 # Convert in permissive mode (skip strict enforcement)
-jsonschema-llm convert schema.json -o schema.llm.json --mode permissive
+json-schema-llm convert schema.json -o schema.llm.json --mode permissive
 
 # Convert to a directory (full schema + per-component schemas + manifest)
-jsonschema-llm convert schema.json --output-dir ./output/
+json-schema-llm convert schema.json --output-dir ./output/
 
 # Extract a single component by JSON Pointer
-jsonschema-llm extract schema.json --pointer '#/$defs/Address'
+json-schema-llm extract schema.json --pointer '#/$defs/Address'
 
 # List all extractable components
-jsonschema-llm list-components schema.json
+json-schema-llm list-components schema.json
 
 # Rehydrate LLM output back to the original shape (pass original schema for type coercion)
-jsonschema-llm rehydrate output.json --codec codec.json --schema schema.json
+json-schema-llm rehydrate output.json --codec codec.json --schema schema.json
 ```
 
 ### Library
@@ -96,7 +96,7 @@ jsonschema-llm rehydrate output.json --codec codec.json --schema schema.json
 <summary><strong>TypeScript / JavaScript</strong></summary>
 
 ```typescript
-import { convert, rehydrate } from "jsonschema-llm";
+import { convert, rehydrate } from "json-schema-llm";
 
 // Convert
 const { schema, codec } = convert(mySchema, { target: "openai-strict" });
@@ -125,7 +125,7 @@ const original = rehydrate(
 <summary><strong>Python</strong></summary>
 
 ```python
-from jsonschema_llm import convert, rehydrate
+from json_schema_llm import convert, rehydrate
 
 # Convert
 result = convert(my_schema, {"target": "openai-strict"})
@@ -174,7 +174,7 @@ Pre-built schema/codec pairs are available for the **OpenAPI 3.1** specification
 cat 'fixtures/oas31/openai-strict/$defs/operation/schema.json'
 
 # Rehydrate LLM output back to the original OAS shape
-jsonschema-llm rehydrate llm-output.json \
+json-schema-llm rehydrate llm-output.json \
   --codec 'fixtures/oas31/openai-strict/$defs/operation/codec.json' \
   --schema fixtures/oas31/source/oas31-schema.json
 ```
@@ -213,7 +213,7 @@ The converted schemas were accepted by **OpenAI Strict Mode**. The LLM generated
 
 ## Algorithm: The 10-Pass Compiler Pipeline
 
-`jsonschema-llm` transforms schemas through 10 ordered passes, each handling a specific incompatibility. The passes are **ordered** (each assumes previous output), **deterministic**, **provider-aware** (passes are skipped/relaxed per target), **mode-aware** (strict vs permissive), and **metadata-preserving** (every lossy change records how to reverse it).
+`json-schema-llm` transforms schemas through 10 ordered passes, each handling a specific incompatibility. The passes are **ordered** (each assumes previous output), **deterministic**, **provider-aware** (passes are skipped/relaxed per target), **mode-aware** (strict vs permissive), and **metadata-preserving** (every lossy change records how to reverse it).
 
 > 📖 **Full specification with examples, merge rules, and design decisions:** [docs/algorithm.md](docs/algorithm.md)
 
@@ -283,7 +283,7 @@ The codec sidecar file contains enough information to reconstruct the original d
 
 ```python
 # Full round-trip example
-from jsonschema_llm import convert, rehydrate
+from json_schema_llm import convert, rehydrate
 
 result = convert(my_api_schema)
 llm_output = call_openai(result["schema"], prompt)
@@ -332,7 +332,7 @@ rehydrated = rehydrate(llm_output, result["codec"], my_api_schema)
 
 ```
 ┌──────────────────────────────────────────────┐
-│              jsonschema-llm-core             │
+│              json-schema-llm-core             │
 │                 (Rust crate)                  │
 │                                              │
 │  ┌──────────┐  ┌──────────┐  ┌───────────┐  │
@@ -342,7 +342,7 @@ rehydrated = rehydrate(llm_output, result["codec"], my_api_schema)
 └──────┬───────────────────┬───────────────────┘
        │                   │ WASI (wasm32-wasip1)
   ┌────┴──────────┐    ┌───┴──────────────────────────────┐
-  │  CLI (binary) │    │       jsonschema-llm-wasi          │
+  │  CLI (binary) │    │       json-schema-llm-wasi          │
   │    (Rust)     │    │         (.wasm module)             │
   └───────────────┘    └─┬────┬────┬─────┬─────┬─────┬─────┘
                          │    │    │     │     │     │
@@ -387,15 +387,15 @@ See **[ROADMAP.md](ROADMAP.md)** for the full prioritized roadmap with epic prog
 
 | Epic                                                                                 | Status         | Progress | Description                                                                |
 | ------------------------------------------------------------------------------------ | -------------- | :------: | -------------------------------------------------------------------------- |
-| [Core Improvements](https://github.com/dotslashderek/jsonschema-llm/issues/36)       | 🟡 Active      |   75%    | Walker unification, rehydrator decomposition, test hardening, docs cleanup |
-| [FFI Facade](https://github.com/dotslashderek/jsonschema-llm/issues/37)              | ✅ Complete    |   100%   | JSON-string bridge API, stable error codes, serde-ready types              |
-| [TypeScript / JS (WASM)](https://github.com/dotslashderek/jsonschema-llm/issues/38)  | ✅ Complete    |   100%   | `wasm-pack` + `serde-wasm-bindgen`, npm package                            |
-| [Python (PyO3)](https://github.com/dotslashderek/jsonschema-llm/issues/39)           | 🚨 Retired     |    —     | Replaced by WASI wrapper (`bindings/python`)                               |
-| [Java (JNI)](https://github.com/dotslashderek/jsonschema-llm/issues/40)              | 🚨 Retired     |    —     | Replaced by WASI wrapper (`bindings/java`)                                 |
-| [WASI Language Wrappers](https://github.com/dotslashderek/jsonschema-llm/issues/148) | ✅ Complete    |   100%   | Single `.wasm` module with wrappers for Go, TS, Python, Java, Ruby, C#     |
-| [Conformance Fixtures](https://github.com/dotslashderek/jsonschema-llm/issues/154)   | ✅ Complete    |   100%   | Cross-language fixture execution for Go + Python WASI wrappers             |
-| [Conformance Suite](https://github.com/dotslashderek/jsonschema-llm/issues/76)       | ⬜ Not started |    0%    | Provider-specific test suites, OpenAPI/AsyncAPI support                    |
-| [Test Harness](https://github.com/dotslashderek/jsonschema-llm/issues/115)           | ✅ Complete    |   100%   | Retry logic, known-fail classification, regression tracking                |
+| [Core Improvements](https://github.com/dotslashderek/json-schema-llm/issues/36)       | 🟡 Active      |   75%    | Walker unification, rehydrator decomposition, test hardening, docs cleanup |
+| [FFI Facade](https://github.com/dotslashderek/json-schema-llm/issues/37)              | ✅ Complete    |   100%   | JSON-string bridge API, stable error codes, serde-ready types              |
+| [TypeScript / JS (WASM)](https://github.com/dotslashderek/json-schema-llm/issues/38)  | ✅ Complete    |   100%   | `wasm-pack` + `serde-wasm-bindgen`, npm package                            |
+| [Python (PyO3)](https://github.com/dotslashderek/json-schema-llm/issues/39)           | 🚨 Retired     |    —     | Replaced by WASI wrapper (`bindings/python`)                               |
+| [Java (JNI)](https://github.com/dotslashderek/json-schema-llm/issues/40)              | 🚨 Retired     |    —     | Replaced by WASI wrapper (`bindings/java`)                                 |
+| [WASI Language Wrappers](https://github.com/dotslashderek/json-schema-llm/issues/148) | ✅ Complete    |   100%   | Single `.wasm` module with wrappers for Go, TS, Python, Java, Ruby, C#     |
+| [Conformance Fixtures](https://github.com/dotslashderek/json-schema-llm/issues/154)   | ✅ Complete    |   100%   | Cross-language fixture execution for Go + Python WASI wrappers             |
+| [Conformance Suite](https://github.com/dotslashderek/json-schema-llm/issues/76)       | ⬜ Not started |    0%    | Provider-specific test suites, OpenAPI/AsyncAPI support                    |
+| [Test Harness](https://github.com/dotslashderek/json-schema-llm/issues/115)           | ✅ Complete    |   100%   | Retry logic, known-fail classification, regression tracking                |
 
 ---
 

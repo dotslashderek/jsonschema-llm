@@ -16,7 +16,7 @@ import java.nio.file.Path;
  * <ol>
  * <li>System property {@code jsl.wasm.path}</li>
  * <li>Environment variable {@code JSL_WASM_PATH}</li>
- * <li>Classpath resource {@code /wasm/jsonschema_llm_wasi.wasm}</li>
+ * <li>Classpath resource {@code /wasm/json_schema_llm_wasi.wasm}</li>
  * </ol>
  */
 class WasmResolverTest {
@@ -83,7 +83,7 @@ class WasmResolverTest {
 
         @Test
         void extractFromClasspathCreatesTempFile() {
-                // src/test/resources/wasm/jsonschema_llm_wasi.wasm has a dummy file.
+                // src/test/resources/wasm/json_schema_llm_wasi.wasm has a dummy file.
                 // Verify the classpath extraction logic works in isolation.
                 InputStream is = WasmResolver.class.getResourceAsStream(
                                 WasmResolver.CLASSPATH_RESOURCE);
@@ -111,7 +111,7 @@ class WasmResolverTest {
                                 "Message should mention system property key");
                 assertTrue(msg.contains("JSL_WASM_PATH"),
                                 "Message should mention environment variable key");
-                assertTrue(msg.contains("/wasm/jsonschema_llm_wasi.wasm"),
+                assertTrue(msg.contains("/wasm/json_schema_llm_wasi.wasm"),
                                 "Message should mention classpath resource");
         }
 

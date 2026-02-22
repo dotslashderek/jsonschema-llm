@@ -57,6 +57,5 @@
     "summary",
     "value"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

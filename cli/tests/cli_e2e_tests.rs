@@ -10,7 +10,7 @@ const FIXTURES_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../tests/schema
 
 #[allow(deprecated)]
 fn cmd() -> Command {
-    Command::cargo_bin("jsonschema-llm").expect("binary should exist")
+    Command::cargo_bin("json-schema-llm").expect("binary should exist")
 }
 
 /// Fixtures that convert cleanly with zero provider compat errors.

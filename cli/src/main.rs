@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
 use chrono::Utc;
 use clap::{Parser, Subcommand, ValueEnum};
-use jsonschema_llm_core::config::PolymorphismStrategy;
-use jsonschema_llm_core::{
+use json_schema_llm_core::config::PolymorphismStrategy;
+use json_schema_llm_core::{
     convert, convert_all_components, extract_component, list_components, rehydrate, Codec,
     ConvertOptions, ExtractOptions, Mode, Target,
 };
@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 use tracing::level_filters::LevelFilter;
 
 #[derive(Parser)]
-#[command(name = "jsonschema-llm")]
+#[command(name = "json-schema-llm")]
 #[command(about = "Convert any JSON Schema into an LLM-compatible structured output schema")]
 #[command(version)]
 struct Cli {
@@ -428,10 +428,10 @@ fn main() -> Result<()> {
             let resolved_build_tool = match (language, build_tool) {
                 // Explicit and valid combos
                 (SdkLanguage::Java, Some(BuildToolArg::Maven)) => {
-                    jsonschema_llm_codegen::BuildTool::Maven
+                    json_schema_llm_codegen::BuildTool::Maven
                 }
                 (SdkLanguage::Python, Some(BuildToolArg::Setuptools)) => {
-                    jsonschema_llm_codegen::BuildTool::Setuptools
+                    json_schema_llm_codegen::BuildTool::Setuptools
                 }
                 // Invalid combos
                 (SdkLanguage::Python, Some(BuildToolArg::Maven)) => {
@@ -447,11 +447,11 @@ fn main() -> Result<()> {
                     );
                 }
                 // Language defaults when --build-tool is omitted
-                (SdkLanguage::Java, None) => jsonschema_llm_codegen::BuildTool::Maven,
-                (SdkLanguage::Python, None) => jsonschema_llm_codegen::BuildTool::Setuptools,
+                (SdkLanguage::Java, None) => json_schema_llm_codegen::BuildTool::Maven,
+                (SdkLanguage::Python, None) => json_schema_llm_codegen::BuildTool::Setuptools,
             };
 
-            let config = jsonschema_llm_codegen::SdkConfig {
+            let config = json_schema_llm_codegen::SdkConfig {
                 package,
                 artifact_name,
                 schema_dir: schema,
@@ -460,7 +460,7 @@ fn main() -> Result<()> {
                 build_tool: resolved_build_tool,
             };
 
-            jsonschema_llm_codegen::generate(&config).context("SDK generation failed")?;
+            json_schema_llm_codegen::generate(&config).context("SDK generation failed")?;
 
             eprintln!(
                 "SDK generated successfully at: {}",

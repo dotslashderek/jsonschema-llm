@@ -1,6 +1,6 @@
 """E2E integration tests for the Python LlmRoundtripEngine.
 
-These tests load the REAL jsonschema_llm_wasi.wasm binary and exercise
+These tests load the REAL json_schema_llm_wasi.wasm binary and exercise
 the full convert → rehydrate pipeline through wasmtime. They verify that
 the engine layer correctly handles the JslResult ABI protocol end-to-end.
 
@@ -32,7 +32,7 @@ def _find_wasm_path() -> Path:
         / "target"
         / "wasm32-wasip1"
         / "release"
-        / "jsonschema_llm_wasi.wasm"
+        / "json_schema_llm_wasi.wasm"
     )
 
 
@@ -83,7 +83,7 @@ class TestConvertRoundtrip:
     """Verify that _call_wasi("jsl_convert") works end-to-end with real WASM."""
 
     def test_convert_returns_expected_keys(self) -> None:
-        from jsonschema_llm_engine.engine import LlmRoundtripEngine
+        from json_schema_llm_engine.engine import LlmRoundtripEngine
 
         engine = LlmRoundtripEngine(wasm_path=str(_WASM_PATH))
         result = engine._call_wasi("jsl_convert", PERSON_SCHEMA, "{}")
@@ -95,7 +95,7 @@ class TestConvertRoundtrip:
         assert isinstance(result["schema"], dict)
 
     def test_convert_schema_has_properties(self) -> None:
-        from jsonschema_llm_engine.engine import LlmRoundtripEngine
+        from json_schema_llm_engine.engine import LlmRoundtripEngine
 
         engine = LlmRoundtripEngine(wasm_path=str(_WASM_PATH))
         result = engine._call_wasi("jsl_convert", PERSON_SCHEMA, "{}")
@@ -109,7 +109,7 @@ class TestRehydrateRoundtrip:
     """Verify convert → rehydrate round-trip with real WASM."""
 
     def test_rehydrate_recovers_original_data(self) -> None:
-        from jsonschema_llm_engine.engine import LlmRoundtripEngine
+        from json_schema_llm_engine.engine import LlmRoundtripEngine
 
         engine = LlmRoundtripEngine(wasm_path=str(_WASM_PATH))
 
@@ -133,8 +133,8 @@ class TestConvertErrorPropagates:
     """Verify that WASM errors propagate as SchemaConversionError."""
 
     def test_invalid_json_raises_schema_conversion_error(self) -> None:
-        from jsonschema_llm_engine.engine import LlmRoundtripEngine
-        from jsonschema_llm_engine.exceptions import SchemaConversionError
+        from json_schema_llm_engine.engine import LlmRoundtripEngine
+        from json_schema_llm_engine.exceptions import SchemaConversionError
 
         engine = LlmRoundtripEngine(wasm_path=str(_WASM_PATH))
 
@@ -149,11 +149,11 @@ class TestGenerateFullRoundtrip:
     """Full engine.generate() with real WASM + stub transport."""
 
     def test_generate_returns_valid_roundtrip_result(self) -> None:
-        from jsonschema_llm_engine.engine import LlmRoundtripEngine
-        from jsonschema_llm_engine.formatters.chat_completions import (
+        from json_schema_llm_engine.engine import LlmRoundtripEngine
+        from json_schema_llm_engine.formatters.chat_completions import (
             ChatCompletionsFormatter,
         )
-        from jsonschema_llm_engine.types import ProviderConfig, RoundtripResult
+        from json_schema_llm_engine.types import ProviderConfig, RoundtripResult
 
         engine = LlmRoundtripEngine(wasm_path=str(_WASM_PATH))
         formatter = ChatCompletionsFormatter()

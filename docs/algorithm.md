@@ -122,7 +122,7 @@ The algorithm targets **OpenAI Strict Mode** as the baseline compilation target 
 
 ```json
 {
-  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     { "path": "#/properties/plans", "type": "map_to_array", "keyField": "key" },
     {
@@ -190,7 +190,7 @@ The algorithm targets **OpenAI Strict Mode** as the baseline compilation target 
 | 10       | Pass 8     | Adaptive Opaque       | ✅ Implemented |
 | 11       | Pass 9     | Provider Compat       | ✅ Implemented |
 | 12       | Pipeline   | `convert()` wiring    | ✅ Implemented |
-| 13       | CLI        | `jsonschema-llm`      | ✅ Implemented |
+| 13       | CLI        | `json-schema-llm`      | ✅ Implemented |
 
 > [!NOTE]
 > This table reflects the shipped v0.1 state. All passes and the CLI are implemented.
@@ -208,20 +208,20 @@ The algorithm targets **OpenAI Strict Mode** as the baseline compilation target 
 
 ## Project Structure
 
-**Name**: `jsonschema-llm`
+**Name**: `json-schema-llm`
 
 ```
-jsonschema-llm/
+json-schema-llm/
 ├── crates/
-│   ├── jsonschema-llm-core/     # Rust core library
+│   ├── json-schema-llm-core/     # Rust core library
 │   │   └── src/
 │   │       ├── lib.rs            # Public API (convert + rehydrate)
 │   │       ├── passes/           # One module per pass (p0–p9)
 │   │       ├── codec.rs          # Codec builder
 │   │       ├── rehydrator.rs     # Reverse transforms
 │   │       └── schema_utils.rs   # Shared path/traversal utilities
-│   ├── jsonschema-llm-wasi/     # WASI universal binary (wasm32-wasip1)
-│   └── jsonschema-llm-wasm/     # TypeScript/JS WASM bindings
+│   ├── json-schema-llm-wasi/     # WASI universal binary (wasm32-wasip1)
+│   └── json-schema-llm-wasm/     # TypeScript/JS WASM bindings
 ├── bindings/
 │   ├── go/                      # Go wrapper (Wazero)
 │   ├── ts/                      # TypeScript wrapper (node:wasi)

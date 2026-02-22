@@ -13,7 +13,7 @@ import java.nio.file.StandardCopyOption;
  * <ol>
  * <li>System property {@code jsl.wasm.path}</li>
  * <li>Environment variable {@code JSL_WASM_PATH}</li>
- * <li>Classpath resource {@code /wasm/jsonschema_llm_wasi.wasm}</li>
+ * <li>Classpath resource {@code /wasm/json_schema_llm_wasi.wasm}</li>
  * </ol>
  *
  * <p>
@@ -29,7 +29,7 @@ class WasmResolver {
 
     static final String SYS_PROP_KEY = "jsl.wasm.path";
     static final String ENV_VAR_KEY = "JSL_WASM_PATH";
-    static final String CLASSPATH_RESOURCE = "/wasm/jsonschema_llm_wasi.wasm";
+    static final String CLASSPATH_RESOURCE = "/wasm/json_schema_llm_wasi.wasm";
 
     private WasmResolver() {
     }

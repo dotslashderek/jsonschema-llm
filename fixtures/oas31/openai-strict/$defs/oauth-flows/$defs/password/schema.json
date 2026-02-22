@@ -48,6 +48,5 @@
     "scopes",
     "tokenUrl"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     {
       "type": "map_to_array",
@@ -143,8 +143,7 @@
           "description",
           "summary"
         ],
-        "type": "object",
-        "unevaluatedProperties": false
+        "type": "object"
       }
     },
     {
@@ -241,8 +240,7 @@
                                 "description",
                                 "enum"
                               ],
-                              "type": "object",
-                              "unevaluatedProperties": false
+                              "type": "object"
                             }
                           },
                           "required": [
@@ -264,8 +262,7 @@
                   "url",
                   "variables"
                 ],
-                "type": "object",
-                "unevaluatedProperties": false
+                "type": "object"
               },
               {
                 "type": "null"
@@ -346,8 +343,7 @@
           "parameters",
           "requestBody"
         ],
-        "type": "object",
-        "unevaluatedProperties": false
+        "type": "object"
       }
     }
   ]

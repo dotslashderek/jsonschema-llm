@@ -1,7 +1,7 @@
 {
-  "name": "jsonschema-llm-wasi",
+  "name": "@json-schema-llm/wasi",
   "version": "0.1.0",
-  "description": "WASI-backed wrapper for jsonschema-llm",
+  "description": "WASI-backed wrapper for json-schema-llm",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

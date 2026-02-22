@@ -1,18 +1,18 @@
 [package]
-name = "jsonschema-llm"
+name = "json-schema-llm"
 version = "0.1.0"
 edition = "2021"
 description = "CLI for converting JSON Schemas to LLM-compatible structured output schemas"
 license = "Apache-2.0"
-repository = "https://github.com/dotslashderek/jsonschema-llm"
+repository = "https://github.com/dotslashderek/json-schema-llm"
 
 [[bin]]
-name = "jsonschema-llm"
+name = "json-schema-llm"
 path = "src/main.rs"
 
 [dependencies]
-jsonschema-llm-core = { path = "../crates/jsonschema-llm-core" }
-jsonschema-llm-codegen = { path = "../crates/codegen" }
+json-schema-llm-core = { path = "../crates/json-schema-llm-core" }
+json-schema-llm-codegen = { path = "../crates/codegen" }
 clap = { version = "4", features = ["derive"] }
 serde = "1"
 serde_json = "1"

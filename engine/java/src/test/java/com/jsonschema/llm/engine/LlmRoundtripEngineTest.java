@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.*;
  * E2E acceptance tests for LlmRoundtripEngine.
  *
  * <p>
- * These tests load the real jsonschema_llm_wasi.wasm binary via Chicory
+ * These tests load the real json_schema_llm_wasi.wasm binary via Chicory
  * and exercise the full convert → format → rehydrate pipeline. A mock
  * LlmTransport returns deterministic responses to avoid HTTP calls.
  *
@@ -392,6 +392,6 @@ class LlmRoundtripEngineTest {
                 String env = System.getenv("JSL_WASM_PATH");
                 return env != null && !env.isEmpty()
                                 ? Paths.get(env)
-                                : Paths.get("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm");
+                                : Paths.get("../../target/wasm32-wasip1/release/json_schema_llm_wasi.wasm");
         }
 }

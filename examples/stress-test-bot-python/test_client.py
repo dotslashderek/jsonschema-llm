@@ -53,14 +53,14 @@ class TestSchemaLoading:
 class TestBindingIntegration:
     """Verify PyO3 binding is importable and functional."""
 
-    def test_import_jsonschema_llm(self):
-        import jsonschema_llm
+    def test_import_json_schema_llm(self):
+        import json_schema_llm
 
-        assert hasattr(jsonschema_llm, "convert")
-        assert hasattr(jsonschema_llm, "rehydrate")
+        assert hasattr(json_schema_llm, "convert")
+        assert hasattr(json_schema_llm, "rehydrate")
 
     def test_convert_round_trip(self):
-        from jsonschema_llm import convert, rehydrate
+        from json_schema_llm import convert, rehydrate
 
         schema = {"type": "object", "properties": {"name": {"type": "string"}}}
         result = convert(schema, {"target": "openai-strict"})

@@ -87,6 +87,5 @@
     "title",
     "version"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

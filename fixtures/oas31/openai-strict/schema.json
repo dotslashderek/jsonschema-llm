@@ -213,8 +213,7 @@
         "tags",
         "webhooks"
       ],
-      "type": "object",
-      "unevaluatedProperties": false
+      "type": "object"
     }
   },
   "required": [

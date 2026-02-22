@@ -9,7 +9,7 @@ import os
 
 import pytest
 
-from jsonschema_llm_wasi import Engine, JslError
+from json_schema_llm_wasi import Engine, JslError
 
 FIXTURES_PATH = os.path.join(
     os.path.dirname(__file__), "..", "..", "tests", "conformance", "fixtures.json"

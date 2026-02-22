@@ -1,5 +1,5 @@
 {
-  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     {
       "type": "map_to_array",
@@ -9,11 +9,6 @@
     {
       "type": "map_to_array",
       "path": "#/$defs/content",
-      "keyField": "key"
-    },
-    {
-      "type": "map_to_array",
-      "path": "#/$defs/encoding/properties/headers",
       "keyField": "key"
     },
     {
@@ -62,14 +57,6 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/$defs/encoding/$defs/explode-default/then/properties/explode"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/$defs/encoding/$defs/explode-default/else/properties/explode"
-    },
-    {
-      "type": "json_string_parse",
       "path": "#/$defs/example-or-reference/if"
     },
     {
@@ -87,6 +74,10 @@
     {
       "type": "json_string_parse",
       "path": "#/$defs/link-or-reference/if"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/$defs/media-type/properties/encoding/items/properties/value"
     },
     {
       "type": "json_string_parse",
@@ -293,8 +284,7 @@
           "description",
           "summary"
         ],
-        "type": "object",
-        "unevaluatedProperties": false
+        "type": "object"
       }
     },
     {

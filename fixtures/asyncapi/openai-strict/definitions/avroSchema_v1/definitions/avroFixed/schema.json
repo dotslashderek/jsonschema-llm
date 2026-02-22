@@ -1,0 +1,64 @@
+{
+  "additionalProperties": false,
+  "description": "A fixed sized array of bytes",
+  "properties": {
+    "aliases": {
+      "anyOf": [
+        {
+          "items": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "doc": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "name": {
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+      "type": "string"
+    },
+    "namespace": {
+      "anyOf": [
+        {
+          "pattern": "^([A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*)*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "size": {
+      "type": "number"
+    },
+    "type": {
+      "enum": [
+        "fixed"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "aliases",
+    "doc",
+    "name",
+    "namespace",
+    "size",
+    "type"
+  ],
+  "title": "Fixed",
+  "type": "object"
+}

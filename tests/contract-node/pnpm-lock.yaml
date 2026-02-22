@@ -8,7 +8,7 @@ importers:
 
   .:
     dependencies:
-      jsonschema-llm-wasm:
+      json-schema-llm-wasm:
         specifier: file:./pkg
         version: file:pkg
     devDependencies:
@@ -404,7 +404,7 @@ packages:
   js-tokens@9.0.1:
     resolution: {integrity: sha512-mxa9E9ITFOt0ban3j6L5MpjwegGz6lBQmM1IJkWeBZGcMxto50+eWdjC/52xDbS2vy0k7vIMK0Fe2wfL9OQSpQ==}
 
-  jsonschema-llm-wasm@file:pkg:
+  json-schema-llm-wasm@file:pkg:
     resolution: {directory: pkg, type: directory}
 
   loupe@3.2.1:
@@ -839,7 +839,7 @@ snapshots:
 
   js-tokens@9.0.1: {}
 
-  jsonschema-llm-wasm@file:pkg: {}
+  json-schema-llm-wasm@file:pkg: {}
 
   loupe@3.2.1: {}
 
