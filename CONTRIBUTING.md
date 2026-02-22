@@ -33,16 +33,49 @@ The project uses a multi-layer testing strategy:
 1. **Unit tests** — Rust `#[test]` modules within each pass
 2. **E2E tests** — Full pipeline tests with real schemas in `crates/jsonschema-llm-core/tests/`
 3. **CLI tests** — End-to-end CLI integration tests in `cli/tests/`
-4. **WASM contract tests** — Node.js tests verifying WASM bindings in `tests/contract-node/`
-5. **WASI wrapper tests** — Docker-based tests for all 6 language wrappers
-6. **Conformance fixtures** — Cross-language fixtures in `tests/conformance/`
-7. **Doc tests** — Examples in `lib.rs` and `schema_utils.rs`
-8. **Property tests** — `proptest` strategies in `crates/jsonschema-llm-core/tests/proptest_*.rs`
-9. **Fuzzing** — `cargo-fuzz` harness in `fuzz/` (requires nightly, not part of workspace)
+4. **WASM smoke tests** — `wasm-pack test --node` for WASM boundary validation (not part of `cargo test`)
+5. **WASM contract tests** — Node.js tests verifying WASM bindings in `tests/contract-node/`
+6. **WASI host verification** — Python + wasmtime end-to-end protocol tests in `tests/wasi/`
+7. **WASI wrapper tests** — Docker-based tests for all 6 language wrappers
+8. **Conformance fixtures** — Cross-language fixtures in `tests/conformance/`
+9. **Doc tests** — Examples in `lib.rs` and `schema_utils.rs`
+10. **Property tests** — `proptest` strategies in `crates/jsonschema-llm-core/tests/proptest_*.rs`
+11. **Fuzzing** — `cargo-fuzz` harness in `fuzz/` (requires nightly, not part of workspace)
+
+#### Quick Start
+
+```bash
+# Full WASM/WASI binding verification (build + smoke + host verify + Docker wrappers)
+make verify-bindings
+
+# Full CI mirror (formatting + clippy + Rust tests + binding verification)
+make verify-all
+```
+
+#### Available Make Targets
+
+| Target                 | Description                   | Prerequisites                     |
+| ---------------------- | ----------------------------- | --------------------------------- |
+| `make verify-bindings` | Full binding pipeline         | wasm-pack, Python 3, Docker       |
+| `make verify-all`      | Full CI mirror                | All of the above                  |
+| `make build-wasi`      | Build WASI binary             | `rustup target add wasm32-wasip1` |
+| `make test-wasm-smoke` | WASM boundary smoke tests     | wasm-pack, Node.js                |
+| `make test-wasi-host`  | WASI protocol verification    | Python 3, wasmtime                |
+| `make test-wrappers`   | Docker polyglot wrapper tests | Docker                            |
+| `make test-rust`       | Rust workspace tests          | —                                 |
+| `make check`           | Formatting + clippy           | —                                 |
+| `make help`            | Show all targets              | —                                 |
+
+> **Note**: WASM smoke tests run via `wasm-pack test --node`, not `cargo test`. The `wasm32-unknown-unknown` target requires wasm-pack to compile and execute in a Node.js environment.
+
+#### Individual Commands
 
 ```bash
 # Core Rust tests (includes proptests)
 cargo test
+
+# WASM smoke tests (requires wasm-pack)
+wasm-pack test --node crates/jsonschema-llm-wasm
 
 # WASM contract tests
 wasm-pack build crates/jsonschema-llm-wasm --target nodejs --out-dir ../../tests/contract-node/pkg
