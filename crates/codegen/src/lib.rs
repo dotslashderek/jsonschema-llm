@@ -50,6 +50,7 @@ pub struct ManifestComponent {
     pub pointer: String,
     pub schema_path: String,
     pub codec_path: String,
+    pub original_path: String,
     pub dependency_count: usize,
 }
 

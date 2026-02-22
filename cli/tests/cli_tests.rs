@@ -306,8 +306,16 @@ fn test_convert_output_dir() {
         "Pet codec.json"
     );
     assert!(
+        out_dir.join("$defs/Pet/original.json").exists(),
+        "Pet original.json"
+    );
+    assert!(
         out_dir.join("$defs/Tag/schema.json").exists(),
         "Tag schema.json"
+    );
+    assert!(
+        out_dir.join("$defs/Tag/original.json").exists(),
+        "Tag original.json"
     );
 }
 
@@ -370,6 +378,7 @@ fn test_convert_output_dir_manifest() {
         assert!(comp["pointer"].is_string());
         assert!(comp["schemaPath"].is_string());
         assert!(comp["codecPath"].is_string());
+        assert!(comp["originalPath"].is_string());
         assert!(comp["dependencyCount"].is_number());
     }
 }
@@ -453,6 +462,7 @@ fn setup_gen_sdk_fixtures(dir: &TempDir) -> std::path::PathBuf {
                 "pointer": "#/$defs/user-profile",
                 "schemaPath": "user-profile/schema.json",
                 "codecPath": "user-profile/codec.json",
+                "originalPath": "user-profile/original.json",
                 "dependencyCount": 0
             }
         ]
@@ -467,6 +477,7 @@ fn setup_gen_sdk_fixtures(dir: &TempDir) -> std::path::PathBuf {
     fs::create_dir_all(&comp_dir).unwrap();
     fs::write(comp_dir.join("schema.json"), "{}").unwrap();
     fs::write(comp_dir.join("codec.json"), "{}").unwrap();
+    fs::write(comp_dir.join("original.json"), "{}").unwrap();
 
     schema_dir
 }

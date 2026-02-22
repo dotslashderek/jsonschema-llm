@@ -26,6 +26,7 @@ struct ComponentContext {
     module_name: String,
     schema_path: String,
     codec_path: String,
+    original_path: String,
 }
 
 /// Template context for the index barrel export.
@@ -141,11 +142,35 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
             )
         })?;
 
+        // Copy original.json
+        {
+            let original_src = config.schema_dir.join(&component.original_path);
+            let original_dest = schemas_dir.join(&component.original_path);
+            if let Some(parent) = original_dest.parent() {
+                fs::create_dir_all(parent)?;
+            }
+            if !original_src.exists() {
+                anyhow::bail!(
+                    "Original schema not found for component '{}': {}",
+                    component.name,
+                    original_src.display()
+                );
+            }
+            fs::copy(&original_src, &original_dest).with_context(|| {
+                format!(
+                    "Failed to copy original: {} -> {}",
+                    original_src.display(),
+                    original_dest.display()
+                )
+            })?;
+        }
+
         let ctx = ComponentContext {
             component_name: component.name.clone(),
             module_name: module_name.clone(),
             schema_path: component.schema_path.clone(),
             codec_path: component.codec_path.clone(),
+            original_path: component.original_path.clone(),
         };
 
         // Generate component module
@@ -235,6 +260,7 @@ mod tests {
                     "pointer": "#/$defs/UserProfile",
                     "schemaPath": "$defs/UserProfile/schema.json",
                     "codecPath": "$defs/UserProfile/codec.json",
+                    "originalPath": "$defs/UserProfile/original.json",
                     "dependencyCount": 0
                 }
             ]
@@ -250,6 +276,7 @@ mod tests {
         )
         .unwrap();
         fs::write(comp_dir.join("codec.json"), r#"{"transforms":[]}"#).unwrap();
+        fs::write(comp_dir.join("original.json"), r#"{"type":"object"}"#).unwrap();
     }
 
     #[test]
@@ -311,6 +338,7 @@ mod tests {
                     "pointer": "#/$defs/Missing",
                     "schemaPath": "missing/schema.json",
                     "codecPath": "missing/codec.json",
+                    "originalPath": "missing/original.json",
                     "dependencyCount": 0
                 }
             ]

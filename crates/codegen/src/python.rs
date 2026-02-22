@@ -36,6 +36,7 @@ struct ComponentContext {
     component_name: String,
     schema_path: String,
     codec_path: String,
+    original_path: String,
 }
 
 /// Normalize a Python distribution name to a valid import name.
@@ -120,6 +121,7 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
             component_name: component.name.clone(),
             schema_path: component.schema_path.clone(),
             codec_path: component.codec_path.clone(),
+            original_path: component.original_path.clone(),
         };
 
         render_to_file(
@@ -129,9 +131,10 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
             &pkg_dir.join(format!("{}.py", module_name)),
         )?;
 
-        // Copy schema and codec files
+        // Copy schema, codec, and original files
         copy_schema_file(&config.schema_dir, &component.schema_path, &schemas_dir)?;
         copy_schema_file(&config.schema_dir, &component.codec_path, &schemas_dir)?;
+        copy_schema_file(&config.schema_dir, &component.original_path, &schemas_dir)?;
 
         component_contexts.push(ctx);
     }
@@ -240,6 +243,7 @@ mod tests {
                     "pointer": "#/$defs/user-profile",
                     "schemaPath": "user-profile/schema.json",
                     "codecPath": "user-profile/codec.json",
+                    "originalPath": "user-profile/original.json",
                     "dependencyCount": 0
                 },
                 {
@@ -247,6 +251,7 @@ mod tests {
                     "pointer": "#/$defs/order-item",
                     "schemaPath": "order-item/schema.json",
                     "codecPath": "order-item/codec.json",
+                    "originalPath": "order-item/original.json",
                     "dependencyCount": 2
                 }
             ]
@@ -263,6 +268,7 @@ mod tests {
             fs::create_dir_all(&comp_dir).unwrap();
             fs::write(comp_dir.join("schema.json"), "{}").unwrap();
             fs::write(comp_dir.join("codec.json"), "{}").unwrap();
+            fs::write(comp_dir.join("original.json"), "{}").unwrap();
         }
 
         let output_dir = tmp.path().join("output");
@@ -329,6 +335,7 @@ mod tests {
                     "pointer": "#/$defs/ghost",
                     "schemaPath": "ghost/schema.json",
                     "codecPath": "ghost/codec.json",
+                    "originalPath": "ghost/original.json",
                     "dependencyCount": 0
                 }
             ]

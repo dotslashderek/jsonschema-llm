@@ -239,6 +239,7 @@ struct ManifestComponent {
     pointer: String,
     schema_path: String,
     codec_path: String,
+    original_path: String,
     dependency_count: usize,
 }
 
@@ -586,10 +587,22 @@ fn handle_output_dir(
             format,
         )?;
 
-        // Get dependency count by running extract_component independently
-        let dep_count = extract_component(schema, pointer, &extract_opts)
+        // Get dependency count and original extracted schema
+        let extract_result = extract_component(schema, pointer, &extract_opts);
+        let dep_count = extract_result
+            .as_ref()
             .map(|r| r.dependency_count)
             .unwrap_or(0);
+
+        // Write original.json (the extracted, self-contained sub-schema
+        // before LLM conversion — used for validation in engines)
+        if let Ok(ref result) = extract_result {
+            write_json(
+                &result.schema,
+                Some(&comp_dir.join("original.json")),
+                format,
+            )?;
+        }
 
         let name = pointer
             .rsplit('/')
@@ -603,6 +616,7 @@ fn handle_output_dir(
             pointer: pointer.clone(),
             schema_path: format!("{}/schema.json", rel_dir),
             codec_path: format!("{}/codec.json", rel_dir),
+            original_path: format!("{}/original.json", rel_dir),
             dependency_count: dep_count,
         });
     }
