@@ -333,6 +333,40 @@ class LlmRoundtripEngineTest {
         }
 
         // ---------------------------------------------------------------
+        // 11. Structured warning serialization
+        // ---------------------------------------------------------------
+
+        @Test
+        void structuredWarning_isPreservedNotDiscarded() throws Exception {
+                // Verify that a structured warning object node is serialised via toString()
+                // (producing a JSON snippet) and not asText() (which returns "" for objects).
+                ObjectMapper mapper = new ObjectMapper();
+
+                // Simulate two warning payloads: one plain string, one structured object
+                String warningsJson = """
+                                [
+                                  "plain string warning",
+                                  {"path": "/name", "message": "coercion applied", "rule": "string-trim"}
+                                ]
+                                """;
+                com.fasterxml.jackson.databind.JsonNode warnings = mapper.readTree(warningsJson);
+
+                // Apply the same extraction logic used in LlmRoundtripEngine
+                java.util.List<String> extracted = new java.util.ArrayList<>();
+                for (com.fasterxml.jackson.databind.JsonNode w : warnings) {
+                        extracted.add(w.isTextual() ? w.asText() : w.toString());
+                }
+
+                assertThat(extracted).hasSize(2);
+                // Plain string should remain clean (no extra quotes)
+                assertThat(extracted.get(0)).isEqualTo("plain string warning");
+                // Structured object must NOT be empty and must contain the field values
+                assertThat(extracted.get(1)).isNotEmpty();
+                assertThat(extracted.get(1)).contains("coercion applied");
+                assertThat(extracted.get(1)).contains("/name");
+        }
+
+        // ---------------------------------------------------------------
         // Helpers
         // ---------------------------------------------------------------
 

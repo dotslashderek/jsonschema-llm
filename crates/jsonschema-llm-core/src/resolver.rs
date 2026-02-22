@@ -119,8 +119,6 @@ impl ResolverEngine {
     pub fn base_uri(&self) -> &Url {
         &self.base_uri
     }
-
-
 }
 
 // ===========================================================================

@@ -142,9 +142,9 @@ enum Commands {
         #[arg(long, default_value_t = false)]
         git_init: bool,
 
-        /// Build tool for the generated project
-        #[arg(long, value_enum, default_value_t = BuildToolArg::Maven)]
-        build_tool: BuildToolArg,
+        /// Build tool for the generated project (default: maven for Java, setuptools for Python)
+        #[arg(long, value_enum)]
+        build_tool: Option<BuildToolArg>,
     },
 }
 
@@ -424,10 +424,31 @@ fn main() -> Result<()> {
                 SdkLanguage::Python => package.clone(),
             };
 
-            // Resolve build tool: use explicit flag or language default
+            // Resolve build tool: validate combo, then apply language default if omitted
             let resolved_build_tool = match (language, build_tool) {
-                (_, BuildToolArg::Maven) => jsonschema_llm_codegen::BuildTool::Maven,
-                (_, BuildToolArg::Setuptools) => jsonschema_llm_codegen::BuildTool::Setuptools,
+                // Explicit and valid combos
+                (SdkLanguage::Java, Some(BuildToolArg::Maven)) => {
+                    jsonschema_llm_codegen::BuildTool::Maven
+                }
+                (SdkLanguage::Python, Some(BuildToolArg::Setuptools)) => {
+                    jsonschema_llm_codegen::BuildTool::Setuptools
+                }
+                // Invalid combos
+                (SdkLanguage::Python, Some(BuildToolArg::Maven)) => {
+                    anyhow::bail!(
+                        "Invalid combination: --language python requires --build-tool setuptools \
+                         (maven is a Java build tool)"
+                    );
+                }
+                (SdkLanguage::Java, Some(BuildToolArg::Setuptools)) => {
+                    anyhow::bail!(
+                        "Invalid combination: --language java requires --build-tool maven \
+                         (setuptools is a Python build tool)"
+                    );
+                }
+                // Language defaults when --build-tool is omitted
+                (SdkLanguage::Java, None) => jsonschema_llm_codegen::BuildTool::Maven,
+                (SdkLanguage::Python, None) => jsonschema_llm_codegen::BuildTool::Setuptools,
             };
 
             let config = jsonschema_llm_codegen::SdkConfig {

@@ -116,9 +116,17 @@ fn restore_map(data: &mut Value, key_field: &str) -> Result<(), ConvertError> {
 
         let mut map = serde_json::Map::new();
         for item in arr {
-            let obj = item.as_object().unwrap(); // safe: pre-validated
-            let k = obj.get(key_field).unwrap().as_str().unwrap();
-            let v = obj.get("value").unwrap();
+            let obj = item
+                .as_object()
+                .expect("invariant: all_valid guard above ensures every item is an object");
+            let k = obj
+                .get(key_field)
+                .expect("invariant: all_valid guard above ensures key_field is present")
+                .as_str()
+                .expect("invariant: all_valid guard above ensures key_field is a string");
+            let v = obj
+                .get("value")
+                .expect("invariant: all_valid guard above ensures 'value' key is present");
             map.insert(k.to_string(), v.clone()); // Duplicate keys: last wins
         }
         *data = Value::Object(map);
@@ -155,8 +163,13 @@ fn restore_additional_properties(
             .unwrap_or(false);
 
         if is_object {
-            let extra = obj.remove(property_name).unwrap(); // safe: checked above
-            for (k, v) in extra.as_object().unwrap() {
+            let extra = obj
+                .remove(property_name)
+                .expect("invariant: is_object guard above confirms property_name exists");
+            for (k, v) in extra
+                .as_object()
+                .expect("invariant: is_object guard above confirms this is an object")
+            {
                 obj.insert(k.clone(), v.clone());
             }
         }

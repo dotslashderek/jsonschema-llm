@@ -620,7 +620,10 @@ fn cleanup(schema: Value, _recursive_refs: &[String]) -> Value {
         // Rewrite remaining `$ref` pointers from #/definitions/ to #/$defs/.
         let mut schema = Value::Object(obj);
         rewrite_definition_refs(&mut schema);
-        obj = schema.as_object().unwrap().clone();
+        obj = schema
+            .as_object()
+            .expect("invariant: schema was constructed as Value::Object immediately above")
+            .clone();
     }
 
     // Strip $defs entries that are not referenced by remaining recursive refs.

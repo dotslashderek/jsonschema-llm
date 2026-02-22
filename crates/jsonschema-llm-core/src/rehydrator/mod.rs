@@ -356,7 +356,9 @@ fn validate_codec_version(codec: &Codec) -> Result<(), ConvertError> {
         })?;
 
     // Parse the major version (tolerates "1", "1.2", etc.)
-    let major_str = version_segment.split('.').next().unwrap();
+    let major_str = version_segment.split('.').next().expect(
+        "invariant: str::split('.') always yields at least one element for a non-empty string",
+    );
     let major: u32 = major_str
         .parse()
         .map_err(|_| ConvertError::CodecVersionMismatch {

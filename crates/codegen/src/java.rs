@@ -187,17 +187,25 @@ fn render_to_file<T: Serialize>(
 
 /// Copy a schema/codec file from the source directory to the resources directory,
 /// preserving the relative path structure.
+/// Returns a hard error if the source file does not exist, ensuring broken SDK
+/// packages are never silently emitted.
 fn copy_schema_file(schema_dir: &Path, relative_path: &str, resources_dir: &Path) -> Result<()> {
     let src = schema_dir.join(relative_path);
     let dst = resources_dir.join(relative_path);
 
-    if src.exists() {
-        if let Some(parent) = dst.parent() {
-            fs::create_dir_all(parent)?;
-        }
-        fs::copy(&src, &dst)
-            .with_context(|| format!("Failed to copy {} to {}", src.display(), dst.display()))?;
+    if !src.exists() {
+        anyhow::bail!(
+            "Schema file not found: '{}' (referenced in manifest but missing from schema directory '{}')",
+            src.display(),
+            schema_dir.display()
+        );
     }
+
+    if let Some(parent) = dst.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::copy(&src, &dst)
+        .with_context(|| format!("Failed to copy {} to {}", src.display(), dst.display()))?;
 
     Ok(())
 }
@@ -309,5 +317,54 @@ mod tests {
         let resources = output_dir.join("src/main/resources/schemas");
         assert!(resources.join("user-profile/schema.json").exists());
         assert!(resources.join("order-item/codec.json").exists());
+    }
+
+    #[test]
+    fn missing_schema_file_returns_error() {
+        let tmp = TempDir::new().unwrap();
+        let schema_dir = tmp.path().join("schemas");
+        fs::create_dir_all(&schema_dir).unwrap();
+
+        // Manifest references a component whose files do NOT exist on disk
+        let manifest = serde_json::json!({
+            "version": "1",
+            "generatedAt": "2026-01-01T00:00:00Z",
+            "sourceSchema": "test.json",
+            "target": "openai-strict",
+            "mode": "strict",
+            "components": [
+                {
+                    "name": "ghost",
+                    "pointer": "#/$defs/ghost",
+                    "schemaPath": "ghost/schema.json",
+                    "codecPath": "ghost/codec.json",
+                    "dependencyCount": 0
+                }
+            ]
+        });
+        fs::write(
+            schema_dir.join("manifest.json"),
+            serde_json::to_string_pretty(&manifest).unwrap(),
+        )
+        .unwrap();
+        // Intentionally NOT creating ghost/schema.json or ghost/codec.json
+
+        let output_dir = tmp.path().join("output");
+        let config = SdkConfig {
+            package: "com.example.ghost".to_string(),
+            artifact_name: "ghost-sdk".to_string(),
+            schema_dir,
+            output_dir,
+            git_init: false,
+            build_tool: BuildTool::Maven,
+        };
+
+        let err =
+            generate(&config).expect_err("generate should fail when schema files are missing");
+        let msg = err.to_string();
+        assert!(
+            msg.contains("Schema file not found"),
+            "error message should mention missing file, got: {msg}"
+        );
     }
 }

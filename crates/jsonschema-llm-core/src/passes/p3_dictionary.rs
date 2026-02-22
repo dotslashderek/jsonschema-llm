@@ -141,17 +141,16 @@ fn transpile_pure_map(
 
     let mut array_schema = build_array_schema(&value_schema, KEY_FIELD);
 
-    // Preserve metadata on the outer array.
     if let Some(desc) = obj.get("description") {
         array_schema
             .as_object_mut()
-            .unwrap()
+            .expect("invariant: build_array_schema always returns Value::Object")
             .insert("description".to_string(), desc.clone());
     }
     if let Some(title) = obj.get("title") {
         array_schema
             .as_object_mut()
-            .unwrap()
+            .expect("invariant: build_array_schema always returns Value::Object")
             .insert("title".to_string(), title.clone());
     }
 
@@ -179,7 +178,7 @@ fn extract_additional_properties(
         .entry("properties")
         .or_insert_with(|| json!({}))
         .as_object_mut()
-        .unwrap();
+        .expect("invariant: or_insert_with inserted json!({}) which is Value::Object");
 
     let property_name = if props.contains_key(ADDITIONAL_PROPERTY) {
         // Find a unique name by appending underscores.

@@ -548,3 +548,63 @@ fn test_gen_sdk_help_shows_python() {
         .stdout(predicate::str::contains("python"))
         .stdout(predicate::str::contains("setuptools"));
 }
+
+// ── Language / build-tool coupling ─────────────────────────────────────
+
+#[test]
+fn test_gen_sdk_python_maven_combo_rejected() {
+    let dir = TempDir::new().unwrap();
+    let schema_dir = setup_gen_sdk_fixtures(&dir);
+
+    cmd()
+        .args(["gen-sdk", "--language", "python"])
+        .args(["--schema", schema_dir.to_str().unwrap()])
+        .args(["--package", "my-sdk"])
+        .args(["--output", dir.path().join("out").to_str().unwrap()])
+        .args(["--build-tool", "maven"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Invalid combination"));
+}
+
+#[test]
+fn test_gen_sdk_java_setuptools_combo_rejected() {
+    let dir = TempDir::new().unwrap();
+    let schema_dir = setup_gen_sdk_fixtures(&dir);
+
+    cmd()
+        .args(["gen-sdk", "--language", "java"])
+        .args(["--schema", schema_dir.to_str().unwrap()])
+        .args(["--package", "com.example.sdk"])
+        .args(["--output", dir.path().join("out").to_str().unwrap()])
+        .args(["--build-tool", "setuptools"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Invalid combination"));
+}
+
+#[test]
+fn test_gen_sdk_python_default_build_tool_is_setuptools() {
+    let dir = TempDir::new().unwrap();
+    let schema_dir = setup_gen_sdk_fixtures(&dir);
+    let output = dir.path().join("out-default");
+
+    // --build-tool omitted: should default to setuptools for python
+    cmd()
+        .args(["gen-sdk", "--language", "python"])
+        .args(["--schema", schema_dir.to_str().unwrap()])
+        .args(["--package", "my-default-sdk"])
+        .args(["--output", output.to_str().unwrap()])
+        .assert()
+        .success();
+
+    // pyproject.toml (not pom.xml) is the artifact of setuptools
+    assert!(
+        output.join("pyproject.toml").exists(),
+        "should produce pyproject.toml"
+    );
+    assert!(
+        !output.join("pom.xml").exists(),
+        "should NOT produce pom.xml"
+    );
+}

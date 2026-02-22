@@ -184,11 +184,13 @@ public class LlmRoundtripEngine implements AutoCloseable {
                     "Rehydration failed: " + e.getMessage(), e);
         }
 
-        // Extract warnings
+        // Extract warnings: use asText() for plain strings so scalar warnings stay
+        // clean (no extra quotes), and toString() for structured objects so their
+        // content (path, message, coercion rule) is not silently discarded.
         List<String> warnings = new ArrayList<>();
         if (rehydrateResult.warnings() != null && rehydrateResult.warnings().isArray()) {
             for (JsonNode w : rehydrateResult.warnings()) {
-                warnings.add(w.asText());
+                warnings.add(w.isTextual() ? w.asText() : w.toString());
             }
         }
 
