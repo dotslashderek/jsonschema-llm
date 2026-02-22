@@ -13,7 +13,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@json-schema-llm/wasi": "workspace:*"
+    "@json-schema-llm/wasi": "workspace:*",
+    "ajv": "^8.18.0",
+    "ajv-formats": "^3.0.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

@@ -6,6 +6,8 @@
  */
 
 import { Engine as WasiEngine, type ConvertResult } from "@json-schema-llm/wasi";
+import Ajv2020Module from "ajv/dist/2020.js";
+import addFormatsModule from "ajv-formats";
 import {
   SchemaConversionError,
   RehydrationError,
@@ -150,12 +152,8 @@ export class LlmRoundtripEngine {
       throw new RehydrationError(`Rehydration failed: ${e}`);
     }
 
-    // Step 6: Validate against original schema
-    // TODO: Integrate ajv for JSON Schema validation to achieve feature parity
-    // with the Python engine (which uses the `jsonschema` package) and the Java
-    // engine (which uses `json-schema-validator`). Until then, validationErrors
-    // will always be empty and isValid will always be true.
-    const validationErrors: string[] = [];
+    // Step 6: Validate rehydrated data against original schema (Draft 2020-12)
+    const validationErrors = this.validate(rehydratedData, schemaJson);
 
     return {
       data: rehydratedData,
@@ -164,5 +162,33 @@ export class LlmRoundtripEngine {
       validationErrors,
       isValid: validationErrors.length === 0,
     };
+  }
+
+  /**
+   * Validate data against a JSON Schema using ajv (Draft 2020-12).
+   *
+   * Mirrors the Python engine's `_validate()` which uses `jsonschema.Draft202012Validator`.
+   * Returns validation error messages; never throws.
+   */
+  private validate(data: unknown, schemaJson: string): string[] {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- CJS/ESM interop
+      const Ajv = ((Ajv2020Module as any).default ?? Ajv2020Module) as typeof Ajv2020Module.default;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const formats = ((addFormatsModule as any).default ?? addFormatsModule) as typeof addFormatsModule.default;
+
+      const ajv = new Ajv({ allErrors: true, strict: false });
+      formats(ajv);
+      const schema = JSON.parse(schemaJson);
+      const valid = ajv.validate(schema, data);
+      if (valid) return [];
+      return (ajv.errors ?? []).map((e: { instancePath?: string; message?: string }) =>
+        `${e.instancePath || "/"} ${e.message ?? "validation error"}`.trim(),
+      );
+    } catch {
+      // Schema itself is invalid or ajv can't process it — mirror Python's
+      // graceful degradation (return empty on ImportError/SchemaError)
+      return [];
+    }
   }
 }
