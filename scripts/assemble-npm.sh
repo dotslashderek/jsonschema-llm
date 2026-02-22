@@ -10,7 +10,7 @@
 # -------------------------------------------------------------------
 set -euo pipefail
 
-WASM_CRATE="crates/jsonschema-llm-wasm"
+WASM_CRATE="crates/json-schema-llm-wasm"
 DIST="dist"
 
 echo "==> Assembling npm package into ${DIST}/"
@@ -21,9 +21,9 @@ cp -r "${WASM_CRATE}/pkg-nodejs" "${DIST}"
 
 # 2. Copy web build into web/ subdirectory
 mkdir -p "${DIST}/web"
-cp "${WASM_CRATE}/pkg-web/jsonschema_llm_wasm_bg.wasm" "${DIST}/web/"
-cp "${WASM_CRATE}/pkg-web/jsonschema_llm_wasm.js"      "${DIST}/web/"
-cp "${WASM_CRATE}/pkg-web/jsonschema_llm_wasm.d.ts"     "${DIST}/web/"
+cp "${WASM_CRATE}/pkg-web/json_schema_llm_wasm_bg.wasm" "${DIST}/web/"
+cp "${WASM_CRATE}/pkg-web/json_schema_llm_wasm.js"      "${DIST}/web/"
+cp "${WASM_CRATE}/pkg-web/json_schema_llm_wasm.d.ts"     "${DIST}/web/"
 
 # 3. Patch package.json with jq
 TEMP_PKG=$(mktemp)
@@ -38,21 +38,21 @@ jq '
   } |
   .keywords = ["json-schema", "llm", "openai", "gemini", "claude", "wasm", "structured-output"] |
   .files = [
-    "jsonschema_llm_wasm_bg.wasm",
-    "jsonschema_llm_wasm.js",
-    "jsonschema_llm_wasm.d.ts",
+    "json_schema_llm_wasm_bg.wasm",
+    "json_schema_llm_wasm.js",
+    "json_schema_llm_wasm.d.ts",
     "web/",
     "README.md"
   ] |
   .exports = {
     ".": {
-      "types": "./jsonschema_llm_wasm.d.ts",
-      "node": "./jsonschema_llm_wasm.js",
-      "default": "./web/jsonschema_llm_wasm.js"
+      "types": "./json_schema_llm_wasm.d.ts",
+      "node": "./json_schema_llm_wasm.js",
+      "default": "./web/json_schema_llm_wasm.js"
     },
     "./web": {
-      "types": "./web/jsonschema_llm_wasm.d.ts",
-      "default": "./web/jsonschema_llm_wasm.js"
+      "types": "./web/json_schema_llm_wasm.d.ts",
+      "default": "./web/json_schema_llm_wasm.js"
     }
   }
 ' "${DIST}/package.json" > "${TEMP_PKG}"

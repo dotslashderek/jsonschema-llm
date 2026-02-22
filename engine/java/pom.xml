@@ -24,7 +24,7 @@
         <!-- WASI bindings (local Maven repo) -->
         <dependency>
             <groupId>com.jsonschema.llm</groupId>
-            <artifactId>jsonschema-llm-java</artifactId>
+            <artifactId>json-schema-llm-java</artifactId>
             <version>0.1.0-ALPHA</version>
         </dependency>
 

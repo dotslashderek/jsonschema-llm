@@ -1,4 +1,4 @@
-// Package jsl provides a thin WASI-backed wrapper for jsonschema-llm.
+// Package jsl provides a thin WASI-backed wrapper for json-schema-llm.
 //
 // It loads the universal WASI binary via wazero (pure Go, zero CGo) and
 // exposes convert() and rehydrate() as idiomatic Go functions.

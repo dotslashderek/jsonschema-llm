@@ -22,7 +22,7 @@ import pytest
 
 # WASM binary path: env var → repo-relative fallback
 def _find_wasm_path() -> Path:
-    env = os.environ.get("JSONSCHEMA_LLM_WASM_PATH")
+    env = os.environ.get("JSON_SCHEMA_LLM_WASM_PATH")
     if env:
         p = Path(env)
         if p.is_file():

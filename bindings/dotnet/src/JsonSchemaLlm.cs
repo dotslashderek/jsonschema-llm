@@ -9,7 +9,7 @@ using Wasmtime;
 namespace JsonSchemaLlm;
 
 /// <summary>
-/// WASI-backed wrapper for jsonschema-llm.
+/// WASI-backed wrapper for json-schema-llm.
 ///
 /// Uses wasmtime-dotnet to load the universal WASI binary and exposes
 /// Convert() and Rehydrate() as C# methods.

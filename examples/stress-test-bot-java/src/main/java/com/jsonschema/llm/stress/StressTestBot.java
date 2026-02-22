@@ -22,7 +22,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 /**
- * Stress test bot for jsonschema-llm WASI wrapper.
+ * Stress test bot for json-schema-llm WASI wrapper.
  *
  * <p>
  * Mirrors the TS reference client (examples/stress-test-bot/src/index.ts).

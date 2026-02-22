@@ -1,4 +1,4 @@
-module github.com/dotslashderek/jsonschema-llm/bindings/go
+module github.com/dotslashderek/json-schema-llm/bindings/go
 
 go 1.22
 

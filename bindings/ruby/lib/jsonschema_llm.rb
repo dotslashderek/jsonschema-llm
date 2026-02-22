@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# WASI-backed wrapper for jsonschema-llm.
+# WASI-backed wrapper for json-schema-llm.
 #
 # Uses wasmtime gem to load the universal WASI binary and exposes
 # convert() and rehydrate() as Ruby methods.

@@ -1,4 +1,4 @@
-// Go stress test bot for jsonschema-llm WASI wrapper.
+// Go stress test bot for json-schema-llm WASI wrapper.
 //
 // Pipeline: convert → OpenAI structured output → rehydrate → validate
 // Mirrors the TS/Python/Java reference clients.
@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	jsl "github.com/dotslashderek/jsonschema-llm/bindings/go"
+	jsl "github.com/dotslashderek/json-schema-llm/bindings/go"
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 	"github.com/santhosh-tekuri/jsonschema/v6"

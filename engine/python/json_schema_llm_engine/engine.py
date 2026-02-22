@@ -34,7 +34,7 @@ class LlmRoundtripEngine:
 
     Args:
         wasm_path: Path to the json-schema-llm WASI binary. If None, uses
-                   the JSONSCHEMA_LLM_WASM_PATH environment variable or
+                   the JSON_SCHEMA_LLM_WASM_PATH environment variable or
                    falls back to importlib.resources.
     """
 
@@ -253,7 +253,7 @@ def _resolve_wasm_bytes(explicit: str | None) -> bytes:
         raise FileNotFoundError(f"Explicit WASM path not found: {p}")
 
     # Tier 2: Environment variable
-    env = os.environ.get("JSONSCHEMA_LLM_WASM_PATH")
+    env = os.environ.get("JSON_SCHEMA_LLM_WASM_PATH")
     if env:
         p = Path(env)
         if p.is_file():
@@ -271,5 +271,5 @@ def _resolve_wasm_bytes(explicit: str | None) -> bytes:
         return repo_path.read_bytes()
 
     raise FileNotFoundError(
-        "WASM binary not found. Set JSONSCHEMA_LLM_WASM_PATH or build the WASI target."
+        "WASM binary not found. Set JSON_SCHEMA_LLM_WASM_PATH or build the WASI target."
     )
