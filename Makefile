@@ -13,19 +13,19 @@
 #   - Docker (for wrapper tests)
 
 .PHONY: verify-bindings verify-all build-wasi test-wasm-smoke test-wasi-host \
-        test-wrappers test-rust check help
+        test-wrappers test-engines test-rust check help
 
 # ---------------------------------------------------------------------------
 # Meta-targets
 # ---------------------------------------------------------------------------
 
 ## Run the full WASM/WASI binding verification pipeline
-verify-bindings: build-wasi test-wasm-smoke test-wasi-host test-wrappers
+verify-bindings: build-wasi test-wasm-smoke test-wasi-host test-wrappers test-engines
 	@echo ""
 	@echo "✅ All binding verification targets passed!"
 
 ## Full CI mirror: check + test + bindings
-verify-all: check test-rust verify-bindings
+verify-all: check test-rust verify-bindings test-engines
 	@echo ""
 	@echo "✅ Full CI verification passed!"
 
@@ -73,6 +73,13 @@ test-wrappers: build-wasi
 	./scripts/test-wrappers.sh
 	@echo "✅ Docker wrapper tests passed"
 
+## Run engine E2E tests (Python + Java against real WASM)
+test-engines: build-wasi
+	@echo "🧪 Running engine E2E tests..."
+	cd engine/python && python -m pytest -v -m e2e
+	cd engine/java && mvn test -Dgroups=e2e -q
+	@echo "✅ Engine E2E tests passed"
+
 ## Run Rust workspace tests (mirrors CI exclusions)
 test-rust:
 	@echo "🧪 Running Rust workspace tests..."
@@ -109,6 +116,7 @@ help:
 	@echo "  make test-wasm-smoke   WASM smoke tests (wasm-pack + Node.js)"
 	@echo "  make test-wasi-host    WASI host verification (Python + wasmtime)"
 	@echo "  make test-wrappers     Docker wrapper tests (6 languages)"
+	@echo "  make test-engines      Engine E2E tests (Python + Java vs real WASM)"
 	@echo "  make test-rust         Rust workspace tests (unit + doc)"
 	@echo "  make check             Formatting + clippy"
 	@echo ""

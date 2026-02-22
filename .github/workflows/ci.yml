@@ -299,3 +299,49 @@ jobs:
         working-directory: bindings/dotnet
         env:
           JSL_WASM_PATH: ${{ github.workspace }}/target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm
+
+  engine-tests:
+    name: Engine Tests (${{ matrix.engine }})
+    runs-on: ubuntu-latest
+    needs: wasi
+    strategy:
+      matrix:
+        engine: [python, java]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download WASI binary
+        uses: actions/download-artifact@v4
+        with:
+          name: wasi-binary
+          path: target/wasm32-wasip1/release
+
+      # ── Python engine ────────────────────────────────────────────
+      - name: Setup Python
+        if: matrix.engine == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python engine deps
+        if: matrix.engine == 'python'
+        run: pip install -e ".[dev]"
+        working-directory: engine/python
+
+      - name: Run Python engine tests
+        if: matrix.engine == 'python'
+        run: python -m pytest -v
+        working-directory: engine/python
+
+      # ── Java engine ──────────────────────────────────────────────
+      - name: Setup Java
+        if: matrix.engine == 'java'
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Run Java engine tests
+        if: matrix.engine == 'java'
+        run: mvn test
+        working-directory: engine/java
