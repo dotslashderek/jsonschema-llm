@@ -16,7 +16,7 @@ import { join, basename, resolve } from "node:path";
 let wasm;
 
 beforeAll(async () => {
-  wasm = await import("jsonschema-llm-wasm");
+  wasm = await import("json-schema-llm-wasm");
 });
 
 // ---------------------------------------------------------------------------
