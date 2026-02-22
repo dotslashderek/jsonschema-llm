@@ -123,6 +123,5 @@
     "headers",
     "links"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

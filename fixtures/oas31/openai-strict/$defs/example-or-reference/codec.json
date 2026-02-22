@@ -1,5 +1,5 @@
 {
-  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     {
       "type": "json_string_parse",
@@ -103,8 +103,7 @@
           "description",
           "summary"
         ],
-        "type": "object",
-        "unevaluatedProperties": false
+        "type": "object"
       }
     },
     {
@@ -169,8 +168,7 @@
           "summary",
           "value"
         ],
-        "type": "object",
-        "unevaluatedProperties": false
+        "type": "object"
       }
     }
   ]

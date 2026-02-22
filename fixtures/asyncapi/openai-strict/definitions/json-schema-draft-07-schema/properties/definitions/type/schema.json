@@ -1,0 +1,10 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "result": "object"
+  },
+  "required": [
+    "result"
+  ],
+  "type": "object"
+}

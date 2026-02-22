@@ -1,7 +1,7 @@
 {
   "version": "1",
-  "generatedAt": "2026-02-21T07:50:26.087546+00:00",
-  "sourceSchema": "tmp.kFVkMjClPi",
+  "generatedAt": "2026-02-22T17:16:08.950810+00:00",
+  "sourceSchema": "asyncapi-2.6-schema-local.json",
   "target": "openai-strict",
   "mode": "strict",
   "components": [
@@ -111,6 +111,62 @@
       "dependencyCount": 1
     },
     {
+      "name": "avroSchema_v1",
+      "pointer": "#/definitions/avroSchema_v1",
+      "schemaPath": "definitions/avroSchema_v1/schema.json",
+      "codecPath": "definitions/avroSchema_v1/codec.json",
+      "dependencyCount": 14
+    },
+    {
+      "name": "avroEnum",
+      "pointer": "#/definitions/avroSchema_v1/definitions/avroEnum",
+      "schemaPath": "definitions/avroSchema_v1/definitions/avroEnum/schema.json",
+      "codecPath": "definitions/avroSchema_v1/definitions/avroEnum/codec.json",
+      "dependencyCount": 2
+    },
+    {
+      "name": "avroFixed",
+      "pointer": "#/definitions/avroSchema_v1/definitions/avroFixed",
+      "schemaPath": "definitions/avroSchema_v1/definitions/avroFixed/schema.json",
+      "codecPath": "definitions/avroSchema_v1/definitions/avroFixed/codec.json",
+      "dependencyCount": 2
+    },
+    {
+      "name": "customTypeReference",
+      "pointer": "#/definitions/avroSchema_v1/definitions/customTypeReference",
+      "schemaPath": "definitions/avroSchema_v1/definitions/customTypeReference/schema.json",
+      "codecPath": "definitions/avroSchema_v1/definitions/customTypeReference/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "name",
+      "pointer": "#/definitions/avroSchema_v1/definitions/name",
+      "schemaPath": "definitions/avroSchema_v1/definitions/name/schema.json",
+      "codecPath": "definitions/avroSchema_v1/definitions/name/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "namespace",
+      "pointer": "#/definitions/avroSchema_v1/definitions/namespace",
+      "schemaPath": "definitions/avroSchema_v1/definitions/namespace/schema.json",
+      "codecPath": "definitions/avroSchema_v1/definitions/namespace/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "primitiveType",
+      "pointer": "#/definitions/avroSchema_v1/definitions/primitiveType",
+      "schemaPath": "definitions/avroSchema_v1/definitions/primitiveType/schema.json",
+      "codecPath": "definitions/avroSchema_v1/definitions/primitiveType/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "primitiveTypeWithMetadata",
+      "pointer": "#/definitions/avroSchema_v1/definitions/primitiveTypeWithMetadata",
+      "schemaPath": "definitions/avroSchema_v1/definitions/primitiveTypeWithMetadata/schema.json",
+      "codecPath": "definitions/avroSchema_v1/definitions/primitiveTypeWithMetadata/codec.json",
+      "dependencyCount": 1
+    },
+    {
       "name": "bindingsObject",
       "pointer": "#/definitions/bindingsObject",
       "schemaPath": "definitions/bindingsObject/schema.json",
@@ -122,14 +178,21 @@
       "pointer": "#/definitions/channelItem",
       "schemaPath": "definitions/channelItem/schema.json",
       "codecPath": "definitions/channelItem/codec.json",
-      "dependencyCount": 14
+      "dependencyCount": 41
+    },
+    {
+      "name": "channels",
+      "pointer": "#/definitions/channels",
+      "schemaPath": "definitions/channels/schema.json",
+      "codecPath": "definitions/channels/codec.json",
+      "dependencyCount": 42
     },
     {
       "name": "components",
       "pointer": "#/definitions/components",
       "schemaPath": "definitions/components/schema.json",
       "codecPath": "definitions/components/codec.json",
-      "dependencyCount": 39
+      "dependencyCount": 67
     },
     {
       "name": "contact",
@@ -160,6 +223,62 @@
       "dependencyCount": 3
     },
     {
+      "name": "nonNegativeInteger",
+      "pointer": "#/definitions/json-schema-draft-07-schema/definitions/nonNegativeInteger",
+      "schemaPath": "definitions/json-schema-draft-07-schema/definitions/nonNegativeInteger/schema.json",
+      "codecPath": "definitions/json-schema-draft-07-schema/definitions/nonNegativeInteger/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "nonNegativeIntegerDefault0",
+      "pointer": "#/definitions/json-schema-draft-07-schema/definitions/nonNegativeIntegerDefault0",
+      "schemaPath": "definitions/json-schema-draft-07-schema/definitions/nonNegativeIntegerDefault0/schema.json",
+      "codecPath": "definitions/json-schema-draft-07-schema/definitions/nonNegativeIntegerDefault0/codec.json",
+      "dependencyCount": 1
+    },
+    {
+      "name": "schemaArray",
+      "pointer": "#/definitions/json-schema-draft-07-schema/definitions/schemaArray",
+      "schemaPath": "definitions/json-schema-draft-07-schema/definitions/schemaArray/schema.json",
+      "codecPath": "definitions/json-schema-draft-07-schema/definitions/schemaArray/codec.json",
+      "dependencyCount": 5
+    },
+    {
+      "name": "simpleTypes",
+      "pointer": "#/definitions/json-schema-draft-07-schema/definitions/simpleTypes",
+      "schemaPath": "definitions/json-schema-draft-07-schema/definitions/simpleTypes/schema.json",
+      "codecPath": "definitions/json-schema-draft-07-schema/definitions/simpleTypes/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "stringArray",
+      "pointer": "#/definitions/json-schema-draft-07-schema/definitions/stringArray",
+      "schemaPath": "definitions/json-schema-draft-07-schema/definitions/stringArray/schema.json",
+      "codecPath": "definitions/json-schema-draft-07-schema/definitions/stringArray/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "additionalProperties",
+      "pointer": "#/definitions/json-schema-draft-07-schema/properties/definitions/additionalProperties",
+      "schemaPath": "definitions/json-schema-draft-07-schema/properties/definitions/additionalProperties/schema.json",
+      "codecPath": "definitions/json-schema-draft-07-schema/properties/definitions/additionalProperties/codec.json",
+      "dependencyCount": 6
+    },
+    {
+      "name": "default",
+      "pointer": "#/definitions/json-schema-draft-07-schema/properties/definitions/default",
+      "schemaPath": "definitions/json-schema-draft-07-schema/properties/definitions/default/schema.json",
+      "codecPath": "definitions/json-schema-draft-07-schema/properties/definitions/default/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "type",
+      "pointer": "#/definitions/json-schema-draft-07-schema/properties/definitions/type",
+      "schemaPath": "definitions/json-schema-draft-07-schema/properties/definitions/type/schema.json",
+      "codecPath": "definitions/json-schema-draft-07-schema/properties/definitions/type/codec.json",
+      "dependencyCount": 0
+    },
+    {
       "name": "license",
       "pointer": "#/definitions/license",
       "schemaPath": "definitions/license/schema.json",
@@ -171,7 +290,14 @@
       "pointer": "#/definitions/messageTrait",
       "schemaPath": "definitions/messageTrait/schema.json",
       "codecPath": "definitions/messageTrait/codec.json",
-      "dependencyCount": 7
+      "dependencyCount": 14
+    },
+    {
+      "name": "messages",
+      "pointer": "#/definitions/messages",
+      "schemaPath": "definitions/messages/schema.json",
+      "codecPath": "definitions/messages/codec.json",
+      "dependencyCount": 36
     },
     {
       "name": "oauth2Flow",
@@ -202,11 +328,39 @@
       "dependencyCount": 1
     },
     {
+      "name": "Discriminator",
+      "pointer": "#/definitions/openapiSchema_3_0/definitions/Discriminator",
+      "schemaPath": "definitions/openapiSchema_3_0/definitions/Discriminator/schema.json",
+      "codecPath": "definitions/openapiSchema_3_0/definitions/Discriminator/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "ExternalDocumentation",
+      "pointer": "#/definitions/openapiSchema_3_0/definitions/ExternalDocumentation",
+      "schemaPath": "definitions/openapiSchema_3_0/definitions/ExternalDocumentation/schema.json",
+      "codecPath": "definitions/openapiSchema_3_0/definitions/ExternalDocumentation/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "Reference",
+      "pointer": "#/definitions/openapiSchema_3_0/definitions/Reference",
+      "schemaPath": "definitions/openapiSchema_3_0/definitions/Reference/schema.json",
+      "codecPath": "definitions/openapiSchema_3_0/definitions/Reference/codec.json",
+      "dependencyCount": 0
+    },
+    {
+      "name": "XML",
+      "pointer": "#/definitions/openapiSchema_3_0/definitions/XML",
+      "schemaPath": "definitions/openapiSchema_3_0/definitions/XML/schema.json",
+      "codecPath": "definitions/openapiSchema_3_0/definitions/XML/codec.json",
+      "dependencyCount": 0
+    },
+    {
       "name": "operation",
       "pointer": "#/definitions/operation",
       "schemaPath": "definitions/operation/schema.json",
       "codecPath": "definitions/operation/codec.json",
-      "dependencyCount": 11
+      "dependencyCount": 38
     },
     {
       "name": "operationTrait",
@@ -220,21 +374,21 @@
       "pointer": "#/definitions/parameter",
       "schemaPath": "definitions/parameter/schema.json",
       "codecPath": "definitions/parameter/codec.json",
-      "dependencyCount": 1
+      "dependencyCount": 9
     },
     {
       "name": "parameters",
       "pointer": "#/definitions/parameters",
       "schemaPath": "definitions/parameters/schema.json",
       "codecPath": "definitions/parameters/codec.json",
-      "dependencyCount": 4
+      "dependencyCount": 12
     },
     {
       "name": "schemas",
       "pointer": "#/definitions/schemas",
       "schemaPath": "definitions/schemas/schema.json",
       "codecPath": "definitions/schemas/codec.json",
-      "dependencyCount": 0
+      "dependencyCount": 9
     },
     {
       "name": "server",

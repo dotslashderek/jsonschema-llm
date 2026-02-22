@@ -1,10 +1,24 @@
 {
   "version": "1",
-  "generatedAt": "2026-02-21T04:06:13.477638+00:00",
+  "generatedAt": "2026-02-22T17:16:10.087501+00:00",
   "sourceSchema": "oas31-schema.json",
   "target": "openai-strict",
   "mode": "strict",
   "components": [
+    {
+      "name": "callbacks",
+      "pointer": "#/$defs/callbacks",
+      "schemaPath": "$defs/callbacks/schema.json",
+      "codecPath": "$defs/callbacks/codec.json",
+      "dependencyCount": 34
+    },
+    {
+      "name": "callbacks-or-reference",
+      "pointer": "#/$defs/callbacks-or-reference",
+      "schemaPath": "$defs/callbacks-or-reference/schema.json",
+      "codecPath": "$defs/callbacks-or-reference/codec.json",
+      "dependencyCount": 34
+    },
     {
       "name": "components",
       "pointer": "#/$defs/components",
@@ -18,6 +32,13 @@
       "schemaPath": "$defs/contact/schema.json",
       "codecPath": "$defs/contact/codec.json",
       "dependencyCount": 1
+    },
+    {
+      "name": "content",
+      "pointer": "#/$defs/content",
+      "schemaPath": "$defs/content/schema.json",
+      "codecPath": "$defs/content/codec.json",
+      "dependencyCount": 10
     },
     {
       "name": "explode-default",
@@ -59,6 +80,13 @@
       "pointer": "#/$defs/header",
       "schemaPath": "$defs/header/schema.json",
       "codecPath": "$defs/header/codec.json",
+      "dependencyCount": 10
+    },
+    {
+      "name": "header-or-reference",
+      "pointer": "#/$defs/header-or-reference",
+      "schemaPath": "$defs/header-or-reference/schema.json",
+      "codecPath": "$defs/header-or-reference/codec.json",
       "dependencyCount": 10
     },
     {
@@ -195,6 +223,13 @@
       "dependencyCount": 34
     },
     {
+      "name": "path-item-or-reference",
+      "pointer": "#/$defs/path-item-or-reference",
+      "schemaPath": "$defs/path-item-or-reference/schema.json",
+      "codecPath": "$defs/path-item-or-reference/codec.json",
+      "dependencyCount": 34
+    },
+    {
       "name": "paths",
       "pointer": "#/$defs/paths",
       "schemaPath": "$defs/paths/schema.json",
@@ -228,6 +263,13 @@
       "schemaPath": "$defs/response/schema.json",
       "codecPath": "$defs/response/codec.json",
       "dependencyCount": 16
+    },
+    {
+      "name": "response-or-reference",
+      "pointer": "#/$defs/response-or-reference",
+      "schemaPath": "$defs/response-or-reference/schema.json",
+      "codecPath": "$defs/response-or-reference/codec.json",
+      "dependencyCount": 17
     },
     {
       "name": "responses",

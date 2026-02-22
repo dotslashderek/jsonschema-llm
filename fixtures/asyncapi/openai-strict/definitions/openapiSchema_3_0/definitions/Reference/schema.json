@@ -1,0 +1,12 @@
+{
+  "additionalProperties": false,
+  "patternProperties": {
+    "^\\$ref$": {
+      "description": "Constraints: format: uri-reference.",
+      "type": "string"
+    }
+  },
+  "properties": {},
+  "required": [],
+  "type": "object"
+}

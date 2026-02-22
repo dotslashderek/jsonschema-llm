@@ -25,7 +25,7 @@ const DEFAULT_WASM_PATH = join(
   "target",
   "wasm32-wasip1",
   "release",
-  "jsonschema_llm_wasi.wasm"
+  "json_schema_llm_wasi.wasm"
 );
 
 export interface ConvertOptions {

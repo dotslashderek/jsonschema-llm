@@ -1,5 +1,5 @@
 {
-  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     {
       "type": "map_to_array",

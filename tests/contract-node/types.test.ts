@@ -1,5 +1,5 @@
 /**
- * TypeScript type-checking test for jsonschema-llm WASM bindings.
+ * TypeScript type-checking test for json-schema-llm WASM bindings.
  *
  * This file is compiled with `tsc --noEmit` to verify that the hand-authored
  * TypeScript definitions in the WASM package accurately reflect the runtime API.
@@ -21,7 +21,7 @@ import {
   type StructuredError,
   type Target,
   type PolymorphismStrategy,
-} from "jsonschema-llm-wasm";
+} from "json-schema-llm-wasm";
 
 // ---------------------------------------------------------------------------
 // convert — basic usage

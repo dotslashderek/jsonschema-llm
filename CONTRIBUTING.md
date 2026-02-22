@@ -1,4 +1,4 @@
-# Contributing to jsonschema-llm
+# Contributing to json-schema-llm
 
 Thanks for your interest in contributing! This project is in early development and we welcome contributions.
 
@@ -31,7 +31,7 @@ cargo fmt -- --check
 The project uses a multi-layer testing strategy:
 
 1. **Unit tests** — Rust `#[test]` modules within each pass
-2. **E2E tests** — Full pipeline tests with real schemas in `crates/jsonschema-llm-core/tests/`
+2. **E2E tests** — Full pipeline tests with real schemas in `crates/json-schema-llm-core/tests/`
 3. **CLI tests** — End-to-end CLI integration tests in `cli/tests/`
 4. **WASM smoke tests** — `wasm-pack test --node` for WASM boundary validation (not part of `cargo test`)
 5. **WASM contract tests** — Node.js tests verifying WASM bindings in `tests/contract-node/`
@@ -40,7 +40,7 @@ The project uses a multi-layer testing strategy:
 8. **Conformance fixtures** — Cross-language fixtures in `tests/conformance/`
 9. **Engine E2E tests** — Python + Java engine tests against real WASM in `engine/*/tests/`
 10. **Doc tests** — Examples in `lib.rs` and `schema_utils.rs`
-11. **Property tests** — `proptest` strategies in `crates/jsonschema-llm-core/tests/proptest_*.rs`
+11. **Property tests** — `proptest` strategies in `crates/json-schema-llm-core/tests/proptest_*.rs`
 12. **Fuzzing** — `cargo-fuzz` harness in `fuzz/` (requires nightly, not part of workspace)
 
 #### Quick Start
@@ -77,10 +77,10 @@ make verify-all
 cargo test
 
 # WASM smoke tests (requires wasm-pack)
-wasm-pack test --node crates/jsonschema-llm-wasm
+wasm-pack test --node crates/json-schema-llm-wasm
 
 # WASM contract tests
-wasm-pack build crates/jsonschema-llm-wasm --target nodejs --out-dir ../../tests/contract-node/pkg
+wasm-pack build crates/json-schema-llm-wasm --target nodejs --out-dir ../../tests/contract-node/pkg
 cd tests/contract-node && pnpm test
 
 # WASI wrapper tests (all languages via Docker)
@@ -96,17 +96,17 @@ cargo +nightly fuzz run fuzz_convert -- -max_total_time=60
 ### Project Structure
 
 ```
-jsonschema-llm/
+json-schema-llm/
 ├── crates/
-│   ├── jsonschema-llm-core/     # Core Rust library
+│   ├── json-schema-llm-core/     # Core Rust library
 │   │   └── src/
 │   │       ├── lib.rs            # Public API
 │   │       ├── passes/           # One module per pass (p0–p9)
 │   │       ├── codec.rs          # Codec builder
 │   │       ├── rehydrator.rs     # Reverse transforms
 │   │       └── schema_utils.rs   # Shared path/traversal utilities
-│   ├── jsonschema-llm-wasi/     # WASI universal binary (wasm32-wasip1)
-│   └── jsonschema-llm-wasm/     # TypeScript/JS WASM bindings
+│   ├── json-schema-llm-wasi/     # WASI universal binary (wasm32-wasip1)
+│   └── json-schema-llm-wasm/     # TypeScript/JS WASM bindings
 ├── bindings/
 │   ├── go/                      # Go wrapper (wazero)
 │   ├── ts/                      # TypeScript wrapper (node:wasi)
@@ -140,7 +140,7 @@ jsonschema-llm/
 - Follow standard Rust conventions (`rustfmt`, `clippy`)
 - Use `serde_json::Value` for schema manipulation
 - Document all public APIs with doc comments
-- Each pass should be a self-contained module in `crates/jsonschema-llm-core/src/passes/`
+- Each pass should be a self-contained module in `crates/json-schema-llm-core/src/passes/`
 
 ## Reporting Issues
 
@@ -149,4 +149,4 @@ Please include:
 - The input JSON Schema (or a minimal reproduction)
 - Expected vs actual output
 - Target provider (OpenAI, Gemini, Claude)
-- `jsonschema-llm` version
+- `json-schema-llm` version

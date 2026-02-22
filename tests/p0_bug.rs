@@ -1,5 +1,5 @@
-use jsonschema_llm_core::passes::p0_normalize::normalize;
-use jsonschema_llm_core::config::ConvertOptions;
+use json_schema_llm_core::passes::p0_normalize::normalize;
+use json_schema_llm_core::config::ConvertOptions;
 use serde_json::json;
 
 fn main() {

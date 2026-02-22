@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "json_string_parse",
+      "path": "#/patternProperties/^x-"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/description",
+      "originalRequired": false
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/properties/url",
+      "constraint": "format",
+      "value": "uri-reference"
+    }
+  ]
+}

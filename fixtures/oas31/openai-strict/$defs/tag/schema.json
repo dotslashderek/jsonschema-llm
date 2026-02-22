@@ -43,6 +43,5 @@
     "externalDocs",
     "name"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

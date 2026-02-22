@@ -48,6 +48,5 @@
     "refreshUrl",
     "scopes"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

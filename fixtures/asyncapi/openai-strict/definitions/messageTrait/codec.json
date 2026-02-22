@@ -1,5 +1,5 @@
 {
-  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     {
       "type": "json_string_parse",
@@ -74,6 +74,14 @@
       "path": "#/properties/bindings/properties/ws"
     },
     {
+      "type": "json_string_parse",
+      "path": "#/properties/examples/items/properties/headers"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/examples/items/properties/payload"
+    },
+    {
       "type": "nullable_optional",
       "path": "#/properties/bindings",
       "originalRequired": false
@@ -96,6 +104,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/examples",
       "originalRequired": false
     },
     {
@@ -231,6 +244,26 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/correlationId/anyOf/0/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/examples/anyOf/0/items/properties/headers",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/examples/anyOf/0/items/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/examples/anyOf/0/items/properties/payload",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/examples/anyOf/0/items/properties/summary",
       "originalRequired": false
     },
     {

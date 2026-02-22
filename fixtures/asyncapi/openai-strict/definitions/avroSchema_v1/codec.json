@@ -1,0 +1,3658 @@
+{
+  "$schema": "https://json-schema-llm.dev/codec/v1",
+  "transforms": [
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "recursive_inflate",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0",
+      "originalRef": "#/$defs/types"
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/order",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/4/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/4/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/4/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/7/properties/aliases",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/7/properties/doc",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/7/properties/namespace",
+      "originalRequired": false
+    },
+    {
+      "type": "root_object_wrapper",
+      "path": "#",
+      "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/aliases"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/order"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+    }
+  ],
+  "droppedConstraints": [
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/2",
+      "constraint": "not",
+      "value": {
+        "description": "Basic type primitives.",
+        "enum": [
+          "null",
+          "boolean",
+          "int",
+          "long",
+          "float",
+          "double",
+          "bytes",
+          "string"
+        ],
+        "title": "Primitive Type",
+        "type": "string"
+      }
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/type",
+      "constraint": "const",
+      "value": "record"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/4/properties/type",
+      "constraint": "const",
+      "value": "enum"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/type",
+      "constraint": "const",
+      "value": "array"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/type",
+      "constraint": "const",
+      "value": "map"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/7/properties/type",
+      "constraint": "const",
+      "value": "fixed"
+    },
+    {
+      "path": "#/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8",
+      "constraint": "minItems",
+      "value": 1
+    }
+  ]
+}

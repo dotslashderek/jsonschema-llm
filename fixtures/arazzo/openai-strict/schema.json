@@ -79,6 +79,5 @@
     "sourceDescriptions",
     "workflows"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

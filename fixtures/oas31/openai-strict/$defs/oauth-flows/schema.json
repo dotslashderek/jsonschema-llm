@@ -79,6 +79,5 @@
     "implicit",
     "password"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

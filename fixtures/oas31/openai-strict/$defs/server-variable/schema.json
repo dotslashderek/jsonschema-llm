@@ -41,6 +41,5 @@
     "description",
     "enum"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

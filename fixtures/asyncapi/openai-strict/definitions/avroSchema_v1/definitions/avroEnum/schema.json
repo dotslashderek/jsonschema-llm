@@ -1,0 +1,68 @@
+{
+  "additionalProperties": false,
+  "description": "An enumeration",
+  "properties": {
+    "aliases": {
+      "anyOf": [
+        {
+          "items": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "doc": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "name": {
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+      "type": "string"
+    },
+    "namespace": {
+      "anyOf": [
+        {
+          "pattern": "^([A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*)*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "symbols": {
+      "items": {
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "type": {
+      "enum": [
+        "enum"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "aliases",
+    "doc",
+    "name",
+    "namespace",
+    "symbols",
+    "type"
+  ],
+  "title": "Enum",
+  "type": "object"
+}

@@ -1,4 +1,4 @@
-# jsonschema-llm — Local CI Verification Targets
+# json-schema-llm — Local CI Verification Targets
 #
 # Usage:
 #   make verify-bindings    # Full WASM/WASI binding pipeline
@@ -38,8 +38,8 @@ build-wasi:
 	@echo "🔨 Building WASI binary..."
 	@rustup target list --installed | grep -q wasm32-wasip1 || \
 		(echo "❌ wasm32-wasip1 target not installed. Run: rustup target add wasm32-wasip1" && exit 1)
-	cargo build --target wasm32-wasip1 --release -p jsonschema-llm-wasi
-	@echo "✅ WASI binary built: target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm"
+	cargo build --target wasm32-wasip1 --release -p json-schema-llm-wasi
+	@echo "✅ WASI binary built: target/wasm32-wasip1/release/json_schema_llm_wasi.wasm"
 
 # ---------------------------------------------------------------------------
 # Test targets
@@ -50,7 +50,7 @@ test-wasm-smoke:
 	@echo "🧪 Running WASM smoke tests..."
 	@command -v wasm-pack > /dev/null || \
 		(echo "❌ wasm-pack not found. Install: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh" && exit 1)
-	wasm-pack test --node crates/jsonschema-llm-wasm
+	wasm-pack test --node crates/json-schema-llm-wasm
 	@echo "✅ WASM smoke tests passed"
 
 ## Run WASI host verification (Python + wasmtime)
@@ -83,8 +83,8 @@ test-engines: build-wasi
 ## Run Rust workspace tests (mirrors CI exclusions)
 test-rust:
 	@echo "🧪 Running Rust workspace tests..."
-	cargo test --workspace --exclude jsonschema-llm-python --exclude jsonschema-llm-wasi --all-targets
-	cargo test --workspace --exclude jsonschema-llm-python --exclude jsonschema-llm-wasi --doc
+	cargo test --workspace --exclude json-schema-llm-python --exclude json-schema-llm-wasi --all-targets
+	cargo test --workspace --exclude json-schema-llm-python --exclude json-schema-llm-wasi --doc
 	@echo "✅ All Rust tests passed"
 
 # ---------------------------------------------------------------------------
@@ -96,7 +96,7 @@ check:
 	@echo "🔍 Running formatting check..."
 	cargo fmt --all -- --check
 	@echo "🔍 Running clippy..."
-	cargo clippy --workspace --exclude jsonschema-llm-python --exclude jsonschema-llm-wasi --all-targets -- -D warnings
+	cargo clippy --workspace --exclude json-schema-llm-python --exclude json-schema-llm-wasi --all-targets -- -D warnings
 	@echo "✅ Formatting and linting passed"
 
 # ---------------------------------------------------------------------------
@@ -105,7 +105,7 @@ check:
 
 ## Show available targets
 help:
-	@echo "jsonschema-llm — Local CI Verification"
+	@echo "json-schema-llm — Local CI Verification"
 	@echo ""
 	@echo "Meta-targets:"
 	@echo "  make verify-bindings   Full WASM/WASI binding pipeline"

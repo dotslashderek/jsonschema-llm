@@ -1,0 +1,39 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "mapping": {
+      "anyOf": [
+        {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "propertyName": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "mapping",
+    "propertyName"
+  ],
+  "type": "object"
+}

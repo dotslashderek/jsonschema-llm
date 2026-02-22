@@ -1,0 +1,17 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "result": {
+      "description": "Constraints: minimum 1 item(s).",
+      "items": {
+        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "type": "object"
+}

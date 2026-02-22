@@ -3,7 +3,7 @@
 import json
 import pytest
 
-from jsonschema_llm_wasi import Engine, JslError
+from json_schema_llm_wasi import Engine, JslError
 
 
 @pytest.fixture

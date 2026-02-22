@@ -135,8 +135,7 @@
         "required",
         "schema"
       ],
-      "type": "object",
-      "unevaluatedProperties": false
+      "type": "object"
     }
   },
   "required": [

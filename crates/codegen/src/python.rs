@@ -296,7 +296,7 @@ mod tests {
             "should contain dist name"
         );
         assert!(
-            pyproject.contains("jsonschema-llm-engine"),
+            pyproject.contains("json-schema-llm-engine"),
             "should reference engine dep"
         );
         assert!(

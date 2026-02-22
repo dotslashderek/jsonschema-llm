@@ -8,7 +8,7 @@ bindings (WASM/TypeScript, Python, Java, etc.).
 
 - **Output**: Every successful response includes `"apiVersion": "1.0"`.
 - **Input**: No version field required on requests (single version, forward-compatible).
-- **Codec**: Uses `$schema` URI for format versioning (`https://jsonschema-llm.dev/codec/v1`).
+- **Codec**: Uses `$schema` URI for format versioning (`https://json-schema-llm.dev/codec/v1`).
 
 When input versioning becomes necessary, a `version` field will be added to `ConvertOptions`.
 
@@ -30,7 +30,7 @@ wrappers must raise a fatal error to prevent silent binary/wrapper skew.
   "apiVersion": "1.0",
   "schema": { "..." },
   "codec": {
-    "$schema": "https://jsonschema-llm.dev/codec/v1",
+    "$schema": "https://json-schema-llm.dev/codec/v1",
     "transforms": [],
     "droppedConstraints": []
   }
@@ -82,7 +82,7 @@ Returned as the `Err` variant (JSON string):
 
 The rehydrator validates the codec `$schema` URI before applying transforms:
 
-- **URI format**: `https://jsonschema-llm.dev/codec/v{major}`
+- **URI format**: `https://json-schema-llm.dev/codec/v{major}`
 - **Hard-fail**: If major version ≠ expected (currently `1`)
 - **Error**: `CodecVersionMismatch` with `found` and `expected` fields
 - **Malformed URI**: Also produces `CodecVersionMismatch`

@@ -1,13 +1,13 @@
-# jsonschema-llm
+# json-schema-llm
 
 Convert JSON Schema to LLM-compatible structured output schemas.
 
-WASM build of [jsonschema-llm](https://github.com/dotslashderek/jsonschema-llm) for Node.js and browser environments.
+WASM build of [json-schema-llm](https://github.com/dotslashderek/json-schema-llm) for Node.js and browser environments.
 
 ## Installation
 
 ```bash
-npm install jsonschema-llm
+npm install json-schema-llm
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ npm install jsonschema-llm
 ### Node.js
 
 ```javascript
-const { convert, rehydrate } = require("jsonschema-llm");
+const { convert, rehydrate } = require("json-schema-llm");
 
 // Convert a JSON Schema for OpenAI Structured Output
 const result = convert(
@@ -42,7 +42,7 @@ console.log(rehydrated.warnings); // Constraint violation warnings
 ### Browser / ESM
 
 ```javascript
-import init, { convert, rehydrate } from "jsonschema-llm/web";
+import init, { convert, rehydrate } from "json-schema-llm/web";
 
 await init();
 
@@ -86,14 +86,14 @@ import {
   RehydrateResult,
   Warning,
   StructuredError,
-} from "jsonschema-llm";
+} from "json-schema-llm";
 ```
 
 ## Links
 
-- [GitHub Repository](https://github.com/dotslashderek/jsonschema-llm)
-- [API Documentation](https://github.com/dotslashderek/jsonschema-llm#readme)
-- [Issue Tracker](https://github.com/dotslashderek/jsonschema-llm/issues)
+- [GitHub Repository](https://github.com/dotslashderek/json-schema-llm)
+- [API Documentation](https://github.com/dotslashderek/json-schema-llm#readme)
+- [Issue Tracker](https://github.com/dotslashderek/json-schema-llm/issues)
 
 ## License
 

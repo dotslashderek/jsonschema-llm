@@ -35,7 +35,7 @@ class SchemaLlmEngineTest {
     String wasmPath = System.getenv("JSL_WASM_PATH");
     Path path = wasmPath != null && !wasmPath.isEmpty()
         ? Paths.get(wasmPath)
-        : Paths.get("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm");
+        : Paths.get("../../target/wasm32-wasip1/release/json_schema_llm_wasi.wasm");
     engine = SchemaLlmEngine.create(path);
   }
 
@@ -198,7 +198,7 @@ class SchemaLlmEngineTest {
     String wasmPath = System.getenv("JSL_WASM_PATH");
     Path path = wasmPath != null && !wasmPath.isEmpty()
         ? Paths.get(wasmPath)
-        : Paths.get("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm");
+        : Paths.get("../../target/wasm32-wasip1/release/json_schema_llm_wasi.wasm");
     SchemaLlmEngine localEngine = SchemaLlmEngine.create(path);
 
     // Should work before close
@@ -216,7 +216,7 @@ class SchemaLlmEngineTest {
     String wasmPath = System.getenv("JSL_WASM_PATH");
     Path path = wasmPath != null && !wasmPath.isEmpty()
         ? Paths.get(wasmPath)
-        : Paths.get("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm");
+        : Paths.get("../../target/wasm32-wasip1/release/json_schema_llm_wasi.wasm");
     SchemaLlmEngine localEngine = SchemaLlmEngine.create(path);
 
     // Multiple close() calls should not throw

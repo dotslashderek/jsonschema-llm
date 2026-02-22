@@ -1,6 +1,6 @@
 # Stress Test Bot — Java
 
-Stress test client for jsonschema-llm Java (Panama FFM / JNI) bindings. Mirrors the TS reference client (`examples/stress-test-bot/src/index.ts`).
+Stress test client for json-schema-llm Java (Panama FFM / JNI) bindings. Mirrors the TS reference client (`examples/stress-test-bot/src/index.ts`).
 
 ## Pipeline
 
@@ -53,7 +53,7 @@ cd examples/stress-test-bot-java
 The Gradle project:
 
 - Uses `includeBuild("../../bindings/java")` to resolve the binding JAR locally
-- Automatically triggers `cargo build --release -p jsonschema-llm-java` before compilation
+- Automatically triggers `cargo build --release -p json-schema-llm-java` before compilation
 - Enables `--enable-native-access=ALL-UNNAMED` for Panama FFM support
 
 ## Output

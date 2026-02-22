@@ -1,10 +1,10 @@
-# jsonschema-llm — Project Context
+# json-schema-llm — Project Context
 
 This is a **Rust monorepo** that converts arbitrary JSON Schemas (Draft 2020-12) into LLM-compatible structured output schemas. It is an open-source project owned by `dotslashderek`.
 
 ## Architecture
 
-- **Core library**: `crates/jsonschema-llm-core/` — Rust crate with an 8-pass compiler pipeline
+- **Core library**: `crates/json-schema-llm-core/` — Rust crate with an 8-pass compiler pipeline
 - **CLI**: `cli/` — Rust binary using clap (stub)
 - **Bindings**: `bindings/` — TypeScript (WASM), Python (PyO3), Java (JNI) — not yet implemented
 

@@ -38,6 +38,5 @@
     "name",
     "url"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

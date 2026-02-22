@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stress test bot for jsonschema-llm WASI wrapper.
+"""Stress test bot for json-schema-llm WASI wrapper.
 
 Mirrors the TS reference client (examples/stress-test-bot/src/index.ts).
 Pipeline: convert → OpenAI structured output → rehydrate → validate.
@@ -14,7 +14,7 @@ from typing import Optional
 
 # Add WASI wrapper to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "bindings", "python"))
-from jsonschema_llm_wasi import Engine, JslError  # noqa: E402
+from json_schema_llm_wasi import Engine, JslError  # noqa: E402
 from openai import OpenAI
 import jsonschema
 from jsonschema import Draft202012Validator
@@ -23,7 +23,7 @@ from jsonschema import Draft202012Validator
 def parse_args() -> argparse.Namespace:
     """Parse CLI arguments matching TS client interface."""
     parser = argparse.ArgumentParser(
-        description="Stress test bot for jsonschema-llm Python bindings"
+        description="Stress test bot for json-schema-llm Python bindings"
     )
     parser.add_argument(
         "--count",

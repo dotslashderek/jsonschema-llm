@@ -9,7 +9,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "Stress test bot for jsonschema-llm WASI wrapper",
+  "description": "Stress test bot for json-schema-llm WASI wrapper",
   "dependencies": {
     "ajv": "^8.17.0",
     "ajv-formats": "^3.0.0",

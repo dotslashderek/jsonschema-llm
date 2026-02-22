@@ -78,6 +78,5 @@
     "description",
     "required"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

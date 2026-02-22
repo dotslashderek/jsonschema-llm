@@ -23,6 +23,5 @@
   "required": [
     "default"
   ],
-  "type": "object",
-  "unevaluatedProperties": false
+  "type": "object"
 }

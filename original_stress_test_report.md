@@ -4,7 +4,7 @@ v0.1.0 • Branch: `stress-test/chaos-monkey` • Feb 2026
 
 ## Executive Summary
 
-Executed a comprehensive stress test suite against `jsonschema-llm` targeting `openai-strict`.
+Executed a comprehensive stress test suite against `json-schema-llm` targeting `openai-strict`.
 
 - **Generated:** 100 unique, complex JSON Schema fixtures.
 - **Tested:** CLI (conversion + rehydration) and JS/WASM Bindings (chatbot flow).
@@ -23,7 +23,7 @@ Executed a comprehensive stress test suite against `jsonschema-llm` targeting `o
     - Verified strict schema compliance and rehydration fidelity.
 
 3.  **Chatbot Integration**: `examples/stress-test-bot`
-    - TypeScript application using `jsonschema-llm` WASM bindings.
+    - TypeScript application using `json-schema-llm` WASM bindings.
     - Verified real-world usage patterns with `openai` SDK.
 
 ## Key Findings & Failures
@@ -33,14 +33,14 @@ Executed a comprehensive stress test suite against `jsonschema-llm` targeting `o
 **Severity:** Critical
 **Error:** `Invalid schema for response_format ... schema must be a JSON Schema of 'type: "object"', got 'type: "array"'.`
 **Description:** OpenAI Strict Mode mandates the root schema be an `object`.
-**Action:** `jsonschema-llm` must detect non-object roots (arrays, primitives, enums) and wrap them (e.g., `{ "value": <schema> }`) or error early.
+**Action:** `json-schema-llm` must detect non-object roots (arrays, primitives, enums) and wrap them (e.g., `{ "value": <schema> }`) or error early.
 
 ### 2. Nesting Depth Limit Exceeded
 
 **Severity:** High
 **Error:** `Invalid schema for response_format ... 11 levels of nesting exceeds limit of 10.`
 **Description:** OpenAI enforces a strict nesting depth limit (appear to be ~10 or 5 depending on model/context). Deeply nested schemas (`combo_depth_10_width_2.json`) fail at the API level even if valid JSON Schema.
-**Action:** `jsonschema-llm` should provide a warning or an option to flatten/truncate schemas that exceed target-specific depth limits.
+**Action:** `json-schema-llm` should provide a warning or an option to flatten/truncate schemas that exceed target-specific depth limits.
 
 ### 3. Heterogeneous Enums
 
@@ -54,7 +54,7 @@ Executed a comprehensive stress test suite against `jsonschema-llm` targeting `o
 **Severity:** Medium
 **Error:** `additionalProperties is required to be supplied and to be false.`
 **Description:** `true`, `false`, and `{}` schemas fail because they lack the strict object constraints OpenAI demands.
-**Action:** `jsonschema-llm` must compile these to their strict equivalents:
+**Action:** `json-schema-llm` must compile these to their strict equivalents:
 
 - `{}` -> `{"type": "object", "additionalProperties": false, "properties": {}}` (matches nothing extra? wait, `{}` accepts everything. Strict equivalent for "any JSON" is hard. Maybe `{"type": ["string", "number", "boolean", "object", "array", "null"]}`?)
 - `true` -> logic needed.
@@ -80,7 +80,7 @@ Executed a comprehensive stress test suite against `jsonschema-llm` targeting `o
 ```text
 Do you want to play a game?
 
-:rofl: :wargames: ahhh such a classic line, right T - and that sort of adversarial relationship is what we're going for in this task. I mean - friendly / adversarial. Frenemies? Not with me, with the tool we just built in the jsonschema-llm directory, so really it's us-vs-us.
+:rofl: :wargames: ahhh such a classic line, right T - and that sort of adversarial relationship is what we're going for in this task. I mean - friendly / adversarial. Frenemies? Not with me, with the tool we just built in the json-schema-llm directory, so really it's us-vs-us.
 
 Ok, that tool creates resources - a downsampled schema and a codec file - that allows developers to request structured outputs from LLM APIs utilizing source schemas that are too broad to fit in those LLMs usable JSON subset.
 
@@ -94,7 +94,7 @@ Ok, we'll break this down into three phases:
 
 - test schema creation: search the web, generate synthetically, grep through public github repos - go after edge cases but also exercise slightly different shapes and strategies for common schema attributes. Create and utilize a maximum of 100 new test fixtures. Do not utilize any of the existing fixtures in that repo or on local disk. You know, these fixtures will also be handy for the future, save a copy of them off into a something like ~/Documents/json-schema-samples/ :thanks:
 
-- fully test the CLI using those samples. I'm quite sure this exercise will produce bugs - that's your goal, that's what you live for - identifying the weird ways you can break an application or tool! The output from this exercise and the third phase are bug tickets filed to the jsonschema-llm repo (GH Issue tickets). To validate, curl the OpenAI API directly with the generated schemas, then use the codec to convert them back into the original form and inspect for correctness (perhaps some base run against a tool like Zod or Typebox to make sure the returned output post rehydration conforms to the initial schema)?
+- fully test the CLI using those samples. I'm quite sure this exercise will produce bugs - that's your goal, that's what you live for - identifying the weird ways you can break an application or tool! The output from this exercise and the third phase are bug tickets filed to the json-schema-llm repo (GH Issue tickets). To validate, curl the OpenAI API directly with the generated schemas, then use the codec to convert them back into the original form and inspect for correctness (perhaps some base run against a tool like Zod or Typebox to make sure the returned output post rehydration conforms to the initial schema)?
 
 - fully test the TS/JS bindings by creating a toy chatbot application that utilizes structured output at OpenAI API - this will allow us to do full round-trip testing, including validation of the responses from the AI - again we could automate the validation using something like Zod / Typebox
 
@@ -105,7 +105,7 @@ Ok - this is a big task, so let's rap - ask any clarifying questions you want. W
 
 **Status:** 🟢 **HEALTHY**
 
-While 4 specific failure modes were identified (see above), none represent a fundamental architectural flaw in `jsonschema-llm`.
+While 4 specific failure modes were identified (see above), none represent a fundamental architectural flaw in `json-schema-llm`.
 
 - **Core Logic:** The recursion engine, reference resolution (`$ref`), and constraint pruning logic held up against 100 heavily randomized, deeply nested, and polymorphic schemas.
 - **Stability:** Zero panic/crash bugs in the Rust core during the entire campaign (excluding expected recursion limit errors).

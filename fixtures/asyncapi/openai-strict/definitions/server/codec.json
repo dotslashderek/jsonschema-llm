@@ -1,5 +1,5 @@
 {
-  "$schema": "https://jsonschema-llm.dev/codec/v1",
+  "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     {
       "type": "map_to_array",
@@ -231,6 +231,11 @@
     {
       "type": "nullable_optional",
       "path": "#/properties/variables/anyOf/0/items/properties/value/anyOf/1/properties/enum",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/variables/anyOf/0/items/properties/value/anyOf/1/properties/examples",
       "originalRequired": false
     },
     {

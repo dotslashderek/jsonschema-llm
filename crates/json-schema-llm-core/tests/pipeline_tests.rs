@@ -1,0 +1,550 @@
+//! Integration tests for the `convert()` pipeline — exercises the full 9-pass chain
+//! via the public API only, never calling individual passes directly.
+
+use json_schema_llm_core::codec::Transform;
+use json_schema_llm_core::{convert, rehydrate, ConvertOptions, Target};
+use serde_json::json;
+
+fn openai_options() -> ConvertOptions {
+    ConvertOptions::default() // OpenaiStrict, AnyOf, depth 50, recursion 3
+}
+
+fn gemini_options() -> ConvertOptions {
+    let mut opts = ConvertOptions::default();
+    opts.target = Target::Gemini;
+    opts
+}
+
+// ── Basic Pipeline ──────────────────────────────────────────────────────────
+
+#[test]
+fn test_convert_simple_schema() {
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "age": { "type": "integer" }
+        },
+        "required": ["name"]
+    });
+
+    let result = convert(&schema, &openai_options()).expect("convert should succeed");
+
+    // Strict mode: additionalProperties: false, all props required,
+    // optional `age` wrapped as anyOf [type, null]
+    let props = result.schema["properties"]
+        .as_object()
+        .expect("should have properties");
+    assert!(props.contains_key("name"));
+    assert!(props.contains_key("age"));
+    assert_eq!(result.schema["additionalProperties"], json!(false));
+
+    let required = result.schema["required"]
+        .as_array()
+        .expect("should have required");
+    assert!(required.contains(&json!("name")));
+    assert!(required.contains(&json!("age")));
+}
+
+// ── Dictionary / Map Transpilation ──────────────────────────────────────────
+
+#[test]
+fn test_convert_with_map() {
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "tags": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+            }
+        },
+        "required": ["tags"]
+    });
+
+    let result = convert(&schema, &openai_options()).expect("convert should succeed");
+
+    // `tags` should be transpiled from map → array of {key, value}
+    let tags = &result.schema["properties"]["tags"];
+    assert_eq!(tags["type"], json!("array"));
+    assert!(tags["items"]["properties"].as_object().is_some());
+
+    // Codec should contain a MapToArray transform
+    assert!(
+        result
+            .codec
+            .transforms
+            .iter()
+            .any(|t| matches!(t, Transform::MapToArray { .. })),
+        "codec should contain MapToArray transform"
+    );
+}
+
+// ── Opaque Object → String ──────────────────────────────────────────────────
+
+#[test]
+fn test_convert_with_opaque() {
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "metadata": { "type": "object" }
+        },
+        "required": ["metadata"]
+    });
+
+    let result = convert(&schema, &openai_options()).expect("convert should succeed");
+
+    // Opaque `metadata` should become string
+    let _metadata = &result.schema["properties"]["metadata"];
+    // After strict wrapping, the type should ultimately be string (or anyOf wrapping string)
+    // The key thing is that a JsonStringParse transform exists
+    assert!(
+        result
+            .codec
+            .transforms
+            .iter()
+            .any(|t| matches!(t, Transform::JsonStringParse { .. })),
+        "codec should contain JsonStringParse transform for opaque object"
+    );
+}
+
+// ── allOf Composition ───────────────────────────────────────────────────────
+
+#[test]
+fn test_convert_with_allof() {
+    let schema = json!({
+        "allOf": [
+            {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "integer" }
+                },
+                "required": ["id"]
+            },
+            {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" }
+                },
+                "required": ["name"]
+            }
+        ]
+    });
+
+    let result = convert(&schema, &openai_options()).expect("convert should succeed");
+
+    // allOf should be merged into a flat object with both id and name
+    let props = result.schema["properties"]
+        .as_object()
+        .expect("should have properties");
+    assert!(props.contains_key("id"), "merged should have 'id'");
+    assert!(props.contains_key("name"), "merged should have 'name'");
+    assert!(
+        result.schema.get("allOf").is_none(),
+        "allOf should be removed after merge"
+    );
+}
+
+// ── oneOf → anyOf Polymorphism ──────────────────────────────────────────────
+
+#[test]
+fn test_convert_with_oneof() {
+    let schema = json!({
+        "oneOf": [
+            { "type": "string" },
+            { "type": "integer" }
+        ]
+    });
+
+    let result = convert(&schema, &openai_options()).expect("convert should succeed");
+
+    // Non-object root → p9 wraps in { type: object, properties: { result: … } }
+    assert_eq!(
+        result.schema["type"],
+        json!("object"),
+        "non-object root should be wrapped as object"
+    );
+
+    // The original oneOf→anyOf conversion lives inside properties.result
+    let inner = &result.schema["properties"]["result"];
+    assert!(inner.get("oneOf").is_none(), "oneOf should be removed");
+    assert!(
+        inner.get("anyOf").is_some(),
+        "anyOf should be present inside the wrapper"
+    );
+}
+
+// ── $ref Resolution ─────────────────────────────────────────────────────────
+
+#[test]
+fn test_convert_with_refs() {
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "address": { "$ref": "#/$defs/Address" }
+        },
+        "required": ["address"],
+        "$defs": {
+            "Address": {
+                "type": "object",
+                "properties": {
+                    "street": { "type": "string" },
+                    "city": { "type": "string" }
+                },
+                "required": ["street", "city"]
+            }
+        }
+    });
+
+    let result = convert(&schema, &openai_options()).expect("convert should succeed");
+
+    // $ref should be inlined — the address property should have actual properties
+    let address = &result.schema["properties"]["address"];
+    let addr_props = address["properties"]
+        .as_object()
+        .expect("address should have inlined properties");
+    assert!(addr_props.contains_key("street"));
+    assert!(addr_props.contains_key("city"));
+}
+
+// ── Recursive Schema Breaking ───────────────────────────────────────────────
+
+#[test]
+fn test_convert_with_recursion() {
+    let schema = json!({
+        "$ref": "#/$defs/TreeNode",
+        "$defs": {
+            "TreeNode": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "children": {
+                        "type": "array",
+                        "items": { "$ref": "#/$defs/TreeNode" }
+                    }
+                },
+                "required": ["name"]
+            }
+        }
+    });
+
+    let mut options = ConvertOptions::default();
+    options.recursion_limit = 2;
+    let result = convert(&schema, &options).expect("convert should succeed");
+
+    // The schema should not infinitely recurse — at some depth, the recursive
+    // ref should be broken with a string placeholder
+    // Just verify it doesn't panic and produces a valid result
+    assert!(result.schema["properties"].as_object().is_some());
+
+    // Ensure no unresolved `$ref` entries remain in the converted schema
+    fn has_ref_key(val: &serde_json::Value) -> bool {
+        match val {
+            serde_json::Value::Object(map) => {
+                map.contains_key("$ref") || map.values().any(has_ref_key)
+            }
+            serde_json::Value::Array(arr) => arr.iter().any(has_ref_key),
+            _ => false,
+        }
+    }
+    assert!(
+        !has_ref_key(&result.schema),
+        "all $ref nodes should be resolved or broken"
+    );
+
+    // The codec should contain RecursiveInflate transforms for broken cycles
+    let recursive_transforms: Vec<_> = result
+        .codec
+        .transforms
+        .iter()
+        .filter(|t| matches!(t, Transform::RecursiveInflate { .. }))
+        .collect();
+    assert!(
+        !recursive_transforms.is_empty(),
+        "recursive schema should produce RecursiveInflate transforms in the codec"
+    );
+}
+
+// ── Full Roundtrip ──────────────────────────────────────────────────────────
+
+#[test]
+fn test_convert_full_roundtrip() {
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "tags": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+            }
+        },
+        "required": ["name", "tags"]
+    });
+
+    let result = convert(&schema, &openai_options()).expect("convert should succeed");
+
+    // Verify codec has expected transforms before roundtripping
+    let map_transforms: Vec<_> = result
+        .codec
+        .transforms
+        .iter()
+        .filter(|t| matches!(t, Transform::MapToArray { .. }))
+        .collect();
+    assert_eq!(
+        map_transforms.len(),
+        1,
+        "tags map should produce exactly one MapToArray transform"
+    );
+
+    // Simulate LLM output conforming to the converted schema
+    // tags was transpiled to array — LLM returns array of {key, value}
+    let llm_output = json!({
+        "name": "test",
+        "tags": [
+            { "key": "env", "value": "prod" },
+            { "key": "team", "value": "platform" }
+        ]
+    });
+
+    let rehydrated =
+        rehydrate(&llm_output, &result.codec, &schema).expect("rehydrate should succeed");
+
+    // After rehydration, tags should be back to a map
+    let tags = &rehydrated.data["tags"];
+    assert_eq!(tags["env"], json!("prod"));
+    assert_eq!(tags["team"], json!("platform"));
+}
+
+// ── Target-Specific Skips ───────────────────────────────────────────────────
+
+#[test]
+fn test_gemini_skips_passes() {
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "tags": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+            }
+        },
+        "required": ["tags"]
+    });
+
+    let result = convert(&schema, &gemini_options()).expect("convert should succeed");
+
+    // Gemini skips Pass 3 (dictionary) — tags should NOT be transpiled to array
+    let tags = &result.schema["properties"]["tags"];
+    assert_ne!(
+        tags["type"],
+        json!("array"),
+        "Gemini should not transpile maps"
+    );
+
+    // Gemini skips dictionary pass so no MapToArray transforms
+    assert!(
+        !result
+            .codec
+            .transforms
+            .iter()
+            .any(|t| matches!(t, Transform::MapToArray { .. })),
+        "Gemini should have no MapToArray transforms"
+    );
+}
+
+// ── Golden Snapshot ─────────────────────────────────────────────────────────
+
+#[test]
+fn test_golden_snapshot_kitchen_sink_openai() {
+    use std::fs;
+    use std::path::Path;
+
+    let fixtures_dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tests/schemas");
+    let snapshots_dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tests/snapshots");
+
+    let schema: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(Path::new(fixtures_dir).join("kitchen_sink.json")).unwrap(),
+    )
+    .unwrap();
+
+    let result = convert(&schema, &openai_options()).unwrap();
+
+    // Compare schema output
+    let expected_schema: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(Path::new(snapshots_dir).join("kitchen_sink_openai.expected.json"))
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        result.schema, expected_schema,
+        "kitchen_sink schema output diverged from golden snapshot — if this is intentional, regenerate with: cargo run -p json-schema-llm -- convert tests/schemas/kitchen_sink.json -o tests/snapshots/kitchen_sink_openai.expected.json --target openai-strict"
+    );
+
+    // Compare codec output
+    let expected_codec: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(Path::new(snapshots_dir).join("kitchen_sink_codec.expected.json"))
+            .unwrap(),
+    )
+    .unwrap();
+    let actual_codec = serde_json::to_value(&result.codec).unwrap();
+    assert_eq!(
+        actual_codec, expected_codec,
+        "kitchen_sink codec output diverged from golden snapshot — if this is intentional, regenerate with: cargo run -p json-schema-llm -- convert tests/schemas/kitchen_sink.json --codec tests/snapshots/kitchen_sink_codec.expected.json --target openai-strict"
+    );
+}
+
+// ── Mode Flag: Strict vs Permissive ─────────────────────────────────────────
+
+#[test]
+fn test_strict_mode_applies_p6() {
+    // Default mode is Strict — p6 should seal objects
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "age": { "type": "integer" }
+        },
+        "required": ["name"]
+    });
+
+    let result = convert(&schema, &openai_options()).expect("convert should succeed");
+
+    // Strict mode: additionalProperties: false, all props required
+    assert_eq!(
+        result.schema["additionalProperties"],
+        json!(false),
+        "Strict mode should seal with additionalProperties: false"
+    );
+    let required = result.schema["required"].as_array().unwrap();
+    assert!(required.contains(&json!("name")));
+    assert!(
+        required.contains(&json!("age")),
+        "Strict mode should make all properties required"
+    );
+}
+
+#[test]
+fn test_permissive_mode_skips_p6() {
+    use json_schema_llm_core::Mode;
+
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "age": { "type": "integer" }
+        },
+        "required": ["name"]
+    });
+
+    let mut options = openai_options();
+    options.mode = Mode::Permissive;
+
+    let result = convert(&schema, &options).expect("convert should succeed");
+
+    // Permissive mode: p6 skipped — additionalProperties NOT forced to false
+    assert!(
+        result.schema.get("additionalProperties").is_none()
+            || result.schema["additionalProperties"] != json!(false),
+        "Permissive mode should NOT seal with additionalProperties: false"
+    );
+
+    // Original required array preserved (not expanded to include all props)
+    let required = result.schema["required"].as_array().unwrap();
+    assert_eq!(
+        required.len(),
+        1,
+        "Permissive mode should keep original required array"
+    );
+    assert!(required.contains(&json!("name")));
+}
+
+#[test]
+fn test_permissive_mode_still_runs_constraint_pruning() {
+    use json_schema_llm_core::Mode;
+
+    // Even in permissive mode, p7 (constraint pruning) should still run
+    let schema = json!({
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100
+    });
+
+    let mut options = openai_options();
+    options.mode = Mode::Permissive;
+
+    let result = convert(&schema, &options).expect("convert should succeed");
+
+    // Constraints should still be pruned for OpenAI target
+    assert!(
+        result.schema.get("minimum").is_none(),
+        "Permissive mode should still prune unsupported constraints"
+    );
+    assert!(result.schema.get("maximum").is_none());
+}
+
+// ── Provider Compat Pass ────────────────────────────────────────────────────
+
+#[test]
+fn test_provider_compat_empty_for_valid_schema() {
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" }
+        },
+        "required": ["name"]
+    });
+
+    let result = convert(&schema, &openai_options()).expect("convert should succeed");
+
+    assert!(
+        result.provider_compat_errors.is_empty(),
+        "Valid object-rooted schema should have no provider compat errors"
+    );
+}
+
+#[test]
+fn test_provider_compat_skips_for_gemini() {
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" }
+        }
+    });
+
+    let result = convert(&schema, &gemini_options()).expect("convert should succeed");
+
+    assert!(
+        result.provider_compat_errors.is_empty(),
+        "Gemini target should always have empty provider compat errors"
+    );
+}
+
+#[test]
+fn test_provider_compat_skips_for_permissive_mode() {
+    use json_schema_llm_core::Mode;
+
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" }
+        }
+    });
+
+    let mut options = openai_options();
+    options.mode = Mode::Permissive;
+
+    let result = convert(&schema, &options).expect("convert should succeed");
+
+    assert!(
+        result.provider_compat_errors.is_empty(),
+        "Permissive mode should always have empty provider compat errors"
+    );
+}
+
+// ── Mode Default Verification ───────────────────────────────────────────────
+
+#[test]
+fn test_mode_defaults_to_strict() {
+    use json_schema_llm_core::Mode;
+
+    let defaults = ConvertOptions::default();
+    assert_eq!(defaults.mode, Mode::Strict, "Default mode should be Strict");
+}
