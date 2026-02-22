@@ -1,8 +1,12 @@
 //! Property-based negative tests for malformed JSON Schemas.
 //!
-//! Validates that the `convert()` pipeline returns `Result::Err(ConvertError)`
-//! — **never panics** — when given structurally-valid JSON that is semantically
-//! invalid as JSON Schema.
+//! Validates that the `convert()` pipeline **never panics** — returns either
+//! `Ok` (gracefully handled) or `Err(ConvertError)` — when given
+//! structurally-valid JSON that is semantically invalid as JSON Schema.
+//!
+//! Note: many malformed schemas return `Ok` because the pipeline gracefully
+//! ignores unrecognized or invalid keyword shapes. The invariant under test
+//! is **no panics**, not necessarily `Err`.
 //!
 //! Complements the existing `fuzz/fuzz_targets/fuzz_convert.rs` (libfuzzer)
 //! which covers arbitrary bytes → JSON parse → `convert()`. These tests use
@@ -170,17 +174,19 @@ fn malformed_invalid_pattern_regex() {
     let _ = result;
 }
 
-/// Boolean `false` schema — should be handled gracefully.
+/// Boolean `false` schema — valid JSON Schema (rejects everything).
+/// Included as an edge case, not malformed.
 #[test]
-fn malformed_boolean_false_schema() {
+fn edge_case_boolean_false_schema() {
     let schema = json!(false);
     let result = convert(&schema, &default_opts());
     let _ = result;
 }
 
-/// Boolean `true` schema — should be handled gracefully.
+/// Boolean `true` schema — valid JSON Schema (accepts everything).
+/// Included as an edge case, not malformed.
 #[test]
-fn malformed_boolean_true_schema() {
+fn edge_case_boolean_true_schema() {
     let schema = json!(true);
     let result = convert(&schema, &default_opts());
     let _ = result;
