@@ -211,9 +211,9 @@ The converted schemas were accepted by **OpenAI Strict Mode**. The LLM generated
 
 <a id="algorithm"></a>
 
-## Algorithm: The 9-Pass Compiler Pipeline
+## Algorithm: The 10-Pass Compiler Pipeline
 
-`jsonschema-llm` transforms schemas through 9 ordered passes, each handling a specific incompatibility. The passes are **ordered** (each assumes previous output), **deterministic**, **provider-aware** (passes are skipped/relaxed per target), **mode-aware** (strict vs permissive), and **metadata-preserving** (every lossy change records how to reverse it).
+`jsonschema-llm` transforms schemas through 10 ordered passes, each handling a specific incompatibility. The passes are **ordered** (each assumes previous output), **deterministic**, **provider-aware** (passes are skipped/relaxed per target), **mode-aware** (strict vs permissive), and **metadata-preserving** (every lossy change records how to reverse it).
 
 > 📖 **Full specification with examples, merge rules, and design decisions:** [docs/algorithm.md](docs/algorithm.md)
 
@@ -237,6 +237,8 @@ The converted schemas were accepted by **OpenAI Strict Mode**. The LLM generated
     ├──────────────────────────────┤
     │ Pass 6: Strict Enforcement   │  ✅ additionalProperties: false, all required
     ├──────────────────────────────┤
+    │ Pass 8: Adaptive Opaque      │  ✅ Stringify unreliable constructs
+    ├──────────────────────────────┤
     │ Pass 7: Constraint Pruning   │  ✅ Drop unsupported constraints
     ├──────────────────────────────┤
     │ Pass 9: Provider Compat      │  ✅ Pre-flight provider validation
@@ -259,6 +261,7 @@ The converted schemas were accepted by **OpenAI Strict Mode**. The LLM generated
 | **4** | Opaque Types       | Converts open-ended schemas (`{type: object}` with no properties, `{}`) into `{type: string}` with instructions to produce JSON-encoded strings.                                                                 | Data preserved, UX degraded  |
 | **5** | Recursion          | Inlines all remaining `$ref` pointers and breaks recursive cycles at a configurable depth limit (default 3) using dynamic per-branch cycle detection. Strips `$defs` after resolution. _Skipped for Gemini._     | Depth capped                 |
 | **6** | Strict Enforcement | Sets `additionalProperties: false`, moves all properties to `required`, and wraps originally-optional properties in `anyOf: [T, {type: null}]`. The "gatekeeper" pass for OpenAI Strict.                         | No                           |
+| **8** | Adaptive Opaque    | Detects unreliable constructs (`prefixItems` + `items: false`, `contains`, object-bearing `enum`) and proactively stringifies them. Runs **before** Pass 7 to access raw constraints.                            | Yes — reversed by rehydrator |
 | **7** | Constraint Pruning | Removes unsupported validation keywords per target (e.g. `minimum`, `maxLength`, `format`), normalizes `const` → `enum`, and sorts enum values to put `default` first. Records dropped constraints in the codec. | Validation-only data lost    |
 | **9** | Provider Compat    | Pre-flight checks for target-specific constraints (e.g. root must be object, depth budget, enum homogeneity). Returns soft errors — schema is still produced.                                                    | No (read-only)               |
 
@@ -334,7 +337,7 @@ rehydrated = rehydrate(llm_output, result["codec"], my_api_schema)
 │                                              │
 │  ┌──────────┐  ┌──────────┐  ┌───────────┐  │
 │  │ Converter│  │  Codec   │  │Rehydrator │  │
-│  │ (9 pass) │  │ Builder  │  │           │  │
+│  │(10 pass) │  │ Builder  │  │           │  │
 │  └──────────┘  └──────────┘  └───────────┘  │
 └──────┬───────────────────┬───────────────────┘
        │                   │ WASI (wasm32-wasip1)
@@ -356,24 +359,25 @@ The core library is written in **Rust** using `serde_json::Value` for schema man
 
 ## Project Status
 
-### v0.1 — Core Pipeline ✅
+### v0.1 — Core Pipeline
 
-The 9-pass compiler pipeline, rehydrator, codec, and CLI are all implemented and green.
+The 10-pass compiler pipeline, rehydrator, codec, and CLI are all implemented and tested.
 
-| Component              | Status      | Notes                                                                |
-| ---------------------- | ----------- | -------------------------------------------------------------------- |
-| Pass 0: Normalization  | ✅ Complete | `$ref` resolution, cycle detection, draft normalization              |
-| Pass 1: Composition    | ✅ Complete | `allOf` merge with property/required union                           |
-| Pass 2: Polymorphism   | ✅ Complete | `oneOf` → `anyOf` rewrite                                            |
-| Pass 3: Dictionary     | ✅ Complete | Map → Array transpilation with codec                                 |
-| Pass 4: Opaque Types   | ✅ Complete | Stringification with codec                                           |
-| Pass 5: Recursion      | ✅ Complete | Dynamic cycle detection, configurable depth limit                    |
-| Pass 6: Strict Mode    | ✅ Complete | `additionalProperties: false`, nullable optionals                    |
-| Pass 7: Constraints    | ✅ Complete | Constraint pruning, enum sorting, const→enum                         |
-| Rehydrator             | ✅ Complete | Full reverse transforms with advisory warnings                       |
-| Pipeline (`convert()`) | ✅ Complete | Wires all 9 passes with codec accumulation                           |
-| CLI                    | ✅ Complete | `convert`, `rehydrate`, `extract`, `list-components`, `--output-dir` |
-| `extract_component()`  | ✅ Complete | Extract self-contained sub-schema with transitive `$ref` resolution  |
+| Component               | Status      | Notes                                                                |
+| ----------------------- | ----------- | -------------------------------------------------------------------- |
+| Pass 0: Normalization   | ✅ Complete | `$ref` resolution, cycle detection, draft normalization              |
+| Pass 1: Composition     | ✅ Complete | `allOf` merge with property/required union                           |
+| Pass 2: Polymorphism    | ✅ Complete | `oneOf` → `anyOf` rewrite                                            |
+| Pass 3: Dictionary      | ✅ Complete | Map → Array transpilation with codec                                 |
+| Pass 4: Opaque Types    | ✅ Complete | Stringification with codec                                           |
+| Pass 5: Recursion       | ✅ Complete | Dynamic cycle detection, configurable depth limit                    |
+| Pass 6: Strict Mode     | ✅ Complete | `additionalProperties: false`, nullable optionals                    |
+| Pass 8: Adaptive Opaque | ✅ Complete | Stringify unreliable constructs (tuples, contains, object enums)     |
+| Pass 7: Constraints     | ✅ Complete | Constraint pruning, enum sorting, const→enum                         |
+| Rehydrator              | ✅ Complete | Full reverse transforms with advisory warnings                       |
+| Pipeline (`convert()`)  | ✅ Complete | Wires all 10 passes with codec accumulation                          |
+| CLI                     | ✅ Complete | `convert`, `rehydrate`, `extract`, `list-components`, `--output-dir` |
+| `extract_component()`   | ✅ Complete | Extract self-contained sub-schema with transitive `$ref` resolution  |
 
 Validated against production-grade schemas including the OpenAPI 3.1 Specification Schema. All accepted by OpenAI Strict Mode with full round-trip rehydration.
 
