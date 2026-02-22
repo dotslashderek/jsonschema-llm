@@ -150,8 +150,11 @@ export class LlmRoundtripEngine {
       throw new RehydrationError(`Rehydration failed: ${e}`);
     }
 
-    // Step 6: Validate (basic structural check — full JSON Schema validation
-    // would require a runtime validator like ajv)
+    // Step 6: Validate against original schema
+    // TODO: Integrate ajv for JSON Schema validation to achieve feature parity
+    // with the Python engine (which uses the `jsonschema` package) and the Java
+    // engine (which uses `json-schema-validator`). Until then, validationErrors
+    // will always be empty and isValid will always be true.
     const validationErrors: string[] = [];
 
     return {

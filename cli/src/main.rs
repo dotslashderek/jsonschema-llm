@@ -417,9 +417,9 @@ fn main() -> Result<()> {
                 SdkLanguage::TypeScript => {
                     // npm package names: lowercase, may be scoped (@scope/name)
                     let valid = !package.is_empty()
-                        && package
-                            .chars()
-                            .all(|c| c.is_ascii_alphanumeric() || "-_@/.".contains(c));
+                        && package.chars().all(|c| {
+                            c.is_ascii_lowercase() || c.is_ascii_digit() || "-_@/.".contains(c)
+                        });
                     if !valid {
                         anyhow::bail!(
                             "Invalid npm package name '{}': must contain only lowercase alphanumeric, \
