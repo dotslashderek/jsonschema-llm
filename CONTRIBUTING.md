@@ -38,9 +38,10 @@ The project uses a multi-layer testing strategy:
 6. **WASI host verification** — Python + wasmtime end-to-end protocol tests in `tests/wasi/`
 7. **WASI wrapper tests** — Docker-based tests for all 6 language wrappers
 8. **Conformance fixtures** — Cross-language fixtures in `tests/conformance/`
-9. **Doc tests** — Examples in `lib.rs` and `schema_utils.rs`
-10. **Property tests** — `proptest` strategies in `crates/jsonschema-llm-core/tests/proptest_*.rs`
-11. **Fuzzing** — `cargo-fuzz` harness in `fuzz/` (requires nightly, not part of workspace)
+9. **Engine E2E tests** — Python + Java engine tests against real WASM in `engine/*/tests/`
+10. **Doc tests** — Examples in `lib.rs` and `schema_utils.rs`
+11. **Property tests** — `proptest` strategies in `crates/jsonschema-llm-core/tests/proptest_*.rs`
+12. **Fuzzing** — `cargo-fuzz` harness in `fuzz/` (requires nightly, not part of workspace)
 
 #### Quick Start
 
@@ -54,17 +55,18 @@ make verify-all
 
 #### Available Make Targets
 
-| Target                 | Description                   | Prerequisites                     |
-| ---------------------- | ----------------------------- | --------------------------------- |
-| `make verify-bindings` | Full binding pipeline         | wasm-pack, Python 3, Docker       |
-| `make verify-all`      | Full CI mirror                | All of the above                  |
-| `make build-wasi`      | Build WASI binary             | `rustup target add wasm32-wasip1` |
-| `make test-wasm-smoke` | WASM boundary smoke tests     | wasm-pack, Node.js                |
-| `make test-wasi-host`  | WASI protocol verification    | Python 3, wasmtime                |
-| `make test-wrappers`   | Docker polyglot wrapper tests | Docker                            |
-| `make test-rust`       | Rust workspace tests          | —                                 |
-| `make check`           | Formatting + clippy           | —                                 |
-| `make help`            | Show all targets              | —                                 |
+| Target                 | Description                    | Prerequisites                     |
+| ---------------------- | ------------------------------ | --------------------------------- |
+| `make verify-bindings` | Full binding pipeline          | wasm-pack, Python 3, Docker       |
+| `make verify-all`      | Full CI mirror                 | All of the above                  |
+| `make build-wasi`      | Build WASI binary              | `rustup target add wasm32-wasip1` |
+| `make test-wasm-smoke` | WASM boundary smoke tests      | wasm-pack, Node.js                |
+| `make test-wasi-host`  | WASI protocol verification     | Python 3, wasmtime                |
+| `make test-wrappers`   | Docker polyglot wrapper tests  | Docker                            |
+| `make test-engines`    | Engine E2E tests (Python+Java) | Python 3, Maven 3                 |
+| `make test-rust`       | Rust workspace tests           | —                                 |
+| `make check`           | Formatting + clippy            | —                                 |
+| `make help`            | Show all targets               | —                                 |
 
 > **Note**: WASM smoke tests run via `wasm-pack test --node`, not `cargo test`. The `wasm32-unknown-unknown` target requires wasm-pack to compile and execute in a Node.js environment.
 
