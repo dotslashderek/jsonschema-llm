@@ -83,3 +83,4 @@ bindings/dotnet/**/obj/
 bindings/java-wasi/.gradle/
 bindings/java-wasi/build/
 engine/java/target/
+dx_test/
