@@ -3,6 +3,9 @@
  *
  * Provides pre-loaded LLM schema and codec for this component.
  * Use with @json-schema-llm/engine for full roundtrip orchestration.
+ *
+ * **Important**: This module resolves schema files relative to `dist/`.
+ * Run `npm run build` before importing.
  */
 
 import { readFileSync } from "node:fs";

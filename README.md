@@ -95,6 +95,16 @@ json-schema-llm gen-sdk --language python --schema ./output/ --package my-sdk --
 json-schema-llm gen-sdk --language java --schema ./output/ --package com.example.mysdk --output ./sdk/
 ```
 
+### SDK Guides
+
+Step-by-step walkthroughs for generating and using typed SDKs:
+
+| Language   | Guide                                          | Gen-SDK Support |
+| ---------- | ---------------------------------------------- | :-------------: |
+| Python     | [Python SDK Guide](docs/cli-python.md)         |       ✅        |
+| Java       | [Java SDK Guide](docs/cli-java.md)             |       ✅        |
+| TypeScript | [TypeScript SDK Guide](docs/cli-typescript.md) |       ✅        |
+
 ### Library
 
 <details>

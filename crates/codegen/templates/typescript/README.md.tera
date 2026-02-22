@@ -2,16 +2,33 @@
 
 Generated TypeScript SDK for {{ source_schema }}.
 
+## Prerequisites
+
+- Node.js 20+
+- npm or pnpm
+
 ## Installation
 
 ```bash
 npm install {{ package_name }}
 ```
 
+## Setup
+
+After installing, build the SDK to compile TypeScript sources:
+
+```bash
+npm run build
+```
+
+> **Note**: The SDK must be built before use — component modules load schemas
+> relative to the compiled `dist/` directory.
+
 ## Usage
 
 ```typescript
-import { {{ '{' }}{% for component in components %} {{ component.module_name }}{{ '{' }}{% if not loop.last %},{% endif %}{{ '}' }}{% endfor %} {{ '}' }} from "{{ package_name }}";
+{% for component in components %}import * as {{ component.module_name }} from "{{ package_name }}/{{ component.module_name }}";
+{% endfor %}
 
 // Access the LLM-compatible schema
 const llmSchema = {{ components.0.module_name }}.schema();
@@ -19,3 +36,30 @@ const llmSchema = {{ components.0.module_name }}.schema();
 // Access the rehydration codec
 const codec = {{ components.0.module_name }}.codec();
 ```
+
+### With @json-schema-llm/engine
+
+```typescript
+import { LlmRoundtripEngine, OpenAIFormatter, FetchTransport } from "@json-schema-llm/engine";
+{% for component in components %}import * as {{ component.module_name }} from "{{ package_name }}/{{ component.module_name }}";
+{% endfor %}
+
+const engine = new LlmRoundtripEngine();
+const result = await engine.generateWithPreconverted(
+  JSON.stringify({{ components.0.module_name }}.schema()),
+  JSON.stringify({{ components.0.module_name }}.codec()),
+  {{ components.0.module_name }}.schema(),
+  "Your prompt here",
+  new OpenAIFormatter(),
+  { url: "https://api.openai.com/v1/chat/completions", model: "gpt-4o", headers: { Authorization: "Bearer ..." } },
+  new FetchTransport(),
+);
+console.log(result.data);
+```
+
+## Components
+
+| Component | Module | Schema | Codec |
+|-----------|--------|--------|-------|
+{% for component in components %}| {{ component.component_name }} | `{{ component.module_name }}` | `schemas/{{ component.schema_path }}` | `schemas/{{ component.codec_path }}` |
+{% endfor %}
