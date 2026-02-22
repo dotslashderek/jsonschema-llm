@@ -10,6 +10,18 @@
 //! 3. `definitions` → `$defs` rename (post-resolution, Phase 3)
 //! 4. `$defs` cleanup (strip fully-inlined entries, preserve recursive)
 //!
+//! ## Why recursion breaking is NOT merged here
+//!
+//! Pass 5 (`p5_recursion`) resolves remaining `$ref` nodes and breaks recursive
+//! cycles. It might seem natural to fold that logic into p0 to avoid a second
+//! traversal. However, **Pass 4 (`p4_opaque`) depends on `$ref` nodes still
+//! being present** in the AST: `is_opaque()` and `is_untyped_opaque()` both
+//! check `obj.contains_key("$ref")` to exclude ref-bearing schemas from
+//! stringification. Merging p5 into p0 would cause p4 to incorrectly stringify
+//! nodes whose `$ref` was already resolved.
+//!
+//! See also: inline comments in `p4_opaque.rs` and `p5_recursion.rs`.
+//!
 //! ## Limitations
 //!
 //! - Only root-relative JSON Pointers (`#/...`) are supported.

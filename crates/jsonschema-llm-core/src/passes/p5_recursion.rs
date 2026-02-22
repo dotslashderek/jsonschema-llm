@@ -4,6 +4,17 @@
 //! recursive cycles at `config.recursion_limit` by replacing them with
 //! opaque JSON-string placeholders. Emits `RecursiveInflate` codec entries
 //! for round-trip rehydration.
+//!
+//! ## Pipeline Position
+//!
+//! This pass **must** run after Pass 4 (`p4_opaque`). Pass 4's `is_opaque()`
+//! and `is_untyped_opaque()` functions both check `obj.contains_key("$ref")`
+//! to prevent stringifying schemas that contain unresolved references. If
+//! recursion breaking were merged into Pass 0, those guards would disappear
+//! and p4 would incorrectly stringify ref-bearing schemas.
+//!
+//! This pass uses [`SchemaFolder`](crate::schema_walker::SchemaFolder) for
+//! AST traversal (unified walker, PR #218).
 
 use std::collections::HashMap;
 

@@ -37,7 +37,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 use crate::error::ConvertError;
-use crate::schema_utils::{escape_pointer_segment, resolve_pointer};
+use crate::schema_utils::{escape_pointer_segment, resolve_pointer, unescape_pointer_segment};
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -108,6 +108,13 @@ pub fn list_components(schema: &Value) -> Vec<String> {
 }
 
 /// Recursive helper for [`list_components`].
+///
+/// Walks ALL object properties to discover `$defs`, `definitions`, and OAS
+/// `components/schemas` containers, including those nested inside non-schema
+/// keys (e.g., OAS `paths`). This intentionally does NOT use
+/// [`SchemaFolder`](crate::schema_walker::SchemaFolder), which only traverses
+/// standard JSON Schema keywords and would miss definitions in arbitrary
+/// container keys.
 ///
 /// * `node`        — current schema node
 /// * `path`        — JSON Pointer prefix for this node (e.g. `"#"` or `"#/$defs/Outer"`)
@@ -443,7 +450,7 @@ fn pointer_to_key(pointer: &str, deps: &BTreeMap<String, (String, Value, url::Ur
 
     let last = segments
         .last()
-        .map(|s| unescape_segment(s))
+        .map(|s| unescape_pointer_segment(s).into_owned())
         .unwrap_or_else(|| "root".to_string());
 
     // Check for collision: key taken by a DIFFERENT pointer?
@@ -459,7 +466,7 @@ fn pointer_to_key(pointer: &str, deps: &BTreeMap<String, (String, Value, url::Ur
     // Fallback: full-path join.
     let joined = segments
         .iter()
-        .map(|s| unescape_segment(s))
+        .map(|s| unescape_pointer_segment(s).into_owned())
         .collect::<Vec<_>>()
         .join("_");
 
@@ -478,10 +485,8 @@ fn pointer_to_key(pointer: &str, deps: &BTreeMap<String, (String, Value, url::Ur
     }
 }
 
-/// Unescape a single RFC 6901 pointer segment.
-fn unescape_segment(segment: &str) -> String {
-    segment.replace("~1", "/").replace("~0", "~")
-}
+// `unescape_segment` was removed — use `schema_utils::unescape_pointer_segment` instead.
+// The local function was an exact duplicate of the schema_utils version.
 
 // ---------------------------------------------------------------------------
 // Ref rewriting

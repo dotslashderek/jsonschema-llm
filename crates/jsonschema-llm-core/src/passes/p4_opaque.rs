@@ -145,6 +145,10 @@ fn is_opaque(obj: &Map<String, Value>) -> bool {
     }
 
     // Has reference keywords → not opaque (defers definition).
+    // ⚠ ARCHITECTURAL CONSTRAINT: This guard depends on `$ref` nodes still
+    // being present in the AST. Pass 5 (p5_recursion) resolves/inlines these
+    // AFTER this pass runs. Do NOT merge p5 into p0_normalize — it would
+    // remove these guards and cause false-positive opaque stringification.
     if obj.contains_key("$ref")
         || obj.contains_key("$dynamicRef")
         || obj.contains_key("$recursiveRef")
@@ -216,6 +220,9 @@ fn is_untyped_opaque(obj: &Map<String, Value>) -> bool {
     }
 
     // Has composition, conditional, or reference keywords → not opaque.
+    // ⚠ ARCHITECTURAL CONSTRAINT: The `$ref` / `$dynamicRef` / `$recursiveRef`
+    // checks below depend on these nodes surviving until p5_recursion resolves
+    // them. See `is_opaque()` above for the full rationale.
     if obj.contains_key("allOf")
         || obj.contains_key("oneOf")
         || obj.contains_key("anyOf")
