@@ -6,7 +6,7 @@
 #   ./scripts/test-wrappers.sh go python  # specific languages
 #
 # Prerequisites:
-#   1. WASI binary built: cargo build --target wasm32-wasip1 --release -p jsonschema-llm-wasi
+#   1. WASI binary built: cargo build --target wasm32-wasip1 --release -p json-schema-llm-wasi
 #   2. Docker and Docker Compose installed
 
 set -euo pipefail
@@ -14,7 +14,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-WASM_BINARY="$PROJECT_ROOT/target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm"
+WASM_BINARY="$PROJECT_ROOT/target/wasm32-wasip1/release/json_schema_llm_wasi.wasm"
 
 # --- Pre-flight checks ---
 if ! docker compose version &>/dev/null && ! docker-compose version &>/dev/null; then
@@ -25,7 +25,7 @@ fi
 if [ ! -f "$WASM_BINARY" ]; then
   echo "⚠️  WASI binary not found at: $WASM_BINARY"
   echo "   Building it now..."
-  cargo build --target wasm32-wasip1 --release -p jsonschema-llm-wasi
+  cargo build --target wasm32-wasip1 --release -p json-schema-llm-wasi
 fi
 
 # --- Determine which services to test ---

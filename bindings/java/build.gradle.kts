@@ -29,7 +29,7 @@ dependencies {
 // WASM binary embedding
 // ---------------------------------------------------------------------------
 
-val wasmSource = file("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm")
+val wasmSource = file("../../target/wasm32-wasip1/release/json_schema_llm_wasi.wasm")
 val wasmGeneratedDir = layout.buildDirectory.dir("generated/resources")
 
 val embedWasm by tasks.registering(Copy::class) {
@@ -38,7 +38,7 @@ val embedWasm by tasks.registering(Copy::class) {
         if (!wasmSource.exists()) {
             throw GradleException(
                 "Rust WASM binary not found at ${wasmSource.absolutePath}.\n" +
-                "Build it first: cargo build --target wasm32-wasip1 --release -p jsonschema-llm-wasi"
+                "Build it first: cargo build --target wasm32-wasip1 --release -p json-schema-llm-wasi"
             )
         }
     }
@@ -73,5 +73,5 @@ publishing {
 tasks.test {
     useJUnitPlatform()
     environment("JSL_WASM_PATH",
-        file("../../target/wasm32-wasip1/release/jsonschema_llm_wasi.wasm").absolutePath)
+        file("../../target/wasm32-wasip1/release/json_schema_llm_wasi.wasm").absolutePath)
 }

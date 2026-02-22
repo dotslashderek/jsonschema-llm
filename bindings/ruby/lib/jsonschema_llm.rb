@@ -31,7 +31,7 @@ module JsonSchemaLlm
     def initialize(wasm_path: nil)
       path = wasm_path || ENV.fetch("JSL_WASM_PATH") {
         File.join(__dir__, "..", "..",
-                  "target", "wasm32-wasip1", "release", "jsonschema_llm_wasi.wasm")
+                  "target", "wasm32-wasip1", "release", "json_schema_llm_wasi.wasm")
       }
       @engine = Wasmtime::Engine.new
       @module = Wasmtime::Module.from_file(@engine, path)

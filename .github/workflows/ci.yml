@@ -99,7 +99,7 @@ jobs:
         run: wasm-pack build crates/json-schema-llm-wasm --target web
 
       - name: Install contract test dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-workspace
         working-directory: tests/contract-node
 
       - name: Run Node.js contract tests

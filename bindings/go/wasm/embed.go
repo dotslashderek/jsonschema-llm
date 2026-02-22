@@ -3,5 +3,5 @@ package wasm
 
 import _ "embed"
 
-//go:embed jsonschema_llm_wasi.wasm
+//go:embed json_schema_llm_wasi.wasm
 var Binary []byte

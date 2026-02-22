@@ -35,7 +35,7 @@ public sealed class JsonSchemaLlmEngine : IDisposable
             ?? Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
                 "..", "..", "..", "..", "..",
-                "target", "wasm32-wasip1", "release", "jsonschema_llm_wasi.wasm");
+                "target", "wasm32-wasip1", "release", "json_schema_llm_wasi.wasm");
 
         _engine = new Engine();
         _module = Module.FromFile(_engine, path);
