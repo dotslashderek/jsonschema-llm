@@ -45,14 +45,6 @@ def test_convert_with_options(engine):
     assert result.schema is not None
 
 
-def test_convert_with_builder_options(engine):
-    """ConvertOptions.builder() fluent API works end-to-end."""
-    schema = {"type": "object", "properties": {"x": {"type": "string"}}}
-    opts = ConvertOptions.builder().target("openai-strict").build()
-    result = engine.convert(schema, opts)
-    assert isinstance(result, ConvertResult)
-
-
 def test_convert_error(engine):
     """Invalid JSON schema input returns structured error."""
     with pytest.raises(JslError) as exc_info:

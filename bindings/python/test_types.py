@@ -3,12 +3,16 @@
 import pytest
 
 from json_schema_llm_wasi.types import (
+    ComponentError,
     ConvertAllComponentsResult,
     ConvertOptions,
     ConvertResult,
+    ExtractedComponent,
     ExtractComponentResult,
     ListComponentsResult,
+    ProviderCompatError,
     RehydrateResult,
+    RehydrateWarning,
 )
 
 
@@ -38,7 +42,7 @@ class TestConvertResult:
             "providerCompatErrors": [{"error": "strict"}],
         }
         result = ConvertResult.from_dict(raw)
-        assert result.provider_compat_errors == [{"error": "strict"}]
+        assert result.provider_compat_errors == [ProviderCompatError(error="strict")]
 
     def test_from_dict_missing_required_field(self):
         with pytest.raises(KeyError):
@@ -73,7 +77,7 @@ class TestRehydrateResult:
             "warnings": [{"msg": "coerced"}],
         }
         result = RehydrateResult.from_dict(raw)
-        assert result.warnings == [{"msg": "coerced"}]
+        assert result.warnings == [RehydrateWarning(msg="coerced")]
 
     def test_from_dict_missing_data(self):
         with pytest.raises(KeyError):
@@ -90,13 +94,13 @@ class TestListComponentsResult:
         raw = {
             "apiVersion": "1",
             "components": [
-                {"pointer": "#/$defs/Pet", "name": "Pet"},
+                "#/$defs/Pet",
             ],
         }
         result = ListComponentsResult.from_dict(raw)
         assert result.api_version == "1"
         assert len(result.components) == 1
-        assert result.components[0]["name"] == "Pet"
+        assert result.components[0] == "#/$defs/Pet"
 
 
 # ---------------------------------------------------------------------------
@@ -139,11 +143,12 @@ class TestConvertAllComponentsResult:
         raw = {
             "apiVersion": "1",
             "full": {"schema": {}, "codec": {}},
-            "components": [{"name": "Pet", "schema": {}, "codec": {}}],
+            "components": [["#/$defs/Pet", {"name": "Pet", "schema": {}, "codec": {}}]],
         }
         result = ConvertAllComponentsResult.from_dict(raw)
         assert result.api_version == "1"
         assert len(result.components) == 1
+        assert result.components["#/$defs/Pet"].name == "Pet"
         assert result.component_errors == []
 
     def test_from_dict_with_errors(self):
@@ -155,6 +160,7 @@ class TestConvertAllComponentsResult:
         }
         result = ConvertAllComponentsResult.from_dict(raw)
         assert len(result.component_errors) == 1
+        assert result.component_errors[0].error == "fail"
 
 
 # ---------------------------------------------------------------------------
@@ -188,18 +194,6 @@ class TestConvertOptions:
         assert d == {"target": "gemini"}
         assert "mode" not in d
         assert "max-depth" not in d
-
-    def test_builder_fluent(self):
-        opts = (
-            ConvertOptions.builder()
-            .target("openai-strict")
-            .max_depth(50)
-            .polymorphism("anyOf")
-            .build()
-        )
-        assert opts.target == "openai-strict"
-        assert opts.max_depth == 50
-        assert opts.polymorphism == "anyOf"
 
     def test_frozen(self):
         opts = ConvertOptions(target="x")

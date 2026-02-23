@@ -7,6 +7,73 @@ from typing import Any
 
 
 # ---------------------------------------------------------------------------
+# Nested Result Types
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ProviderCompatError:
+    """Error indicating a target provider constraint violation."""
+
+    error: str
+    pointer: str | None = None
+    message: str | None = None
+
+    @classmethod
+    def from_dict(cls, raw: dict) -> ProviderCompatError:
+        return cls(
+            error=raw["error"],
+            pointer=raw.get("pointer"),
+            message=raw.get("message"),
+        )
+
+
+@dataclass(frozen=True)
+class RehydrateWarning:
+    """Warning produced during schema rehydration."""
+
+    msg: str
+
+    @classmethod
+    def from_dict(cls, raw: dict) -> RehydrateWarning:
+        return cls(msg=raw["msg"])
+
+
+@dataclass(frozen=True)
+class ExtractedComponent:
+    """A component extracted from a larger schema."""
+
+    pointer: str
+    name: str | None = None
+    schema: dict | None = None
+    codec: dict | None = None
+
+    @classmethod
+    def from_dict(cls, pointer: str, raw: dict) -> ExtractedComponent:
+        return cls(
+            pointer=pointer,
+            name=raw.get("name"),
+            schema=raw.get("schema"),
+            codec=raw.get("codec"),
+        )
+
+
+@dataclass(frozen=True)
+class ComponentError:
+    """Error encountered when processing a specific component."""
+
+    pointer: str
+    error: str
+
+    @classmethod
+    def from_dict(cls, raw: dict) -> ComponentError:
+        return cls(
+            pointer=raw["pointer"],
+            error=raw["error"],
+        )
+
+
+# ---------------------------------------------------------------------------
 # Result types
 # ---------------------------------------------------------------------------
 
@@ -18,15 +85,16 @@ class ConvertResult:
     api_version: str
     schema: dict
     codec: dict
-    provider_compat_errors: list[dict] | None = None
+    provider_compat_errors: list[ProviderCompatError] | None = None
 
     @classmethod
     def from_dict(cls, raw: dict) -> ConvertResult:
+        errors = raw.get("providerCompatErrors")
         return cls(
             api_version=raw["apiVersion"],
             schema=raw["schema"],
             codec=raw["codec"],
-            provider_compat_errors=raw.get("providerCompatErrors"),
+            provider_compat_errors=[ProviderCompatError.from_dict(e) for e in errors] if errors else None,
         )
 
 
@@ -36,14 +104,14 @@ class RehydrateResult:
 
     api_version: str
     data: Any
-    warnings: list[dict] = field(default_factory=list)
+    warnings: list[RehydrateWarning] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, raw: dict) -> RehydrateResult:
         return cls(
             api_version=raw["apiVersion"],
             data=raw["data"],
-            warnings=raw.get("warnings", []),
+            warnings=[RehydrateWarning.from_dict(w) for w in raw.get("warnings", [])],
         )
 
 
@@ -52,7 +120,7 @@ class ListComponentsResult:
     """Typed result of a list_components operation."""
 
     api_version: str
-    components: list[dict]
+    components: list[str]
 
     @classmethod
     def from_dict(cls, raw: dict) -> ListComponentsResult:
@@ -89,16 +157,22 @@ class ConvertAllComponentsResult:
 
     api_version: str
     full: dict
-    components: list[dict]
-    component_errors: list[dict] = field(default_factory=list)
+    components: dict[str, ExtractedComponent]
+    component_errors: list[ComponentError] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, raw: dict) -> ConvertAllComponentsResult:
+        comps = {}
+        for item in raw.get("components", []):
+            if isinstance(item, list) and len(item) == 2:
+                pointer, comp_data = item
+                comps[pointer] = ExtractedComponent.from_dict(pointer, comp_data)
+            
         return cls(
             api_version=raw["apiVersion"],
             full=raw["full"],
-            components=raw["components"],
-            component_errors=raw.get("componentErrors", []),
+            components=comps,
+            component_errors=[ComponentError.from_dict(e) for e in raw.get("componentErrors", [])],
         )
 
 
@@ -115,12 +189,6 @@ class ConvertOptions:
 
         # Direct construction (idiomatic Python)
         opts = ConvertOptions(target="openai-strict", max_depth=50)
-
-        # Builder pattern (fluent API)
-        opts = (ConvertOptions.builder()
-                .target("openai-strict")
-                .max_depth(50)
-                .build())
     """
 
     target: str | None = None
@@ -131,66 +199,15 @@ class ConvertOptions:
 
     def to_dict(self) -> dict:
         """Serialize to a dict with kebab-case keys for the WASM ABI."""
-        mapping = {
-            "target": "target",
-            "mode": "mode",
-            "max_depth": "max-depth",
-            "recursion_limit": "recursion-limit",
-            "polymorphism": "polymorphism",
-        }
-        return {
-            mapping[k]: v
-            for k, v in {
-                "target": self.target,
-                "mode": self.mode,
-                "max_depth": self.max_depth,
-                "recursion_limit": self.recursion_limit,
-                "polymorphism": self.polymorphism,
-            }.items()
-            if v is not None
-        }
-
-    @classmethod
-    def builder(cls) -> ConvertOptionsBuilder:
-        """Create a fluent builder for ConvertOptions."""
-        return ConvertOptionsBuilder()
-
-
-class ConvertOptionsBuilder:
-    """Fluent builder for ConvertOptions."""
-
-    def __init__(self) -> None:
-        self._target: str | None = None
-        self._mode: str | None = None
-        self._max_depth: int | None = None
-        self._recursion_limit: int | None = None
-        self._polymorphism: str | None = None
-
-    def target(self, value: str) -> ConvertOptionsBuilder:
-        self._target = value
-        return self
-
-    def mode(self, value: str) -> ConvertOptionsBuilder:
-        self._mode = value
-        return self
-
-    def max_depth(self, value: int) -> ConvertOptionsBuilder:
-        self._max_depth = value
-        return self
-
-    def recursion_limit(self, value: int) -> ConvertOptionsBuilder:
-        self._recursion_limit = value
-        return self
-
-    def polymorphism(self, value: str) -> ConvertOptionsBuilder:
-        self._polymorphism = value
-        return self
-
-    def build(self) -> ConvertOptions:
-        return ConvertOptions(
-            target=self._target,
-            mode=self._mode,
-            max_depth=self._max_depth,
-            recursion_limit=self._recursion_limit,
-            polymorphism=self._polymorphism,
-        )
+        result = {}
+        if self.target is not None:
+            result["target"] = self.target
+        if self.mode is not None:
+            result["mode"] = self.mode
+        if self.max_depth is not None:
+            result["max-depth"] = self.max_depth
+        if self.recursion_limit is not None:
+            result["recursion-limit"] = self.recursion_limit
+        if self.polymorphism is not None:
+            result["polymorphism"] = self.polymorphism
+        return result
