@@ -16,7 +16,7 @@ namespace JsonSchemaLlm;
 ///
 /// Concurrency: Each Engine owns its own Wasmtime Store. NOT thread-safe.
 /// </summary>
-public sealed class JsonSchemaLlmEngine : IDisposable
+internal sealed class JsonSchemaLlmEngine : IDisposable
 {
     private const int JslResultSize = 12; // 3 × u32 (LE)
     private const int StatusOk = 0;
