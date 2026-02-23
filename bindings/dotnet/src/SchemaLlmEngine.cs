@@ -1,88 +1,203 @@
+using System.Buffers.Binary;
+using System.Text;
 using System.Text.Json;
+using System.Runtime.CompilerServices;
+using Wasmtime;
+
+[assembly: InternalsVisibleTo("JsonSchemaLlmTests")]
 
 namespace JsonSchemaLlm;
 
 /// <summary>
-/// High-level facade for json-schema-llm WASI operations.
+/// WASI-backed engine for json-schema-llm.
 ///
-/// <para>
-/// Provides the consumer-friendly API: typed results, options records,
-/// and resource lifecycle management via <see cref="IDisposable"/>.
-/// </para>
+/// Uses wasmtime-dotnet to load the universal WASI binary and exposes
+/// Convert() and Rehydrate() returning typed records.
 ///
-/// <example>
-/// <code>
-/// using var engine = SchemaLlmEngine.Create();
-/// var result = engine.Convert(schema, new ConvertOptions { Target = "openai-strict" });
-/// var rehydrated = engine.Rehydrate(data, result.Codec, schema);
-/// </code>
-/// </example>
+/// Concurrency: Each Engine owns its own Wasmtime Store. NOT thread-safe.
 /// </summary>
 public sealed class SchemaLlmEngine : IDisposable
 {
-    private readonly JsonSchemaLlmEngine _inner;
+    private const int JslResultSize = 12; // 3 × u32 (LE)
+    private const int StatusOk = 0;
+    private const int StatusError = 1;
+    private const int ExpectedAbiVersion = 1;
 
-    private SchemaLlmEngine(JsonSchemaLlmEngine inner)
+    private readonly Engine _engine;
+    private readonly Module _module;
+    private readonly Linker _linker;
+    private bool _abiVerified;
+
+    public SchemaLlmEngine(string? wasmPath = null)
     {
-        _inner = inner;
+        var path = wasmPath
+            ?? Environment.GetEnvironmentVariable("JSL_WASM_PATH")
+            ?? Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "..",
+                "target", "wasm32-wasip1", "release", "json_schema_llm_wasi.wasm");
+
+        _engine = new Engine();
+        _module = Module.FromFile(_engine, path);
+        _linker = new Linker(_engine);
+        _linker.DefineWasi();
     }
 
-    /// <summary>
-    /// Create a new SchemaLlmEngine with automatic WASM discovery.
-    ///
-    /// <para>Resolution cascade:</para>
-    /// <list type="number">
-    /// <item>Explicit <paramref name="wasmPath"/></item>
-    /// <item><c>JSL_WASM_PATH</c> environment variable</item>
-    /// <item>Repo-relative fallback (dev/CI)</item>
-    /// </list>
-    /// </summary>
-    public static SchemaLlmEngine Create(string? wasmPath = null)
+    public void Dispose()
     {
-        return new SchemaLlmEngine(new JsonSchemaLlmEngine(wasmPath));
+        _module.Dispose();
+        _engine.Dispose();
     }
 
-    /// <summary>Convert a JSON Schema to LLM-compatible form.</summary>
+    private static readonly JsonSerializerOptions KebabCaseOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower,
+        DictionaryKeyPolicy = JsonNamingPolicy.KebabCaseLower,
+    };
+
     public ConvertResult Convert(object schema, ConvertOptions? options = null)
     {
-        var raw = options is not null
-            ? _inner.Convert(schema, options.ToDictionary())
-            : _inner.Convert(schema);
-        return ConvertResult.FromJson(raw);
+        var schemaJson = JsonSerializer.Serialize(schema);
+        // Normalize PascalCase/camelCase option keys to kebab-case for WASI binary
+        var optsJson = options != null
+            ? JsonSerializer.Serialize(options.ToDictionary(), KebabCaseOptions)
+            : "{}";
+        return ConvertResult.FromJson(CallJsl("jsl_convert", schemaJson, optsJson));
     }
 
-    /// <summary>Rehydrate LLM output back to the original schema shape.</summary>
     public RehydrateResult Rehydrate(object data, object codec, object schema)
     {
-        var raw = _inner.Rehydrate(data, codec, schema);
-        return RehydrateResult.FromJson(raw);
+        var dataJson = JsonSerializer.Serialize(data);
+        var codecJson = JsonSerializer.Serialize(codec);
+        var schemaJson = JsonSerializer.Serialize(schema);
+        return RehydrateResult.FromJson(CallJsl("jsl_rehydrate", dataJson, codecJson, schemaJson));
     }
 
-    /// <summary>List all extractable component JSON Pointers in a schema.</summary>
     public ListComponentsResult ListComponents(object schema)
     {
-        var raw = _inner.ListComponents(schema);
-        return ListComponentsResult.FromJson(raw);
+        var schemaJson = JsonSerializer.Serialize(schema);
+        return ListComponentsResult.FromJson(CallJsl("jsl_list_components", schemaJson));
     }
 
-    /// <summary>Extract a single component from a schema by JSON Pointer.</summary>
     public ExtractResult ExtractComponent(object schema, string pointer, ExtractOptions? options = null)
     {
-        var optDict = options?.ToDictionary();
-        var raw = _inner.ExtractComponent(schema, pointer, optDict);
-        return ExtractResult.FromJson(raw);
+        var schemaJson = JsonSerializer.Serialize(schema);
+        var optsJson = options != null
+            ? JsonSerializer.Serialize(options.ToDictionary(), KebabCaseOptions)
+            : "{}";
+        return ExtractResult.FromJson(CallJsl("jsl_extract_component", schemaJson, pointer, optsJson));
     }
 
-    /// <summary>Convert all components in a schema at once.</summary>
-    public ConvertAllResult ConvertAllComponents(
-        object schema, ConvertOptions? convertOptions = null, ExtractOptions? extractOptions = null)
+    public ConvertAllResult ConvertAllComponents(object schema, ConvertOptions? convertOptions = null,
+        ExtractOptions? extractOptions = null)
     {
-        var convDict = convertOptions?.ToDictionary();
-        var extDict = extractOptions?.ToDictionary();
-        var raw = _inner.ConvertAllComponents(schema, convDict, extDict);
-        return ConvertAllResult.FromJson(raw);
+        var schemaJson = JsonSerializer.Serialize(schema);
+        var convOptsJson = convertOptions != null
+            ? JsonSerializer.Serialize(convertOptions.ToDictionary(), KebabCaseOptions)
+            : "{}";
+        var extOptsJson = extractOptions != null
+            ? JsonSerializer.Serialize(extractOptions.ToDictionary(), KebabCaseOptions)
+            : "{}";
+        return ConvertAllResult.FromJson(CallJsl("jsl_convert_all_components", schemaJson, convOptsJson, extOptsJson));
     }
 
-    /// <summary>Release WASM resources.</summary>
-    public void Dispose() => _inner.Dispose();
+    internal JsonElement CallJsl(string funcName, params string[] jsonArgs)
+    {
+        // Fresh store per call
+        var config = new WasiConfiguration().WithInheritedStandardOutput().WithInheritedStandardError();
+        using var store = new Store(_engine);
+        store.SetWasiConfiguration(config);
+        var instance = _linker.Instantiate(store, _module);
+
+        var memory = instance.GetMemory("memory")
+            ?? throw new InvalidOperationException("No memory export");
+
+        // ABI version handshake (once per engine lifetime)
+        if (!_abiVerified)
+        {
+            var abiFn = instance.GetFunction<int>("jsl_abi_version")
+                ?? throw new InvalidOperationException(
+                    "Incompatible WASM module: missing required 'jsl_abi_version' export");
+            var version = abiFn();
+            if (version != ExpectedAbiVersion)
+                throw new InvalidOperationException(
+                    $"ABI version mismatch: binary={version}, expected={ExpectedAbiVersion}");
+            _abiVerified = true;
+        }
+
+        var jslAlloc = instance.GetFunction<int, int>("jsl_alloc")
+            ?? throw new InvalidOperationException("No jsl_alloc export");
+        var jslFree = instance.GetAction<int, int>("jsl_free")
+            ?? throw new InvalidOperationException("No jsl_free export");
+        var jslResultFree = instance.GetAction<int>("jsl_result_free")
+            ?? throw new InvalidOperationException("No jsl_result_free export");
+
+        // Allocate and write arguments
+        var allocs = new List<(int ptr, int len)>();
+        var flatArgs = new List<ValueBox>();
+        var resultPtr = 0;
+
+        try
+        {
+            foreach (var arg in jsonArgs)
+            {
+                var bytes = Encoding.UTF8.GetBytes(arg);
+                var ptr = jslAlloc(bytes.Length);
+                if (ptr == 0 && bytes.Length > 0)
+                    throw new InvalidOperationException($"jsl_alloc returned null for {bytes.Length} bytes");
+                bytes.CopyTo(memory.GetSpan(ptr, bytes.Length));
+                allocs.Add((ptr, bytes.Length));
+                flatArgs.Add(ptr);
+                flatArgs.Add(bytes.Length);
+            }
+
+            // Call function
+            var func = instance.GetFunction(funcName)
+                ?? throw new InvalidOperationException($"No {funcName} export");
+            resultPtr = (int)(func.Invoke(flatArgs.ToArray()) ?? throw new InvalidOperationException("null result"));
+            if (resultPtr == 0)
+                throw new InvalidOperationException($"{funcName} returned null result pointer");
+
+            // Read JslResult (12 bytes: 3 × LE u32)
+            var resultBytes = memory.GetSpan(resultPtr, JslResultSize).ToArray();
+            var status = BinaryPrimitives.ReadInt32LittleEndian(resultBytes.AsSpan(0, 4));
+            var payloadPtr = BinaryPrimitives.ReadInt32LittleEndian(resultBytes.AsSpan(4, 4));
+            var payloadLen = BinaryPrimitives.ReadInt32LittleEndian(resultBytes.AsSpan(8, 4));
+
+            // Read payload
+            var payloadStr = Encoding.UTF8.GetString(memory.GetSpan(payloadPtr, payloadLen));
+
+            using var payload = JsonDocument.Parse(payloadStr);
+
+            if (status == StatusError)
+            {
+                var root = payload.RootElement;
+                throw new JslException(
+                    root.GetProperty("code").GetString() ?? "unknown",
+                    root.GetProperty("message").GetString() ?? "unknown error",
+                    root.TryGetProperty("path", out var path) ? path.GetString() ?? "" : "");
+            }
+
+            return payload.RootElement.Clone();
+        }
+        finally
+        {
+            // Always free guest memory, even on exception
+            if (resultPtr != 0) jslResultFree(resultPtr);
+            foreach (var (ptr, len) in allocs) jslFree(ptr, len);
+        }
+    }
+}
+
+public class JslException : Exception
+{
+    public string Code { get; }
+    public string Path { get; }
+
+    public JslException(string code, string message, string path = "")
+        : base($"jsl error [{code}]{(string.IsNullOrEmpty(path) ? "" : $" at {path}")}: {message}")
+    {
+        Code = code;
+        Path = path;
+    }
 }

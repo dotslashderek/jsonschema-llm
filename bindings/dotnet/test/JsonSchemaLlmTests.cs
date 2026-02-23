@@ -10,7 +10,7 @@ public class JsonSchemaLlmTests : IDisposable
 
     public JsonSchemaLlmTests()
     {
-        _engine = SchemaLlmEngine.Create();
+        _engine = new SchemaLlmEngine();
     }
 
     public void Dispose() => _engine.Dispose();
@@ -56,7 +56,7 @@ public class JsonSchemaLlmTests : IDisposable
     public void ConvertError()
     {
         // Use internal raw engine for FFI error path testing
-        using var raw = new JsonSchemaLlmEngine();
+        using var raw = new SchemaLlmEngine();
         var ex = Assert.Throws<JslException>(() =>
             raw.CallJsl("jsl_convert", "NOT VALID JSON", "{}"));
         Assert.NotEmpty(ex.Code);
@@ -88,7 +88,7 @@ public class JsonSchemaLlmTests : IDisposable
     [Fact]
     public void RehydrateError()
     {
-        using var raw = new JsonSchemaLlmEngine();
+        using var raw = new SchemaLlmEngine();
         Assert.Throws<JslException>(() =>
             raw.CallJsl("jsl_rehydrate",
                 "{\"key\":\"value\"}", "NOT VALID JSON", "{\"type\":\"object\"}"));

@@ -53,7 +53,7 @@ public sealed record ConvertResult
 
     internal static ConvertResult FromJson(JsonElement root) => new()
     {
-        ApiVersion = root.GetProperty("apiVersion").GetString()!,
+        ApiVersion = root.GetProperty("apiVersion").GetString() ?? "",
         Schema = root.GetProperty("schema").Clone(),
         Codec = root.GetProperty("codec").Clone(),
     };
@@ -93,7 +93,7 @@ public sealed record RehydrateResult
 
         return new()
         {
-            ApiVersion = root.GetProperty("apiVersion").GetString()!,
+            ApiVersion = root.GetProperty("apiVersion").GetString() ?? "",
             Data = root.GetProperty("data").Clone(),
             Warnings = warnings,
         };
@@ -109,12 +109,12 @@ public sealed record ListComponentsResult
     internal static ListComponentsResult FromJson(JsonElement root)
     {
         var components = root.GetProperty("components").EnumerateArray()
-            .Select(c => c.GetString()!)
+            .Select(c => c.GetString() ?? "")
             .ToArray();
 
         return new()
         {
-            ApiVersion = root.GetProperty("apiVersion").GetString()!,
+            ApiVersion = root.GetProperty("apiVersion").GetString() ?? "",
             Components = components,
         };
     }
@@ -132,14 +132,14 @@ public sealed record ExtractResult
     internal static ExtractResult FromJson(JsonElement root)
     {
         var missingRefs = root.TryGetProperty("missingRefs", out var mr) && mr.ValueKind == JsonValueKind.Array
-            ? mr.EnumerateArray().Select(r => r.GetString()!).ToArray()
+            ? mr.EnumerateArray().Select(r => r.GetString() ?? "").ToArray()
             : [];
 
         return new()
         {
-            ApiVersion = root.GetProperty("apiVersion").GetString()!,
+            ApiVersion = root.GetProperty("apiVersion").GetString() ?? "",
             Schema = root.GetProperty("schema").Clone(),
-            Pointer = root.GetProperty("pointer").GetString()!,
+            Pointer = root.GetProperty("pointer").GetString() ?? "",
             DependencyCount = root.GetProperty("dependencyCount").GetInt32(),
             MissingRefs = missingRefs,
         };
@@ -156,7 +156,7 @@ public sealed record ConvertAllResult
 
     internal static ConvertAllResult FromJson(JsonElement root) => new()
     {
-        ApiVersion = root.GetProperty("apiVersion").GetString()!,
+        ApiVersion = root.GetProperty("apiVersion").GetString() ?? "",
         Full = root.GetProperty("full").Clone(),
         Components = root.GetProperty("components").Clone(),
         ComponentErrors = root.TryGetProperty("componentErrors", out var ce) && ce.ValueKind != JsonValueKind.Null

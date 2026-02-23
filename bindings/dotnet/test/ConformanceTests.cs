@@ -16,7 +16,7 @@ public class ConformanceTests : IDisposable
         AppDomain.CurrentDomain.BaseDirectory,
         "..", "..", "..", "..", "..", "..", "tests", "conformance", "fixtures.json");
 
-    private readonly JsonSchemaLlmEngine _engine;
+    private readonly SchemaLlmEngine _engine;
     private static readonly JsonDocument Fixtures;
 
     static ConformanceTests()
@@ -27,7 +27,7 @@ public class ConformanceTests : IDisposable
 
     public ConformanceTests()
     {
-        _engine = new JsonSchemaLlmEngine();
+        _engine = new SchemaLlmEngine();
     }
 
     public void Dispose() => _engine.Dispose();
@@ -139,7 +139,11 @@ public class ConformanceTests : IDisposable
                 optionsEl.GetRawText());
         }
 
-        var result = _engine.Convert(schemaDict, optionsDict);
+        var schemaJson = JsonSerializer.Serialize(schemaDict);
+        var optsJson = optionsDict != null
+            ? JsonSerializer.Serialize(optionsDict, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower, DictionaryKeyPolicy = JsonNamingPolicy.KebabCaseLower })
+            : "{}";
+        var result = _engine.CallJsl("jsl_convert", schemaJson, optsJson);
         AssertConvertExpected(result, expected);
     }
 
@@ -193,13 +197,19 @@ public class ConformanceTests : IDisposable
                 optionsEl.GetRawText());
         }
 
-        var convertResult = _engine.Convert(schemaDict, optionsDict);
+        var schemaJson = JsonSerializer.Serialize(schemaDict);
+        var optsJson = optionsDict != null
+            ? JsonSerializer.Serialize(optionsDict, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower, DictionaryKeyPolicy = JsonNamingPolicy.KebabCaseLower })
+            : "{}";
+        var convertResult = _engine.CallJsl("jsl_convert", schemaJson, optsJson);
         var codec = convertResult.GetProperty("codec");
 
         var dataDict = JsonSerializer.Deserialize<Dictionary<string, object>>(
             input.GetProperty("data").GetRawText())!;
 
-        var rehydrateResult = _engine.Rehydrate(dataDict, codec, schemaDict);
+        var dataJson = JsonSerializer.Serialize(dataDict);
+        var codecJson = JsonSerializer.Serialize(codec);
+        var rehydrateResult = _engine.CallJsl("jsl_rehydrate", dataJson, codecJson, schemaJson);
 
         if (expected.TryGetProperty("has_keys", out var hasKeys))
         {
