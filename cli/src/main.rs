@@ -208,6 +208,7 @@ enum SdkLanguage {
     Python,
     #[value(name = "typescript")]
     TypeScript,
+    Ruby,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -215,6 +216,7 @@ enum BuildToolArg {
     Maven,
     Setuptools,
     Npm,
+    Bundler,
 }
 
 // ---------------------------------------------------------------------------
@@ -429,6 +431,21 @@ fn main() -> Result<()> {
                         );
                     }
                 }
+                SdkLanguage::Ruby => {
+                    // Ruby gem names: lowercase, start with letter, alphanumeric + hyphen + underscore
+                    let valid = !package.is_empty()
+                        && package.starts_with(|c: char| c.is_ascii_lowercase())
+                        && package
+                            .chars()
+                            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_');
+                    if !valid {
+                        anyhow::bail!(
+                            "Invalid Ruby gem name '{}': must start with a lowercase letter, \
+                             contain only lowercase alphanumeric, hyphen, and underscore",
+                            package
+                        );
+                    }
+                }
             }
 
             // Derive artifact name from package
@@ -444,6 +461,7 @@ fn main() -> Result<()> {
                     // For scoped packages like @scope/name, use "name" as artifact
                     package.rsplit('/').next().unwrap_or(&package).to_string()
                 }
+                SdkLanguage::Ruby => package.clone(),
             };
 
             // Resolve build tool: validate combo, then apply language default if omitted
@@ -457,6 +475,9 @@ fn main() -> Result<()> {
                 }
                 (SdkLanguage::TypeScript, Some(BuildToolArg::Npm)) => {
                     json_schema_llm_codegen::BuildTool::Npm
+                }
+                (SdkLanguage::Ruby, Some(BuildToolArg::Bundler)) => {
+                    json_schema_llm_codegen::BuildTool::Bundler
                 }
                 // Invalid combos
                 (SdkLanguage::Python, Some(BuildToolArg::Maven)) => {
@@ -483,10 +504,25 @@ fn main() -> Result<()> {
                         "Invalid combination: --language typescript requires --build-tool npm"
                     );
                 }
+                (SdkLanguage::Ruby, Some(BuildToolArg::Maven))
+                | (SdkLanguage::Ruby, Some(BuildToolArg::Setuptools))
+                | (SdkLanguage::Ruby, Some(BuildToolArg::Npm)) => {
+                    anyhow::bail!(
+                        "Invalid combination: --language ruby requires --build-tool bundler"
+                    );
+                }
+                (SdkLanguage::Java, Some(BuildToolArg::Bundler))
+                | (SdkLanguage::Python, Some(BuildToolArg::Bundler))
+                | (SdkLanguage::TypeScript, Some(BuildToolArg::Bundler)) => {
+                    anyhow::bail!(
+                        "Invalid combination: --build-tool bundler requires --language ruby"
+                    );
+                }
                 // Language defaults when --build-tool is omitted
                 (SdkLanguage::Java, None) => json_schema_llm_codegen::BuildTool::Maven,
                 (SdkLanguage::Python, None) => json_schema_llm_codegen::BuildTool::Setuptools,
                 (SdkLanguage::TypeScript, None) => json_schema_llm_codegen::BuildTool::Npm,
+                (SdkLanguage::Ruby, None) => json_schema_llm_codegen::BuildTool::Bundler,
             };
 
             let config = json_schema_llm_codegen::SdkConfig {

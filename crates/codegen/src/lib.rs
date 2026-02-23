@@ -1,5 +1,6 @@
 pub mod java;
 pub mod python;
+pub mod ruby;
 pub mod typescript;
 
 use std::path::PathBuf;
@@ -13,6 +14,7 @@ pub enum BuildTool {
     Maven,
     Setuptools,
     Npm,
+    Bundler,
 }
 
 impl std::fmt::Display for BuildTool {
@@ -21,6 +23,7 @@ impl std::fmt::Display for BuildTool {
             BuildTool::Maven => write!(f, "maven"),
             BuildTool::Setuptools => write!(f, "setuptools"),
             BuildTool::Npm => write!(f, "npm"),
+            BuildTool::Bundler => write!(f, "bundler"),
         }
     }
 }
@@ -72,5 +75,6 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
         BuildTool::Maven => java::generate(config),
         BuildTool::Setuptools => python::generate(config),
         BuildTool::Npm => typescript::generate(config),
+        BuildTool::Bundler => ruby::generate(config),
     }
 }
