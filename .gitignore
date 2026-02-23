@@ -70,7 +70,7 @@ fuzz/corpus/
 fuzz/artifacts/
 
 # Go WASI wrapper — embedded binary is copied at build time
-bindings/go/wasm/jsonschema_llm_wasi.wasm
+bindings/go/wasm/*.wasm
 
 # Ruby
 bindings/ruby/Gemfile.lock
@@ -78,6 +78,9 @@ bindings/ruby/Gemfile.lock
 # .NET
 bindings/dotnet/**/bin/
 bindings/dotnet/**/obj/
+
+# Engine Python — bundled WASM binary
+engine/python/json_schema_llm_engine/wasm/*.wasm
 
 # Java WASI
 bindings/java-wasi/.gradle/

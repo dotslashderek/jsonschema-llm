@@ -14,10 +14,6 @@ services:
     build:
       context: .
       dockerfile: docker/test-go.Dockerfile
-    volumes:
-      - ./target/wasm32-wasip1/release/json_schema_llm_wasi.wasm:/wasm/json_schema_llm_wasi.wasm:ro
-    environment:
-      JSL_WASM_PATH: /wasm/json_schema_llm_wasi.wasm
 
   python:
     build:

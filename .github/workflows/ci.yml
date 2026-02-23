@@ -323,6 +323,13 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Distribute WASM to Engine Python bundle
+        if: matrix.engine == 'python'
+        run: |
+          mkdir -p engine/python/json_schema_llm_engine/wasm
+          cp target/wasm32-wasip1/release/json_schema_llm_wasi.wasm \
+            engine/python/json_schema_llm_engine/wasm/json_schema_llm_wasi.wasm
+
       - name: Install Python engine deps
         if: matrix.engine == 'python'
         run: pip install -e ".[dev]"

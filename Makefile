@@ -12,7 +12,7 @@
 #   - Python 3 with pip
 #   - Docker (for wrapper tests)
 
-.PHONY: verify-bindings verify-all build-wasi copy-wasm-python test-wasm-smoke test-wasi-host \
+.PHONY: verify-bindings verify-all build-wasi distribute-wasm test-wasm-smoke test-wasi-host \
         test-wrappers test-engines test-rust check help
 
 # ---------------------------------------------------------------------------
@@ -20,7 +20,7 @@
 # ---------------------------------------------------------------------------
 
 ## Run the full WASM/WASI binding verification pipeline
-verify-bindings: build-wasi test-wasm-smoke test-wasi-host test-wrappers test-engines
+verify-bindings: distribute-wasm test-wasm-smoke test-wasi-host test-wrappers test-engines
 	@echo ""
 	@echo "✅ All binding verification targets passed!"
 
@@ -41,13 +41,18 @@ build-wasi:
 	cargo build --target wasm32-wasip1 --release -p json-schema-llm-wasi
 	@echo "✅ WASI binary built: target/wasm32-wasip1/release/json_schema_llm_wasi.wasm"
 
-## Copy WASM binary into Python engine package for pip install bundling
-copy-wasm-python: build-wasi
-	@echo "📦 Copying WASM binary into Python engine package..."
+## Distribute WASM binary to all directories that need physical copies
+distribute-wasm: build-wasi
+	@echo "📦 Distributing WASM binary to all targets..."
+	@mkdir -p bindings/go/wasm
+	cp -f target/wasm32-wasip1/release/json_schema_llm_wasi.wasm \
+		bindings/go/wasm/json_schema_llm_wasi.wasm
+	@echo "  → bindings/go/wasm/ (Go embed)"
 	@mkdir -p engine/python/json_schema_llm_engine/wasm
-	cp target/wasm32-wasip1/release/json_schema_llm_wasi.wasm \
+	cp -f target/wasm32-wasip1/release/json_schema_llm_wasi.wasm \
 		engine/python/json_schema_llm_engine/wasm/json_schema_llm_wasi.wasm
-	@echo "✅ WASM binary copied to engine/python/json_schema_llm_engine/wasm/"
+	@echo "  → engine/python/json_schema_llm_engine/wasm/ (Engine Python bundle)"
+	@echo "✅ WASM binary distributed to all targets"
 
 # ---------------------------------------------------------------------------
 # Test targets
@@ -74,7 +79,7 @@ test-wasi-host: build-wasi
 	@echo "✅ WASI host verification passed"
 
 ## Run Docker-based polyglot wrapper tests (all 6 languages)
-test-wrappers: build-wasi
+test-wrappers: distribute-wasm
 	@echo "🧪 Running Docker wrapper tests..."
 	@(docker compose version > /dev/null 2>&1 || docker-compose version > /dev/null 2>&1) || \
 		(echo "❌ docker compose not found. Install Docker Desktop." && exit 1)
@@ -82,7 +87,7 @@ test-wrappers: build-wasi
 	@echo "✅ Docker wrapper tests passed"
 
 ## Run engine E2E tests (Python + Java against real WASM)
-test-engines: build-wasi
+test-engines: distribute-wasm
 	@echo "🧪 Running engine E2E tests..."
 	cd engine/python && python -m pytest -v -m e2e
 	cd engine/java && mvn test -Dgroups=e2e -q
@@ -121,6 +126,7 @@ help:
 	@echo ""
 	@echo "Individual targets:"
 	@echo "  make build-wasi        Build WASI binary (wasm32-wasip1)"
+	@echo "  make distribute-wasm   Build + copy WASM to Go embed + Engine Python"
 	@echo "  make test-wasm-smoke   WASM smoke tests (wasm-pack + Node.js)"
 	@echo "  make test-wasi-host    WASI host verification (Python + wasmtime)"
 	@echo "  make test-wrappers     Docker wrapper tests (6 languages)"
