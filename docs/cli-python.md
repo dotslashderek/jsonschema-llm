@@ -91,20 +91,17 @@ import json
 from my_petstore_sdk import pet
 from json_schema_llm_engine import LlmRoundtripEngine
 
-engine = LlmRoundtripEngine()
-result = engine.generate_with_preconverted(
-    schema_json=json.dumps(pet.SCHEMA),
-    codec_json=json.dumps(pet.CODEC),
-    llm_schema=pet.LLM_SCHEMA,
-    prompt="Generate a pet named Max",
-    formatter=...,   # e.g. OpenAIFormatter()
+engine = LlmRoundtripEngine(
+    formatter=OpenAIFormatter(),  # e.g. from json_schema_llm_engine.formatters
     config={
         "url": "https://api.openai.com/v1/chat/completions",
         "model": "gpt-4o",
         "headers": {"Authorization": "Bearer YOUR_API_KEY"},
     },
-    transport=...,   # e.g. RequestsTransport()
+    transport=RequestsTransport(),  # e.g. from json_schema_llm_engine.transports
 )
+
+result = pet.generate("Generate a pet named Max", engine)
 
 print(result.data)           # Rehydrated data in original schema shape
 print(result.is_valid)       # True if passes JSON Schema validation

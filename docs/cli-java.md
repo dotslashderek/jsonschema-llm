@@ -106,11 +106,7 @@ Add the engine dependency to your `pom.xml`:
 import com.example.petstore.Pet;
 import dev.jsonschema.llm.engine.*;
 
-var engine = new LlmRoundtripEngine();
-var result = engine.generateWithPreconverted(
-    Pet.CODEC_JSON,
-    Pet.schemaNode(),
-    "Generate a pet named Max",
+var engine = LlmRoundtripEngine.create(
     new OpenAIFormatter(),
     new ProviderConfig(
         "https://api.openai.com/v1/chat/completions",
@@ -119,6 +115,8 @@ var result = engine.generateWithPreconverted(
     ),
     new HttpClientTransport()
 );
+
+var result = Pet.generate("Generate a pet named Max", engine);
 
 System.out.println(result.getData());     // Rehydrated data
 System.out.println(result.isValid());     // JSON Schema validation result

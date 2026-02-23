@@ -99,12 +99,7 @@ import {
   FetchTransport,
 } from "@json-schema-llm/engine";
 
-const engine = new LlmRoundtripEngine();
-const result = await engine.generateWithPreconverted(
-  JSON.stringify(pet.schema()),
-  JSON.stringify(pet.codec()),
-  pet.schema(),
-  "Generate a pet named Max",
+const engine = new LlmRoundtripEngine(
   new OpenAIFormatter(),
   {
     url: "https://api.openai.com/v1/chat/completions",
@@ -113,6 +108,8 @@ const result = await engine.generateWithPreconverted(
   },
   new FetchTransport(),
 );
+
+const result = await pet.generate("Generate a pet named Max", engine);
 
 console.log(result.data); // Rehydrated data in original schema shape
 console.log(result.isValid); // true if passes JSON Schema validation
@@ -134,10 +131,7 @@ import { readFileSync } from "node:fs";
 
 const schema = readFileSync("my-schema.json", "utf-8");
 
-const engine = new LlmRoundtripEngine();
-const result = await engine.generate(
-  schema,
-  "Generate a pet named Max",
+const engine = new LlmRoundtripEngine(
   new OpenAIFormatter(),
   {
     url: "https://api.openai.com/v1/chat/completions",
@@ -146,6 +140,8 @@ const result = await engine.generate(
   },
   new FetchTransport(),
 );
+
+const result = await engine.generate(schema, "Generate a pet named Max");
 
 console.log(result.data);
 ```
