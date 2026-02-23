@@ -435,9 +435,9 @@ fn main() -> Result<()> {
                     // Ruby gem names: lowercase, start with letter, alphanumeric + hyphen + underscore
                     let valid = !package.is_empty()
                         && package.starts_with(|c: char| c.is_ascii_lowercase())
-                        && package
-                            .chars()
-                            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_');
+                        && package.chars().all(|c| {
+                            c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_'
+                        });
                     if !valid {
                         anyhow::bail!(
                             "Invalid Ruby gem name '{}': must start with a lowercase letter, \

@@ -129,7 +129,7 @@ class TestLlmRoundtripEngineGenerateWithPreconverted < Minitest::Test
       transport: transport
     )
 
-    schema = { "type" => "object", "properties" => { "name" => { "type" => "string" } } }
+    schema = { "$schema" => "https://json-schema.org/draft/2020-12/schema", "type" => "object", "properties" => { "name" => { "type" => "string" } } }
 
     result = engine.generate_with_preconverted(
       schema_json: JSON.generate(schema),
