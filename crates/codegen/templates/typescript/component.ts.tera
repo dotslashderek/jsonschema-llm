@@ -11,6 +11,13 @@
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import type {
+  LlmRoundtripEngine,
+  LlmTransport,
+  ProviderConfig,
+  ProviderFormatter,
+  RoundtripResult,
+} from "@json-schema-llm/engine";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -57,3 +64,41 @@ export function original(): Record<string, unknown> {
   return _originalCache;
 }
 
+/**
+ * Run a full LLM roundtrip for {{ component_name }} using pre-built schema artifacts.
+ *
+ * Convenience wrapper that wires the pre-built {@link original}, {@link codec},
+ * and {@link schema} into {@link LlmRoundtripEngine.generateWithPreconverted}
+ * so callers don't need to manage the three-way split themselves.
+ *
+ * @param prompt - The natural language prompt for the LLM.
+ * @param options.engine - An initialized {@link LlmRoundtripEngine}.
+ * @param options.formatter - Provider-specific request formatter.
+ * @param options.config - Provider endpoint/model configuration.
+ * @param options.transport - Consumer-provided HTTP transport.
+ * @returns RoundtripResult with rehydrated data and validation info.
+ */
+export async function generate(
+  prompt: string,
+  {
+    engine,
+    formatter,
+    config,
+    transport,
+  }: {
+    engine: LlmRoundtripEngine;
+    formatter: ProviderFormatter;
+    config: ProviderConfig;
+    transport: LlmTransport;
+  },
+): Promise<RoundtripResult> {
+  return engine.generateWithPreconverted(
+    JSON.stringify(original()),
+    JSON.stringify(codec()),
+    schema(),
+    prompt,
+    formatter,
+    config,
+    transport,
+  );
+}

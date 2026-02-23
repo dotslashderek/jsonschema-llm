@@ -26,36 +26,35 @@ npm run build
 
 ## Usage
 
-```typescript
-{% for component in components %}import * as {{ component.module_name }} from "{{ package_name }}/{{ component.module_name }}";
-{% endfor %}
-
-// Access the LLM-compatible schema
-const llmSchema = {{ components.0.module_name }}.schema();
-
-// Access the rehydration codec
-const codec = {{ components.0.module_name }}.codec();
-```
-
-### With @json-schema-llm/engine
+### Roundtrip generation (recommended)
 
 ```typescript
 import { LlmRoundtripEngine, OpenAIFormatter, FetchTransport } from "@json-schema-llm/engine";
 {% for component in components %}import * as {{ component.module_name }} from "{{ package_name }}/{{ component.module_name }}";
 {% endfor %}
-
 const engine = new LlmRoundtripEngine();
-const result = await engine.generateWithPreconverted(
-  JSON.stringify({{ components.0.module_name }}.original()),
-  JSON.stringify({{ components.0.module_name }}.codec()),
-  {{ components.0.module_name }}.schema(),
+const result = await {{ components.0.module_name }}.generate(
   "Your prompt here",
-  new OpenAIFormatter(),
-  { url: "https://api.openai.com/v1/chat/completions", model: "gpt-4o", headers: { Authorization: "Bearer ..." } },
-  new FetchTransport(),
+  {
+    engine,
+    formatter: new OpenAIFormatter(),
+    config: { url: "https://api.openai.com/v1/chat/completions", model: "gpt-4o", headers: { Authorization: "Bearer ..." } },
+    transport: new FetchTransport(),
+  },
 );
 console.log(result.data);
 engine.close();
+```
+
+### Low-level access
+
+```typescript
+{% for component in components %}import * as {{ component.module_name }} from "{{ package_name }}/{{ component.module_name }}";
+{% endfor %}
+// Access individual artifacts if needed
+const llmSchema  = {{ components.0.module_name }}.schema();
+const codec      = {{ components.0.module_name }}.codec();
+const original   = {{ components.0.module_name }}.original();
 ```
 
 ### Direct WASI Access
@@ -74,4 +73,3 @@ engine.close();
 |-----------|--------|--------|-------|
 {% for component in components %}| {{ component.component_name }} | `{{ component.module_name }}` | `schemas/{{ component.schema_path }}` | `schemas/{{ component.codec_path }}` |
 {% endfor %}
-

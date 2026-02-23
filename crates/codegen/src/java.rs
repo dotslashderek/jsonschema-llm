@@ -323,6 +323,21 @@ mod tests {
         let resources = output_dir.join("src/main/resources/schemas");
         assert!(resources.join("user-profile/schema.json").exists());
         assert!(resources.join("order-item/codec.json").exists());
+
+        // Verify generated component contains generate() convenience method
+        let user_profile_java = fs::read_to_string(java_src.join("UserProfile.java")).unwrap();
+        assert!(
+            user_profile_java.contains("public static RoundtripResult generate("),
+            "UserProfile.java should contain generate() method"
+        );
+        assert!(
+            user_profile_java.contains("LlmRoundtripEngine"),
+            "UserProfile.java should import LlmRoundtripEngine"
+        );
+        assert!(
+            user_profile_java.contains("generateWithPreconverted"),
+            "UserProfile.java should delegate to generateWithPreconverted"
+        );
     }
 
     #[test]

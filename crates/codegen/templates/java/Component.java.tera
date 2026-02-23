@@ -2,6 +2,12 @@ package {{ package_name }};
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jsonschema.llm.engine.LlmRoundtripEngine;
+import com.jsonschema.llm.engine.LlmTransport;
+import com.jsonschema.llm.engine.LlmTransportException;
+import com.jsonschema.llm.engine.ProviderConfig;
+import com.jsonschema.llm.engine.ProviderFormatter;
+import com.jsonschema.llm.engine.RoundtripResult;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,6 +55,38 @@ public class {{ class_name }} {
      */
     public static JsonNode original() throws IOException {
         return loadResource("schemas/{{ original_path }}");
+    }
+
+    /**
+     * Run a full LLM roundtrip for {{ component_name }} using pre-built schema artifacts.
+     *
+     * <p>Convenience wrapper around {@link LlmRoundtripEngine#generateWithPreconverted}
+     * that wires in the pre-built {@link #original()}, {@link #codec()}, and {@link #schema()}
+     * so callers don't need to manage the three-way split themselves.
+     *
+     * @param prompt     the natural language prompt for the LLM
+     * @param engine     an initialized {@link LlmRoundtripEngine}
+     * @param formatter  provider-specific request formatter
+     * @param config     provider endpoint/model configuration
+     * @param transport  consumer-provided HTTP transport
+     * @return the roundtrip result with rehydrated data and validation info
+     * @throws IOException           if any schema resource cannot be read
+     * @throws LlmTransportException if the transport fails
+     */
+    public static RoundtripResult generate(
+            String prompt,
+            LlmRoundtripEngine engine,
+            ProviderFormatter formatter,
+            ProviderConfig config,
+            LlmTransport transport) throws IOException, LlmTransportException {
+        return engine.generateWithPreconverted(
+                original().toString(),
+                codec().toString(),
+                schema(),
+                prompt,
+                formatter,
+                config,
+                transport);
     }
 
     private static JsonNode loadResource(String path) throws IOException {

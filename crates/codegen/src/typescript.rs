@@ -318,6 +318,22 @@ mod tests {
         )
         .unwrap();
         assert_eq!(pkg["name"], "@my-org/test-sdk");
+
+        // Verify generated component contains generate() convenience function
+        let user_profile_ts =
+            fs::read_to_string(output_dir.path().join("src/userProfile.ts")).unwrap();
+        assert!(
+            user_profile_ts.contains("export async function generate("),
+            "userProfile.ts should contain async generate() function"
+        );
+        assert!(
+            user_profile_ts.contains("generateWithPreconverted"),
+            "userProfile.ts should delegate to generateWithPreconverted"
+        );
+        assert!(
+            user_profile_ts.contains("LlmRoundtripEngine"),
+            "userProfile.ts should import LlmRoundtripEngine from @json-schema-llm/engine"
+        );
     }
 
     #[test]

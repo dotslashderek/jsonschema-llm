@@ -314,6 +314,21 @@ mod tests {
         let schemas = pkg_dir.join("schemas");
         assert!(schemas.join("user-profile/schema.json").exists());
         assert!(schemas.join("order-item/codec.json").exists());
+
+        // Verify generated component contains generate() convenience function
+        let user_profile_py = fs::read_to_string(pkg_dir.join("user_profile.py")).unwrap();
+        assert!(
+            user_profile_py.contains("def generate("),
+            "user_profile.py should contain generate() function"
+        );
+        assert!(
+            user_profile_py.contains("generate_with_preconverted"),
+            "user_profile.py should delegate to generate_with_preconverted"
+        );
+        assert!(
+            user_profile_py.contains("LlmRoundtripEngine"),
+            "user_profile.py should type-hint LlmRoundtripEngine"
+        );
     }
 
     #[test]
