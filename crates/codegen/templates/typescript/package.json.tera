@@ -8,6 +8,10 @@
   "engines": {
     "node": ">=20"
   },
+  "files": [
+    "dist/",
+    "schemas/"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "echo \"no tests yet\""

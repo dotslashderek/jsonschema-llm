@@ -19,28 +19,29 @@ let _codecCache: unknown | null = null;
 let _originalCache: unknown | null = null;
 
 /** Load the LLM-compatible schema for {{ component_name }}. */
-export function schema(): unknown {
+export function schema(): Record<string, unknown> {
   if (_schemaCache === null) {
     const raw = readFileSync(join(__dirname, "..", "schemas", "{{ schema_path }}"), "utf-8");
     _schemaCache = JSON.parse(raw);
   }
-  return _schemaCache;
+  return _schemaCache as Record<string, unknown>;
 }
 
 /** Load the codec (rehydration map) for {{ component_name }}. */
-export function codec(): unknown {
+export function codec(): Record<string, unknown> {
   if (_codecCache === null) {
     const raw = readFileSync(join(__dirname, "..", "schemas", "{{ codec_path }}"), "utf-8");
     _codecCache = JSON.parse(raw);
   }
-  return _codecCache;
+  return _codecCache as Record<string, unknown>;
 }
 
 /** Load the original (pre-conversion) sub-schema for {{ component_name }}. */
-export function original(): unknown {
+export function original(): Record<string, unknown> {
   if (_originalCache === null) {
     const raw = readFileSync(join(__dirname, "..", "schemas", "{{ original_path }}"), "utf-8");
     _originalCache = JSON.parse(raw);
   }
-  return _originalCache;
+  return _originalCache as Record<string, unknown>;
 }
+

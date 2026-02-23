@@ -46,7 +46,7 @@ import { LlmRoundtripEngine, OpenAIFormatter, FetchTransport } from "@json-schem
 
 const engine = new LlmRoundtripEngine();
 const result = await engine.generateWithPreconverted(
-  JSON.stringify({{ components.0.module_name }}.schema()),
+  JSON.stringify({{ components.0.module_name }}.original()),
   JSON.stringify({{ components.0.module_name }}.codec()),
   {{ components.0.module_name }}.schema(),
   "Your prompt here",
@@ -55,6 +55,17 @@ const result = await engine.generateWithPreconverted(
   new FetchTransport(),
 );
 console.log(result.data);
+engine.close();
+```
+
+### Direct WASI Access
+
+```typescript
+import { SchemaLlmEngine } from "@json-schema-llm/wasi";
+
+const engine = await SchemaLlmEngine.create(); // auto-discovers WASM
+const { schema, codec } = await engine.convert(mySchema, { target: "openai-strict" });
+engine.close();
 ```
 
 ## Components
@@ -63,3 +74,4 @@ console.log(result.data);
 |-----------|--------|--------|-------|
 {% for component in components %}| {{ component.component_name }} | `{{ component.module_name }}` | `schemas/{{ component.schema_path }}` | `schemas/{{ component.codec_path }}` |
 {% endfor %}
+
