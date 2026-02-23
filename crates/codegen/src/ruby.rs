@@ -227,8 +227,11 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
         "# frozen_string_literal: true\n\nrequire_relative \"{}/generator\"\n",
         component_to_file_name(sdk_name)
     );
-    fs::write(lib_dir.join(format!("{}.rb", component_to_file_name(sdk_name))), &barrel_content)
-        .context("Failed to write barrel require file")?;
+    fs::write(
+        lib_dir.join(format!("{}.rb", component_to_file_name(sdk_name))),
+        &barrel_content,
+    )
+    .context("Failed to write barrel require file")?;
 
     // Render gemspec
     let gemspec_ctx = GemspecContext {
@@ -314,13 +317,8 @@ fn copy_schema_file(
         );
     }
 
-    fs::copy(&source, &target).with_context(|| {
-        format!(
-            "Failed to copy {} → {}",
-            source.display(),
-            target.display()
-        )
-    })?;
+    fs::copy(&source, &target)
+        .with_context(|| format!("Failed to copy {} → {}", source.display(), target.display()))?;
 
     Ok(())
 }
@@ -364,7 +362,8 @@ mod tests {
         // Create component files
         let schema_json = serde_json::json!({"type": "object"});
         let codec_json = serde_json::json!({});
-        let original_json = serde_json::json!({"type": "object", "properties": {"name": {"type": "string"}}});
+        let original_json =
+            serde_json::json!({"type": "object", "properties": {"name": {"type": "string"}}});
 
         fs::write(
             schema_dir.join("$defs/Pet/schema.json"),
@@ -410,12 +409,19 @@ mod tests {
         assert!(output_dir.join("lib/my_petstore_sdk.rb").exists());
         assert!(output_dir.join("lib/my_petstore_sdk/generator.rb").exists());
         assert!(output_dir.join("lib/my_petstore_sdk/pet.rb").exists());
-        assert!(output_dir.join("lib/my_petstore_sdk/schemas/Pet/schema.json").exists());
-        assert!(output_dir.join("lib/my_petstore_sdk/schemas/Pet/codec.json").exists());
-        assert!(output_dir.join("lib/my_petstore_sdk/schemas/Pet/original.json").exists());
+        assert!(output_dir
+            .join("lib/my_petstore_sdk/schemas/Pet/schema.json")
+            .exists());
+        assert!(output_dir
+            .join("lib/my_petstore_sdk/schemas/Pet/codec.json")
+            .exists());
+        assert!(output_dir
+            .join("lib/my_petstore_sdk/schemas/Pet/original.json")
+            .exists());
 
         // Verify generated file content
-        let component_rb = fs::read_to_string(output_dir.join("lib/my_petstore_sdk/pet.rb")).unwrap();
+        let component_rb =
+            fs::read_to_string(output_dir.join("lib/my_petstore_sdk/pet.rb")).unwrap();
         assert!(component_rb.contains("module MyPetstoreSdk"));
         assert!(component_rb.contains("module Pet"));
         assert!(component_rb.contains("def self.schema"));
