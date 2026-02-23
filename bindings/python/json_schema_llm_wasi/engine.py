@@ -1,10 +1,10 @@
 """
-WASI-backed wrapper for json-schema-llm.
+WASI-backed SchemaLlmEngine for json-schema-llm.
 
 Uses wasmtime-py to load the universal WASI binary and exposes
-convert() and rehydrate() as Python functions.
+typed schema conversion and rehydration operations.
 
-Concurrency: Each Engine owns its own Store. NOT thread-safe.
+Concurrency: Each SchemaLlmEngine owns its own Store. NOT thread-safe.
 """
 
 import json
@@ -14,10 +14,18 @@ from typing import Any, Optional
 
 import wasmtime
 
+from json_schema_llm_wasi.types import (
+    ConvertAllComponentsResult,
+    ConvertOptions,
+    ConvertResult,
+    ExtractComponentResult,
+    ListComponentsResult,
+    RehydrateResult,
+)
 
 _DEFAULT_WASM_PATH = os.path.join(
     os.path.dirname(__file__),
-    "..", "..",
+    "..", "..", "..",
     "target", "wasm32-wasip1", "release", "json_schema_llm_wasi.wasm",
 )
 
@@ -37,15 +45,18 @@ class JslError(Exception):
         super().__init__(f"jsl error [{code}]{f' at {path}' if path else ''}: {message}")
 
 
-class Engine:
-    """
-    WASI-backed json-schema-llm engine.
+class SchemaLlmEngine:
+    """WASI-backed json-schema-llm engine with typed results.
 
     Usage::
 
-        with Engine() as eng:
-            result = eng.convert(schema)
-            rehydrated = eng.rehydrate(data, result["codec"], schema)
+        with SchemaLlmEngine() as engine:
+            result = engine.convert(schema, ConvertOptions(target="openai-strict"))
+            optimized = result.schema
+            codec = result.codec
+
+            rehydrated = engine.rehydrate(data, codec, schema)
+            restored = rehydrated.data
     """
 
     def __init__(self, wasm_path: Optional[str] = None):
@@ -62,50 +73,54 @@ class Engine:
     def __exit__(self, *_):
         pass  # No persistent resources to clean up
 
-    def convert(self, schema: Any, options: Optional[dict] = None) -> dict:
+    def convert(
+        self, schema: Any, options: Optional[ConvertOptions] = None
+    ) -> ConvertResult:
         """Convert a JSON Schema to LLM-compatible structured output schema."""
         schema_json = json.dumps(schema)
-        # Normalize snake_case keys to kebab-case for WASI binary compatibility
-        normalized = {}
-        if options:
-            for key, value in options.items():
-                normalized[key.replace("_", "-")] = value
-        opts_json = json.dumps(normalized)
-        return self._call_jsl("jsl_convert", schema_json, opts_json)
+        opts_dict = options.to_dict() if options else {}
+        opts_json = json.dumps(opts_dict)
+        raw = self._call_jsl("jsl_convert", schema_json, opts_json)
+        return ConvertResult.from_dict(raw)
 
-    def rehydrate(self, data: Any, codec: Any, schema: Any) -> dict:
+    def rehydrate(self, data: Any, codec: Any, schema: Any) -> RehydrateResult:
         """Rehydrate LLM output back to original schema shape."""
         data_json = json.dumps(data)
         codec_json = json.dumps(codec)
         schema_json = json.dumps(schema)
-        return self._call_jsl("jsl_rehydrate", data_json, codec_json, schema_json)
+        raw = self._call_jsl("jsl_rehydrate", data_json, codec_json, schema_json)
+        return RehydrateResult.from_dict(raw)
 
-    def list_components(self, schema: Any) -> dict:
+    def list_components(self, schema: Any) -> ListComponentsResult:
         """List all extractable component JSON Pointers in a schema."""
         schema_json = json.dumps(schema)
-        return self._call_jsl("jsl_list_components", schema_json)
+        raw = self._call_jsl("jsl_list_components", schema_json)
+        return ListComponentsResult.from_dict(raw)
 
     def extract_component(
         self, schema: Any, pointer: str, options: Optional[dict] = None
-    ) -> dict:
+    ) -> ExtractComponentResult:
         """Extract a single component from a schema by JSON Pointer."""
         schema_json = json.dumps(schema)
         opts_json = json.dumps(options or {})
-        return self._call_jsl("jsl_extract_component", schema_json, pointer, opts_json)
+        raw = self._call_jsl("jsl_extract_component", schema_json, pointer, opts_json)
+        return ExtractComponentResult.from_dict(raw)
 
     def convert_all_components(
         self,
         schema: Any,
-        convert_options: Optional[dict] = None,
+        convert_options: Optional[ConvertOptions] = None,
         extract_options: Optional[dict] = None,
-    ) -> dict:
+    ) -> ConvertAllComponentsResult:
         """Convert a schema and all its discoverable components in one call."""
         schema_json = json.dumps(schema)
-        conv_opts_json = json.dumps(convert_options or {})
+        conv_dict = convert_options.to_dict() if convert_options else {}
+        conv_opts_json = json.dumps(conv_dict)
         ext_opts_json = json.dumps(extract_options or {})
-        return self._call_jsl(
+        raw = self._call_jsl(
             "jsl_convert_all_components", schema_json, conv_opts_json, ext_opts_json
         )
+        return ConvertAllComponentsResult.from_dict(raw)
 
     def _call_jsl(self, func_name: str, *json_args: str) -> dict:
         """Execute a WASI export following the JslResult protocol."""

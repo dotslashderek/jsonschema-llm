@@ -18,4 +18,4 @@ dev = [
 ]
 
 [tool.setuptools]
-py-modules = ["json_schema_llm_wasi"]
+packages = ["json_schema_llm_wasi"]
