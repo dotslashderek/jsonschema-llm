@@ -131,7 +131,7 @@ public sealed record ExtractResult
 
     internal static ExtractResult FromJson(JsonElement root)
     {
-        var missingRefs = root.TryGetProperty("missingRefs", out var mr)
+        var missingRefs = root.TryGetProperty("missingRefs", out var mr) && mr.ValueKind == JsonValueKind.Array
             ? mr.EnumerateArray().Select(r => r.GetString()!).ToArray()
             : [];
 
@@ -159,6 +159,8 @@ public sealed record ConvertAllResult
         ApiVersion = root.GetProperty("apiVersion").GetString()!,
         Full = root.GetProperty("full").Clone(),
         Components = root.GetProperty("components").Clone(),
-        ComponentErrors = root.TryGetProperty("componentErrors", out var ce) ? ce.Clone() : null,
+        ComponentErrors = root.TryGetProperty("componentErrors", out var ce) && ce.ValueKind != JsonValueKind.Null
+            ? ce.Clone()
+            : null,
     };
 }
