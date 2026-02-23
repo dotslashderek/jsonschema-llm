@@ -306,7 +306,7 @@ jobs:
     needs: wasi
     strategy:
       matrix:
-        engine: [python, java]
+        engine: [python, java, ruby]
     steps:
       - uses: actions/checkout@v4
 
@@ -357,3 +357,23 @@ jobs:
         if: matrix.engine == 'java'
         run: mvn test
         working-directory: engine/java
+
+      # ── Ruby engine ──────────────────────────────────────────────
+      - name: Setup Ruby
+        if: matrix.engine == 'ruby'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: engine/ruby
+
+      - name: Distribute WASM to Engine Ruby
+        if: matrix.engine == 'ruby'
+        run: echo "WASM available at target path for runtime resolution"
+
+      - name: Run Ruby engine tests
+        if: matrix.engine == 'ruby'
+        run: bundle exec rake test
+        working-directory: engine/ruby
+        env:
+          JSON_SCHEMA_LLM_WASM_PATH: ${{ github.workspace }}/target/wasm32-wasip1/release/json_schema_llm_wasi.wasm
