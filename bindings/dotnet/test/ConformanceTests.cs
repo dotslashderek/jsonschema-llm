@@ -103,12 +103,12 @@ public class ConformanceTests : IDisposable
         {
             Assert.True(expected.GetProperty("is_error").GetBoolean());
 
-            var optsJson = input.TryGetProperty("options", out var opts)
+            var rawOptsJson = input.TryGetProperty("options", out var opts)
                 ? opts.GetRawText()
                 : "{}";
 
             var ex = Assert.Throws<JslException>(() =>
-                _engine.CallJsl("jsl_convert", schemaRaw.GetString()!, optsJson));
+                _engine.CallJsl("jsl_convert", schemaRaw.GetString()!, rawOptsJson));
 
             if (expected.TryGetProperty("error_has_keys", out var errorKeys))
             {

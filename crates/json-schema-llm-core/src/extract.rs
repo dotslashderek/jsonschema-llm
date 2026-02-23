@@ -644,14 +644,14 @@ impl<'a> DependencyGraph<'a> {
         pointer: &str,
         options: &ExtractOptions,
     ) -> Result<ExtractResult, ConvertError> {
-        // Phase 1: Resolve the target node (hard error if missing).
-        let (target, _) = self.nodes.get(pointer).ok_or_else(|| {
-            // Fall back to resolving from root in case it's not in our graph.
-            ConvertError::UnresolvableRef {
+        // Phase 1: Resolve the target node (hard error if missing from the graph).
+        let (target, _) = self
+            .nodes
+            .get(pointer)
+            .ok_or_else(|| ConvertError::UnresolvableRef {
                 path: pointer.to_string(),
                 reference: pointer.to_string(),
-            }
-        })?;
+            })?;
         let target = (*target).clone();
 
         // Phase 2: Compute transitive closure via DFS on the adjacency list.
