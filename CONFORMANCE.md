@@ -39,4 +39,17 @@ Not yet tested. Planned for future scope.
 
 ## Draft 7
 
-Not yet tested. Planned for future scope.
+| Metric                  | Value    |
+| ----------------------- | -------- |
+| Keyword files tested    | 36       |
+| Skipped                 | 1        |
+| Pass (compiled Ok)      | 36 files |
+| Graceful-err            | 0        |
+| Failed                  | 0        |
+| **Effective pass rate** | **100%** |
+
+### Skipped Files
+
+| File             | Reason                                 |
+| ---------------- | -------------------------------------- |
+| `refRemote.json` | Requires HTTP remote `$ref` resolution |

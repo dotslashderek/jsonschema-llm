@@ -163,3 +163,66 @@ suite_test!(
 );
 suite_test!(draft2020_12_unique_items, "uniqueItems.json");
 // SKIP: vocabulary.json — meta-schema vocabulary negotiation (not applicable)
+
+// ---------------------------------------------------------------------------
+// Draft 7 — one #[test] per keyword file
+// ---------------------------------------------------------------------------
+
+macro_rules! suite_test_draft7 {
+    ($name:ident, $file:literal) => {
+        #[test]
+        fn $name() {
+            run_test_file(
+                include_str!(concat!(
+                    "../../../vendor/JSON-Schema-Test-Suite/tests/draft7/",
+                    $file
+                )),
+                stringify!($name),
+            );
+        }
+    };
+}
+
+// -- Draft 7 keyword files (alphabetical) ----------------------------------
+// Skipped: refRemote.json
+
+suite_test_draft7!(draft7_additional_items, "additionalItems.json");
+suite_test_draft7!(draft7_additional_properties, "additionalProperties.json");
+suite_test_draft7!(draft7_all_of, "allOf.json");
+suite_test_draft7!(draft7_any_of, "anyOf.json");
+suite_test_draft7!(draft7_boolean_schema, "boolean_schema.json");
+suite_test_draft7!(draft7_const, "const.json");
+suite_test_draft7!(draft7_contains, "contains.json");
+suite_test_draft7!(draft7_default, "default.json");
+suite_test_draft7!(draft7_definitions, "definitions.json");
+suite_test_draft7!(draft7_dependencies, "dependencies.json");
+suite_test_draft7!(draft7_enum, "enum.json");
+suite_test_draft7!(draft7_exclusive_maximum, "exclusiveMaximum.json");
+suite_test_draft7!(draft7_exclusive_minimum, "exclusiveMinimum.json");
+suite_test_draft7!(draft7_format, "format.json");
+suite_test_draft7!(draft7_if_then_else, "if-then-else.json");
+suite_test_draft7!(
+    draft7_infinite_loop_detection,
+    "infinite-loop-detection.json"
+);
+suite_test_draft7!(draft7_items, "items.json");
+suite_test_draft7!(draft7_max_items, "maxItems.json");
+suite_test_draft7!(draft7_max_length, "maxLength.json");
+suite_test_draft7!(draft7_max_properties, "maxProperties.json");
+suite_test_draft7!(draft7_maximum, "maximum.json");
+suite_test_draft7!(draft7_min_items, "minItems.json");
+suite_test_draft7!(draft7_min_length, "minLength.json");
+suite_test_draft7!(draft7_min_properties, "minProperties.json");
+suite_test_draft7!(draft7_minimum, "minimum.json");
+suite_test_draft7!(draft7_multiple_of, "multipleOf.json");
+suite_test_draft7!(draft7_not, "not.json");
+suite_test_draft7!(draft7_one_of, "oneOf.json");
+suite_test_draft7!(draft7_pattern, "pattern.json");
+suite_test_draft7!(draft7_pattern_properties, "patternProperties.json");
+suite_test_draft7!(draft7_properties, "properties.json");
+suite_test_draft7!(draft7_property_names, "propertyNames.json");
+suite_test_draft7!(draft7_ref, "ref.json");
+// SKIP: refRemote.json — requires HTTP remote $ref resolution
+suite_test_draft7!(draft7_required, "required.json");
+suite_test_draft7!(draft7_type, "type.json");
+suite_test_draft7!(draft7_unique_items, "uniqueItems.json");
