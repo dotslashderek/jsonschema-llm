@@ -191,4 +191,9 @@ export class LlmRoundtripEngine {
       return [];
     }
   }
+
+  /** Release WASM module and free resources. */
+  close(): void {
+    this.wasi.close();
+  }
 }
