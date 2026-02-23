@@ -41,9 +41,7 @@ pub use codec::Codec;
 pub use codec_warning::Warning;
 pub use config::{ConvertOptions, Mode, PolymorphismStrategy, Target};
 pub use error::{ConvertError, ErrorCode, ProviderCompatError};
-pub use extract::{
-    extract_component, list_components, DependencyGraph, ExtractOptions, ExtractResult,
-};
+pub use extract::{extract_component, list_components, ExtractOptions, ExtractResult};
 pub use rehydrator::{coerce_types, RehydrateResult};
 pub use schema_utils::{build_path, escape_pointer_segment, split_path, unescape_pointer_segment};
 

@@ -553,7 +553,7 @@ fn rewrite_refs_aware(
 ///
 /// # Usage
 ///
-/// ```rust,no_run
+/// ```rust,ignore
 /// use json_schema_llm_core::{DependencyGraph, ExtractOptions};
 /// use serde_json::json;
 ///
@@ -567,15 +567,17 @@ fn rewrite_refs_aware(
 /// let result = graph.extract("#/$defs/A", &ExtractOptions::default()).unwrap();
 /// assert_eq!(result.dependency_count, 1);
 /// ```
-pub struct DependencyGraph<'a> {
-    /// Direct adjacency: each pointer → ordered list of pointers it directly `$ref`s.
-    /// Uses `Vec` (not `BTreeSet`) to preserve DFS discovery order for deterministic
-    /// `pointer_to_key` output.
-    edges: BTreeMap<String, Vec<String>>,
-    /// Borrowed node values + computed base URIs for each discovered pointer.
-    nodes: BTreeMap<String, (&'a Value, url::Url)>,
-    /// Per-pointer missing (unresolvable) refs discovered during build.
-    global_missing: BTreeMap<String, Vec<String>>,
+pub(crate) struct DependencyGraph<'a> {
+    /// Ordered original pointers, mapping Node ID (`usize`) -> pointer `String`.
+    pointers: Vec<String>,
+    /// Map from pointer `String` -> Node ID (`usize`).
+    pointer_to_id: BTreeMap<String, usize>,
+    /// Direct adjacency: each Node ID → ordered list of Node IDs it directly `$ref`s.
+    edges: Vec<Vec<usize>>,
+    /// Node ID -> Borrowed node values + computed base URIs.
+    nodes: Vec<Option<(&'a Value, url::Url)>>,
+    /// Node ID -> Per-pointer missing (unresolvable) refs discovered during build.
+    global_missing: BTreeMap<usize, Vec<String>>,
     /// Shared resolver engine (built once for the entire schema).
     resolver: crate::resolver::ResolverEngine,
 }
@@ -592,14 +594,16 @@ impl<'a> DependencyGraph<'a> {
         _options: &ExtractOptions,
     ) -> Result<DependencyGraph<'a>, ConvertError> {
         let resolver = crate::resolver::ResolverEngine::new(schema)?;
-        let pointers = list_components(schema);
+        let component_pointers = list_components(schema);
 
-        let mut edges: BTreeMap<String, Vec<String>> = BTreeMap::new();
-        let mut nodes: BTreeMap<String, (&'a Value, url::Url)> = BTreeMap::new();
-        let mut global_missing: BTreeMap<String, Vec<String>> = BTreeMap::new();
-        let mut globally_visited: HashSet<String> = HashSet::new();
+        let mut pointers: Vec<String> = Vec::new();
+        let mut pointer_to_id: BTreeMap<String, usize> = BTreeMap::new();
+        let mut edges: Vec<Vec<usize>> = Vec::new();
+        let mut nodes: Vec<Option<(&'a Value, url::Url)>> = Vec::new();
+        let mut global_missing: BTreeMap<usize, Vec<String>> = BTreeMap::new();
+        let mut globally_visited: HashSet<usize> = HashSet::new();
 
-        for pointer in &pointers {
+        for pointer in &component_pointers {
             // Resolve the component node itself.
             let target = match resolve_pointer(schema, pointer) {
                 Some(v) => v,
@@ -607,26 +611,32 @@ impl<'a> DependencyGraph<'a> {
             };
 
             let base_uri = resolver.parent_base_uri_for_pointer(schema, pointer);
-            nodes
-                .entry(pointer.clone())
-                .or_insert((target, base_uri.clone()));
 
-            // Run DFS to discover direct edges from this subtree.
-            if globally_visited.insert(pointer.clone()) {
-                let mut edge_ctx = EdgeBuildCtx {
-                    root_schema: schema,
-                    visited: &mut globally_visited,
-                    edges: &mut edges,
-                    nodes: &mut nodes,
-                    global_missing: &mut global_missing,
-                    resolver: &resolver,
-                    base_uri,
-                };
-                collect_direct_edges(target, pointer, pointer, &mut edge_ctx)?;
+            let mut edge_ctx = EdgeBuildCtx {
+                root_schema: schema,
+                visited: &mut globally_visited,
+                pointers: &mut pointers,
+                pointer_to_id: &mut pointer_to_id,
+                edges: &mut edges,
+                nodes: &mut nodes,
+                global_missing: &mut global_missing,
+                resolver: &resolver,
+                base_uri: base_uri.clone(),
+            };
+
+            let source_id = edge_ctx.get_or_create_id(pointer);
+            if edge_ctx.nodes[source_id].is_none() {
+                edge_ctx.nodes[source_id] = Some((target, base_uri));
+            }
+
+            if edge_ctx.visited.insert(source_id) {
+                collect_direct_edges(target, pointer, source_id, &mut edge_ctx)?;
             }
         }
 
         Ok(DependencyGraph {
+            pointers,
+            pointer_to_id,
             edges,
             nodes,
             global_missing,
@@ -644,27 +654,39 @@ impl<'a> DependencyGraph<'a> {
         pointer: &str,
         options: &ExtractOptions,
     ) -> Result<ExtractResult, ConvertError> {
+        // Find ID
+        let root_id = match self.pointer_to_id.get(pointer) {
+            Some(&id) => id,
+            None => {
+                return Err(ConvertError::UnresolvableRef {
+                    path: pointer.to_string(),
+                    reference: pointer.to_string(),
+                });
+            }
+        };
+
         // Phase 1: Resolve the target node (hard error if missing from the graph).
-        let (target, _) = self
-            .nodes
-            .get(pointer)
-            .ok_or_else(|| ConvertError::UnresolvableRef {
-                path: pointer.to_string(),
-                reference: pointer.to_string(),
-            })?;
+        let (target, _) =
+            self.nodes[root_id]
+                .as_ref()
+                .ok_or_else(|| ConvertError::UnresolvableRef {
+                    path: pointer.to_string(),
+                    reference: pointer.to_string(),
+                })?;
         let target = (*target).clone();
 
         // Phase 2: Compute transitive closure via DFS on the adjacency list.
         let max_depth = options.max_depth.unwrap_or(usize::MAX);
-        let mut closure: Vec<String> = Vec::new();
-        let mut visited: HashSet<String> = HashSet::new();
-        visited.insert(pointer.to_string());
-        self.closure_dfs(pointer, 0, max_depth, pointer, &mut visited, &mut closure)?;
+        let mut closure: Vec<usize> = Vec::new();
+        let mut visited: HashSet<usize> = HashSet::new();
+        visited.insert(root_id);
+        self.closure_dfs(root_id, 0, max_depth, pointer, &mut visited, &mut closure)?;
 
         // Phase 3: Build deps BTreeMap in DFS discovery order (matching extract_component).
         let mut deps: BTreeMap<String, (String, Value, url::Url)> = BTreeMap::new();
-        for dep_ptr in &closure {
-            if let Some((val, base)) = self.nodes.get(dep_ptr.as_str()) {
+        for &dep_id in &closure {
+            if let Some((val, base)) = &self.nodes[dep_id] {
+                let dep_ptr = &self.pointers[dep_id];
                 let key = pointer_to_key(dep_ptr, &deps);
                 deps.insert(dep_ptr.clone(), (key, (*val).clone(), base.clone()));
             }
@@ -675,12 +697,12 @@ impl<'a> DependencyGraph<'a> {
         // Collect missing refs for this component's reachable subgraph.
         let mut missing_refs: Vec<String> = Vec::new();
         // Add missing refs from the root pointer itself.
-        if let Some(root_missing) = self.global_missing.get(pointer) {
+        if let Some(root_missing) = self.global_missing.get(&root_id) {
             missing_refs.extend(root_missing.iter().cloned());
         }
         // Add missing refs from all transitive deps.
-        for dep_ptr in &closure {
-            if let Some(dep_missing) = self.global_missing.get(dep_ptr.as_str()) {
+        for &dep_id in &closure {
+            if let Some(dep_missing) = self.global_missing.get(&dep_id) {
                 missing_refs.extend(dep_missing.iter().cloned());
             }
         }
@@ -729,26 +751,31 @@ impl<'a> DependencyGraph<'a> {
     /// DFS over the adjacency list to compute the transitive closure for a root.
     fn closure_dfs(
         &self,
-        current: &str,
+        current_id: usize,
         depth: usize,
         max_depth: usize,
         root_path: &str,
-        visited: &mut HashSet<String>,
-        closure: &mut Vec<String>,
+        visited: &mut HashSet<usize>,
+        closure: &mut Vec<usize>,
     ) -> Result<(), ConvertError> {
-        if let Some(neighbors) = self.edges.get(current) {
-            for neighbor in neighbors {
-                if visited.insert(neighbor.clone()) {
-                    // Check depth: only $ref hops count.
-                    if depth + 1 > max_depth {
-                        return Err(ConvertError::RecursionDepthExceeded {
-                            path: root_path.to_string(),
-                            max_depth,
-                        });
-                    }
-                    closure.push(neighbor.clone());
-                    self.closure_dfs(neighbor, depth + 1, max_depth, root_path, visited, closure)?;
+        for &neighbor_id in &self.edges[current_id] {
+            if visited.insert(neighbor_id) {
+                // Check depth: only $ref hops count.
+                if depth + 1 > max_depth {
+                    return Err(ConvertError::RecursionDepthExceeded {
+                        path: root_path.to_string(),
+                        max_depth,
+                    });
                 }
+                closure.push(neighbor_id);
+                self.closure_dfs(
+                    neighbor_id,
+                    depth + 1,
+                    max_depth,
+                    root_path,
+                    visited,
+                    closure,
+                )?;
             }
         }
         Ok(())
@@ -762,23 +789,40 @@ impl<'a> DependencyGraph<'a> {
 /// Mutable context for the edge-building pass.
 struct EdgeBuildCtx<'a, 'b> {
     root_schema: &'a Value,
-    visited: &'b mut HashSet<String>,
-    edges: &'b mut BTreeMap<String, Vec<String>>,
-    nodes: &'b mut BTreeMap<String, (&'a Value, url::Url)>,
-    global_missing: &'b mut BTreeMap<String, Vec<String>>,
+    visited: &'b mut HashSet<usize>,
+    pointers: &'b mut Vec<String>,
+    pointer_to_id: &'b mut BTreeMap<String, usize>,
+    edges: &'b mut Vec<Vec<usize>>,
+    nodes: &'b mut Vec<Option<(&'a Value, url::Url)>>,
+    global_missing: &'b mut BTreeMap<usize, Vec<String>>,
     resolver: &'b crate::resolver::ResolverEngine,
     base_uri: url::Url,
 }
 
+impl<'a, 'b> EdgeBuildCtx<'a, 'b> {
+    fn get_or_create_id(&mut self, ptr: &str) -> usize {
+        if let Some(&id) = self.pointer_to_id.get(ptr) {
+            id
+        } else {
+            let id = self.pointers.len();
+            self.pointer_to_id.insert(ptr.to_string(), id);
+            self.pointers.push(ptr.to_string());
+            self.edges.push(Vec::new());
+            self.nodes.push(None);
+            id
+        }
+    }
+}
+
 /// DFS walker for building the global adjacency list.
 ///
-/// Similar to `collect_deps`, but records direct edges (`source_root → target`)
+/// Similar to `collect_deps`, but records direct edges (`source_id → target_id`)
 /// instead of accumulating a per-component deps map. Resolves each `$ref`,
 /// stores the resolved node in `nodes`, and adds the edge.
 fn collect_direct_edges<'a>(
     node: &'a Value,
     current_path: &str,
-    source_root: &str,
+    source_id: usize,
     ctx: &mut EdgeBuildCtx<'a, '_>,
 ) -> Result<(), ConvertError> {
     match node {
@@ -798,7 +842,7 @@ fn collect_direct_edges<'a>(
                     crate::resolver::ResolvedRef::Pointer(p) => p,
                     crate::resolver::ResolvedRef::Unresolvable(_) => {
                         ctx.global_missing
-                            .entry(source_root.to_string())
+                            .entry(source_id)
                             .or_default()
                             .push(ref_val.to_string());
                         ctx.base_uri = saved_base;
@@ -807,44 +851,40 @@ fn collect_direct_edges<'a>(
                 };
 
                 let ref_str = effective_ref.as_str();
+                let target_id = ctx.get_or_create_id(ref_str);
 
-                if !ctx.visited.contains(ref_str) {
+                if !ctx.visited.contains(&target_id) {
                     match resolve_pointer(ctx.root_schema, ref_str) {
                         None => {
                             ctx.global_missing
-                                .entry(source_root.to_string())
+                                .entry(source_id)
                                 .or_default()
                                 .push(ref_str.to_string());
                         }
                         Some(resolved) => {
-                            // Record the edge: source_root → ref_str
-                            ctx.edges
-                                .entry(source_root.to_string())
-                                .or_default()
-                                .push(ref_str.to_string());
+                            // Record the edge: source_id → target_id
+                            ctx.edges[source_id].push(target_id);
 
                             // Store the resolved node.
                             let target_base = ctx
                                 .resolver
                                 .parent_base_uri_for_pointer(ctx.root_schema, ref_str);
-                            ctx.nodes
-                                .entry(ref_str.to_string())
-                                .or_insert((resolved, target_base.clone()));
+
+                            if ctx.nodes[target_id].is_none() {
+                                ctx.nodes[target_id] = Some((resolved, target_base.clone()));
+                            }
 
                             // Mark visited and recurse into the resolved node.
-                            ctx.visited.insert(ref_str.to_string());
+                            ctx.visited.insert(target_id);
                             let saved_source_base = ctx.base_uri.clone();
                             ctx.base_uri = target_base;
-                            collect_direct_edges(resolved, ref_str, ref_str, ctx)?;
+                            collect_direct_edges(resolved, ref_str, target_id, ctx)?;
                             ctx.base_uri = saved_source_base;
                         }
                     }
                 } else {
                     // Already visited — just record the edge (for closure computation).
-                    ctx.edges
-                        .entry(source_root.to_string())
-                        .or_default()
-                        .push(ref_str.to_string());
+                    ctx.edges[source_id].push(target_id);
                 }
 
                 // Continue DFS into siblings (JSON Schema 2019-09+ allows schemas alongside $ref).
@@ -853,7 +893,7 @@ fn collect_direct_edges<'a>(
                         continue;
                     }
                     let child_path = format!("{}/{}", current_path, key);
-                    collect_direct_edges(val, &child_path, source_root, ctx)?;
+                    collect_direct_edges(val, &child_path, source_id, ctx)?;
                 }
                 ctx.base_uri = saved_base;
                 return Ok(());
@@ -862,14 +902,14 @@ fn collect_direct_edges<'a>(
             // No $ref — recurse into all values.
             for (key, val) in obj {
                 let child_path = format!("{}/{}", current_path, key);
-                collect_direct_edges(val, &child_path, source_root, ctx)?;
+                collect_direct_edges(val, &child_path, source_id, ctx)?;
             }
             ctx.base_uri = saved_base;
         }
         Value::Array(arr) => {
             for (i, val) in arr.iter().enumerate() {
                 let child_path = format!("{}/{}", current_path, i);
-                collect_direct_edges(val, &child_path, source_root, ctx)?;
+                collect_direct_edges(val, &child_path, source_id, ctx)?;
             }
         }
         _ => {}
