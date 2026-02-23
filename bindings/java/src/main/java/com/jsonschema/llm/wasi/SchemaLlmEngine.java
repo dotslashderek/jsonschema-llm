@@ -114,10 +114,10 @@ public class SchemaLlmEngine implements AutoCloseable {
      *
      * @param schema the JSON Schema (any Jackson-serializable object)
      * @return a typed {@link ConvertResult} with schema, codec, and metadata
-     * @throws JsonSchemaLlmWasi.JslException if the WASM module returns an error
-     * @throws IllegalStateException          if the engine has been closed
+     * @throws JslException          if the WASM module returns an error
+     * @throws IllegalStateException if the engine has been closed
      */
-    public ConvertResult convert(Object schema) throws JsonSchemaLlmWasi.JslException {
+    public ConvertResult convert(Object schema) throws JslException {
         return convert(schema, null);
     }
 
@@ -131,11 +131,11 @@ public class SchemaLlmEngine implements AutoCloseable {
      * @param options conversion options built via {@link ConvertOptions#builder()},
      *                or null for defaults
      * @return a typed {@link ConvertResult} with schema, codec, and metadata
-     * @throws JsonSchemaLlmWasi.JslException if the WASM module returns an error
-     * @throws IllegalStateException          if the engine has been closed
+     * @throws JslException          if the WASM module returns an error
+     * @throws IllegalStateException if the engine has been closed
      */
     public ConvertResult convert(Object schema, ConvertOptions options)
-            throws JsonSchemaLlmWasi.JslException {
+            throws JslException {
         ensureOpen();
         try {
             String schemaJson = MAPPER.writeValueAsString(schema);
@@ -146,7 +146,7 @@ public class SchemaLlmEngine implements AutoCloseable {
             com.fasterxml.jackson.databind.JsonNode raw = JslAbi.callExport(instance, "jsl_convert", schemaJson,
                     optsJson);
             return ConvertResult.fromJson(raw);
-        } catch (JsonSchemaLlmWasi.JslException e) {
+        } catch (JslException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("convert failed", e);
@@ -163,11 +163,11 @@ public class SchemaLlmEngine implements AutoCloseable {
      * @param codec  the codec sidecar from a prior conversion
      * @param schema the original JSON Schema
      * @return a typed {@link RehydrateResult} with data and warnings
-     * @throws JsonSchemaLlmWasi.JslException if the WASM module returns an error
-     * @throws IllegalStateException          if the engine has been closed
+     * @throws JslException          if the WASM module returns an error
+     * @throws IllegalStateException if the engine has been closed
      */
     public RehydrateResult rehydrate(Object data, Object codec, Object schema)
-            throws JsonSchemaLlmWasi.JslException {
+            throws JslException {
         ensureOpen();
         try {
             String dataJson = MAPPER.writeValueAsString(data);
@@ -179,7 +179,7 @@ public class SchemaLlmEngine implements AutoCloseable {
             com.fasterxml.jackson.databind.JsonNode raw = JslAbi.callExport(instance, "jsl_rehydrate", dataJson,
                     codecJson, schemaJson);
             return RehydrateResult.fromJson(raw);
-        } catch (JsonSchemaLlmWasi.JslException e) {
+        } catch (JslException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("rehydrate failed", e);
@@ -191,10 +191,10 @@ public class SchemaLlmEngine implements AutoCloseable {
      *
      * @param schema the JSON Schema
      * @return a JsonNode with apiVersion and components array
-     * @throws JsonSchemaLlmWasi.JslException if the WASM module returns an error
+     * @throws JslException if the WASM module returns an error
      */
     public com.fasterxml.jackson.databind.JsonNode listComponents(Object schema)
-            throws JsonSchemaLlmWasi.JslException {
+            throws JslException {
         ensureOpen();
         try {
             String schemaJson = MAPPER.writeValueAsString(schema);
@@ -202,7 +202,7 @@ public class SchemaLlmEngine implements AutoCloseable {
             Instance instance = cachedModule.instantiate();
             verifyAbiOnce(instance);
             return JslAbi.callExport(instance, "jsl_list_components", schemaJson);
-        } catch (JsonSchemaLlmWasi.JslException e) {
+        } catch (JslException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("listComponents failed", e);
@@ -217,10 +217,10 @@ public class SchemaLlmEngine implements AutoCloseable {
      * @param options extraction options as a JSON string, or null for defaults
      * @return a JsonNode with apiVersion, schema, pointer, dependencyCount,
      *         missingRefs
-     * @throws JsonSchemaLlmWasi.JslException if the WASM module returns an error
+     * @throws JslException if the WASM module returns an error
      */
     public com.fasterxml.jackson.databind.JsonNode extractComponent(Object schema, String pointer,
-            String options) throws JsonSchemaLlmWasi.JslException {
+            String options) throws JslException {
         ensureOpen();
         try {
             String schemaJson = MAPPER.writeValueAsString(schema);
@@ -229,7 +229,7 @@ public class SchemaLlmEngine implements AutoCloseable {
             Instance instance = cachedModule.instantiate();
             verifyAbiOnce(instance);
             return JslAbi.callExport(instance, "jsl_extract_component", schemaJson, pointer, optsJson);
-        } catch (JsonSchemaLlmWasi.JslException e) {
+        } catch (JslException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("extractComponent failed", e);
@@ -243,10 +243,10 @@ public class SchemaLlmEngine implements AutoCloseable {
      * @param convertOptions conversion options, or null for defaults
      * @param extractOptions extraction options as JSON string, or null for defaults
      * @return a JsonNode with apiVersion, full, components, componentErrors
-     * @throws JsonSchemaLlmWasi.JslException if the WASM module returns an error
+     * @throws JslException if the WASM module returns an error
      */
     public com.fasterxml.jackson.databind.JsonNode convertAllComponents(Object schema,
-            ConvertOptions convertOptions, String extractOptions) throws JsonSchemaLlmWasi.JslException {
+            ConvertOptions convertOptions, String extractOptions) throws JslException {
         ensureOpen();
         try {
             String schemaJson = MAPPER.writeValueAsString(schema);
@@ -257,7 +257,7 @@ public class SchemaLlmEngine implements AutoCloseable {
             verifyAbiOnce(instance);
             return JslAbi.callExport(instance, "jsl_convert_all_components", schemaJson, convOptsJson,
                     extOptsJson);
-        } catch (JsonSchemaLlmWasi.JslException e) {
+        } catch (JslException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("convertAllComponents failed", e);

@@ -49,7 +49,7 @@ class WasiTest {
 
     @Test
     void convertError() {
-        assertThrows(JsonSchemaLlmWasi.JslException.class, () -> engine.callJsl("jsl_convert", "NOT VALID JSON", "{}"));
+        assertThrows(JslException.class, () -> engine.callJsl("jsl_convert", "NOT VALID JSON", "{}"));
     }
 
     @Test
@@ -69,7 +69,7 @@ class WasiTest {
 
     @Test
     void rehydrateError() {
-        assertThrows(JsonSchemaLlmWasi.JslException.class, () -> engine.callJsl("jsl_rehydrate",
+        assertThrows(JslException.class, () -> engine.callJsl("jsl_rehydrate",
                 "{\"key\":\"value\"}", "NOT VALID JSON", "{\"type\":\"object\"}"));
     }
 

@@ -29,7 +29,7 @@ import java.util.List;
  * Concurrency: Builds a new Module/Instance per call. NOT thread-safe; use one
  * JsonSchemaLlmWasi per thread or synchronize externally.
  */
-public class JsonSchemaLlmWasi implements AutoCloseable {
+class JsonSchemaLlmWasi implements AutoCloseable {
 
     private static final int JSL_RESULT_SIZE = 12; // 3 × u32 (LE)
     private static final int STATUS_OK = 0;
@@ -278,25 +278,4 @@ public class JsonSchemaLlmWasi implements AutoCloseable {
         }
     }
 
-    public static class JslException extends Exception {
-        private final String code;
-        private final String path;
-
-        public JslException(String code, String message, String path) {
-            super(String.format("jsl error [%s]%s: %s",
-                    code,
-                    path != null && !path.isEmpty() ? " at " + path : "",
-                    message));
-            this.code = code;
-            this.path = path;
-        }
-
-        public String getCode() {
-            return code;
-        }
-
-        public String getPath() {
-            return path;
-        }
-    }
 }

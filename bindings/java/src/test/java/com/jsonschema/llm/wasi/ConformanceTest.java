@@ -94,8 +94,8 @@ class ConformanceTest {
 
             String optsJson = input.has("options") ? MAPPER.writeValueAsString(input.get("options")) : "{}";
 
-            JsonSchemaLlmWasi.JslException thrown = assertThrows(
-                    JsonSchemaLlmWasi.JslException.class,
+            JslException thrown = assertThrows(
+                    JslException.class,
                     () -> engine.callJsl("jsl_convert", input.get("schema_raw").asText(), optsJson));
 
             if (expected.has("error_has_keys")) {
@@ -212,8 +212,8 @@ class ConformanceTest {
         String schemaJson = MAPPER.writeValueAsString(input.get("schema"));
         String codecArg = input.has("codec_raw") ? input.get("codec_raw").asText() : "{}";
 
-        JsonSchemaLlmWasi.JslException thrown = assertThrows(
-                JsonSchemaLlmWasi.JslException.class,
+        JslException thrown = assertThrows(
+                JslException.class,
                 () -> engine.callJsl("jsl_rehydrate", dataJson, codecArg, schemaJson));
 
         if (expected.has("error_has_keys")) {

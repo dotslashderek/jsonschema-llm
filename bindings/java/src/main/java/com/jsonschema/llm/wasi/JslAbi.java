@@ -66,11 +66,11 @@ final class JslAbi {
      * @param funcName the export function name (e.g. "jsl_convert")
      * @param jsonArgs JSON string arguments to pass
      * @return the parsed JSON payload from the result
-     * @throws JsonSchemaLlmWasi.JslException if the WASM module returns an error
-     *                                        status
+     * @throws JslException if the WASM module returns an error
+     *                      status
      */
     static JsonNode callExport(Instance instance, String funcName, String... jsonArgs)
-            throws JsonSchemaLlmWasi.JslException {
+            throws JslException {
         Memory memory = instance.memory();
         ExportFunction jslAlloc = instance.export("jsl_alloc");
         ExportFunction jslFree = instance.export("jsl_free");
@@ -119,7 +119,7 @@ final class JslAbi {
             JsonNode payload = MAPPER.readTree(payloadStr);
 
             if (status == STATUS_ERROR) {
-                throw new JsonSchemaLlmWasi.JslException(
+                throw new JslException(
                         payload.path("code").asText("unknown"),
                         payload.path("message").asText("unknown error"),
                         payload.path("path").asText(""));
@@ -133,7 +133,7 @@ final class JslAbi {
             }
 
             return payload;
-        } catch (JsonSchemaLlmWasi.JslException e) {
+        } catch (JslException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("callExport failed: " + funcName, e);

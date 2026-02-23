@@ -238,7 +238,7 @@ class SchemaLlmEngineTest {
     JsonNode schema = MAPPER.readTree("{\"type\": \"object\"}");
     JsonNode data = MAPPER.readTree("{\"key\": \"value\"}");
     // Raw string "NOT VALID JSON" as codec — WASM will reject it
-    assertThrows(JsonSchemaLlmWasi.JslException.class,
+    assertThrows(JslException.class,
         () -> engine.rehydrate(data, "NOT_A_VALID_CODEC", schema));
   }
 
