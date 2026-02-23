@@ -41,7 +41,9 @@ pub use codec::Codec;
 pub use codec_warning::Warning;
 pub use config::{ConvertOptions, Mode, PolymorphismStrategy, Target};
 pub use error::{ConvertError, ErrorCode, ProviderCompatError};
-pub use extract::{extract_component, list_components, ExtractOptions, ExtractResult};
+pub use extract::{
+    extract_component, list_components, DependencyGraph, ExtractOptions, ExtractResult,
+};
 pub use rehydrator::{coerce_types, RehydrateResult};
 pub use schema_utils::{build_path, escape_pointer_segment, split_path, unescape_pointer_segment};
 
@@ -223,18 +225,16 @@ pub struct ConvertAllResult {
 ///
 /// This is a thin orchestration layer:
 /// 1. Always runs [`convert`] on the full `schema` → [`ConvertAllResult::full`]
-/// 2. Unless [`ConvertOptions::skip_components`] is `true`: calls
-///    [`list_components`] → for each pointer calls [`extract_component`] then
-///    [`convert`] on the extracted sub-schema
+/// 2. Unless [`ConvertOptions::skip_components`] is `true`: builds a
+///    [`DependencyGraph`] in a single `O(M)` pass, then extracts each component
+///    via `O(avg_deps)` sub-graph slicing and runs [`convert`] on it
 /// 3. Per-component errors are collected in [`ConvertAllResult::component_errors`]
 ///    and do not abort the batch
 ///
-/// # Performance Note
+/// # Performance
 ///
-/// Extraction is `O(N × Schema_Size)` — each call traverses the full schema.
-/// For very large OAS documents with hundreds of components, this may be slow.
-/// See [#190](<https://github.com/dotslashderek/json-schema-llm/issues/190>) for
-/// the tracked optimisation.
+/// Previous: `O(N × Schema_Size)` — each component triggered a full DFS.
+/// Current: `O(M + N × avg_deps)` via pre-computed [`DependencyGraph`].
 pub fn convert_all_components(
     schema: &Value,
     convert_options: &ConvertOptions,
@@ -252,13 +252,16 @@ pub fn convert_all_components(
         });
     }
 
-    // Step 3: Enumerate and process each component — best-effort.
+    // Step 3: Build global dependency graph (single O(M) pass).
+    let graph = extract::DependencyGraph::build(schema, extract_options)?;
+
+    // Step 4: Enumerate and process each component — best-effort.
     let pointers = list_components(schema);
     let mut components: Vec<(String, ConvertResult)> = Vec::with_capacity(pointers.len());
     let mut component_errors: Vec<(String, String)> = Vec::new();
 
     for pointer in pointers {
-        let extract_result = extract_component(schema, &pointer, extract_options);
+        let extract_result = graph.extract(&pointer, extract_options);
         match extract_result {
             Err(e) => {
                 component_errors.push((pointer, e.to_string()));

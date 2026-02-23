@@ -541,6 +541,343 @@ fn rewrite_refs_aware(
     Value::Object(rewritten)
 }
 
+// ---------------------------------------------------------------------------
+// DependencyGraph — batch-optimized extraction (#190)
+// ---------------------------------------------------------------------------
+
+/// Pre-computed dependency graph for batch component extraction.
+///
+/// Instead of running a full DFS per component (O(N × M)), this struct
+/// builds a global adjacency list in a single O(M) pass, then slices
+/// per-component sub-graphs via fast in-memory DFS (O(N × avg_deps)).
+///
+/// # Usage
+///
+/// ```rust,no_run
+/// use json_schema_llm_core::{DependencyGraph, ExtractOptions};
+/// use serde_json::json;
+///
+/// let schema = json!({
+///     "$defs": {
+///         "A": { "type": "object", "properties": { "b": { "$ref": "#/$defs/B" } } },
+///         "B": { "type": "integer" }
+///     }
+/// });
+/// let graph = DependencyGraph::build(&schema, &ExtractOptions::default()).unwrap();
+/// let result = graph.extract("#/$defs/A", &ExtractOptions::default()).unwrap();
+/// assert_eq!(result.dependency_count, 1);
+/// ```
+pub struct DependencyGraph<'a> {
+    /// Direct adjacency: each pointer → ordered list of pointers it directly `$ref`s.
+    /// Uses `Vec` (not `BTreeSet`) to preserve DFS discovery order for deterministic
+    /// `pointer_to_key` output.
+    edges: BTreeMap<String, Vec<String>>,
+    /// Borrowed node values + computed base URIs for each discovered pointer.
+    nodes: BTreeMap<String, (&'a Value, url::Url)>,
+    /// Per-pointer missing (unresolvable) refs discovered during build.
+    global_missing: BTreeMap<String, Vec<String>>,
+    /// Shared resolver engine (built once for the entire schema).
+    resolver: crate::resolver::ResolverEngine,
+}
+
+impl<'a> DependencyGraph<'a> {
+    /// Build the global dependency graph for all components in a single pass.
+    ///
+    /// Discovers all component pointers via [`list_components`], then runs a
+    /// DFS from each root to collect direct `$ref` edges and resolve node values.
+    /// Nodes already visited by a previous root's DFS are skipped (shared dep
+    /// short-circuit).
+    pub fn build(
+        schema: &'a Value,
+        _options: &ExtractOptions,
+    ) -> Result<DependencyGraph<'a>, ConvertError> {
+        let resolver = crate::resolver::ResolverEngine::new(schema)?;
+        let pointers = list_components(schema);
+
+        let mut edges: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        let mut nodes: BTreeMap<String, (&'a Value, url::Url)> = BTreeMap::new();
+        let mut global_missing: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        let mut globally_visited: HashSet<String> = HashSet::new();
+
+        for pointer in &pointers {
+            // Resolve the component node itself.
+            let target = match resolve_pointer(schema, pointer) {
+                Some(v) => v,
+                None => continue, // Skip unresolvable roots — will error at extract time.
+            };
+
+            let base_uri = resolver.parent_base_uri_for_pointer(schema, pointer);
+            nodes
+                .entry(pointer.clone())
+                .or_insert((target, base_uri.clone()));
+
+            // Run DFS to discover direct edges from this subtree.
+            if globally_visited.insert(pointer.clone()) {
+                let mut edge_ctx = EdgeBuildCtx {
+                    root_schema: schema,
+                    visited: &mut globally_visited,
+                    edges: &mut edges,
+                    nodes: &mut nodes,
+                    global_missing: &mut global_missing,
+                    resolver: &resolver,
+                    base_uri,
+                };
+                collect_direct_edges(target, pointer, pointer, &mut edge_ctx)?;
+            }
+        }
+
+        Ok(DependencyGraph {
+            edges,
+            nodes,
+            global_missing,
+            resolver,
+        })
+    }
+
+    /// Extract a self-contained sub-schema for a single component pointer.
+    ///
+    /// Computes the transitive closure by walking the pre-built adjacency list
+    /// (no schema traversal), then assembles the result using the same ref
+    /// rewriting logic as [`extract_component`].
+    pub fn extract(
+        &self,
+        pointer: &str,
+        options: &ExtractOptions,
+    ) -> Result<ExtractResult, ConvertError> {
+        // Phase 1: Resolve the target node (hard error if missing).
+        let (target, _) = self.nodes.get(pointer).ok_or_else(|| {
+            // Fall back to resolving from root in case it's not in our graph.
+            ConvertError::UnresolvableRef {
+                path: pointer.to_string(),
+                reference: pointer.to_string(),
+            }
+        })?;
+        let target = (*target).clone();
+
+        // Phase 2: Compute transitive closure via DFS on the adjacency list.
+        let max_depth = options.max_depth.unwrap_or(usize::MAX);
+        let mut closure: Vec<String> = Vec::new();
+        let mut visited: HashSet<String> = HashSet::new();
+        visited.insert(pointer.to_string());
+        self.closure_dfs(pointer, 0, max_depth, pointer, &mut visited, &mut closure)?;
+
+        // Phase 3: Build deps BTreeMap in DFS discovery order (matching extract_component).
+        let mut deps: BTreeMap<String, (String, Value, url::Url)> = BTreeMap::new();
+        for dep_ptr in &closure {
+            if let Some((val, base)) = self.nodes.get(dep_ptr.as_str()) {
+                let key = pointer_to_key(dep_ptr, &deps);
+                deps.insert(dep_ptr.clone(), (key, (*val).clone(), base.clone()));
+            }
+        }
+
+        let dependency_count = deps.len();
+
+        // Collect missing refs for this component's reachable subgraph.
+        let mut missing_refs: Vec<String> = Vec::new();
+        // Add missing refs from the root pointer itself.
+        if let Some(root_missing) = self.global_missing.get(pointer) {
+            missing_refs.extend(root_missing.iter().cloned());
+        }
+        // Add missing refs from all transitive deps.
+        for dep_ptr in &closure {
+            if let Some(dep_missing) = self.global_missing.get(dep_ptr.as_str()) {
+                missing_refs.extend(dep_missing.iter().cloned());
+            }
+        }
+
+        // Phase 4: Build rewrite map.
+        let rewrite_map: BTreeMap<String, String> = deps
+            .iter()
+            .map(|(ptr, (key, _, _))| {
+                let escaped_key = escape_pointer_segment(key);
+                (ptr.clone(), format!("#/$defs/{}", escaped_key))
+            })
+            .collect();
+
+        // Phase 5: Rewrite refs in the target node and all dep nodes.
+        let mut root = rewrite_refs_aware(
+            target,
+            self.resolver.base_uri(),
+            &self.resolver,
+            &rewrite_map,
+        );
+
+        // Phase 6: Assemble $defs.
+        if !deps.is_empty() {
+            let mut defs_map = serde_json::Map::new();
+            for (_ptr, (key, value, dep_base_uri)) in deps {
+                let rewritten =
+                    rewrite_refs_aware(value, &dep_base_uri, &self.resolver, &rewrite_map);
+                defs_map.insert(key, rewritten);
+            }
+            if let Value::Object(ref mut obj) = root {
+                obj.insert("$defs".to_string(), Value::Object(defs_map));
+            }
+        }
+
+        missing_refs.sort();
+        missing_refs.dedup();
+
+        Ok(ExtractResult {
+            schema: root,
+            pointer: pointer.to_string(),
+            dependency_count,
+            missing_refs,
+        })
+    }
+
+    /// DFS over the adjacency list to compute the transitive closure for a root.
+    fn closure_dfs(
+        &self,
+        current: &str,
+        depth: usize,
+        max_depth: usize,
+        root_path: &str,
+        visited: &mut HashSet<String>,
+        closure: &mut Vec<String>,
+    ) -> Result<(), ConvertError> {
+        if let Some(neighbors) = self.edges.get(current) {
+            for neighbor in neighbors {
+                if visited.insert(neighbor.clone()) {
+                    // Check depth: only $ref hops count.
+                    if depth + 1 > max_depth {
+                        return Err(ConvertError::RecursionDepthExceeded {
+                            path: root_path.to_string(),
+                            max_depth,
+                        });
+                    }
+                    closure.push(neighbor.clone());
+                    self.closure_dfs(neighbor, depth + 1, max_depth, root_path, visited, closure)?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Edge-building DFS (single-pass adjacency construction)
+// ---------------------------------------------------------------------------
+
+/// Mutable context for the edge-building pass.
+struct EdgeBuildCtx<'a, 'b> {
+    root_schema: &'a Value,
+    visited: &'b mut HashSet<String>,
+    edges: &'b mut BTreeMap<String, Vec<String>>,
+    nodes: &'b mut BTreeMap<String, (&'a Value, url::Url)>,
+    global_missing: &'b mut BTreeMap<String, Vec<String>>,
+    resolver: &'b crate::resolver::ResolverEngine,
+    base_uri: url::Url,
+}
+
+/// DFS walker for building the global adjacency list.
+///
+/// Similar to `collect_deps`, but records direct edges (`source_root → target`)
+/// instead of accumulating a per-component deps map. Resolves each `$ref`,
+/// stores the resolved node in `nodes`, and adds the edge.
+fn collect_direct_edges<'a>(
+    node: &'a Value,
+    current_path: &str,
+    source_root: &str,
+    ctx: &mut EdgeBuildCtx<'a, '_>,
+) -> Result<(), ConvertError> {
+    match node {
+        Value::Object(obj) => {
+            let saved_base = ctx.base_uri.clone();
+
+            // Track $id for base URI scoping.
+            if let Some(id_val) = obj.get("$id").and_then(Value::as_str) {
+                if let Ok(new_base) = ctx.base_uri.join(id_val) {
+                    ctx.base_uri = new_base;
+                }
+            }
+
+            if let Some(ref_val) = obj.get("$ref").and_then(Value::as_str) {
+                // Resolve via centralized ResolverEngine.
+                let effective_ref = match ctx.resolver.resolve(ref_val, &ctx.base_uri) {
+                    crate::resolver::ResolvedRef::Pointer(p) => p,
+                    crate::resolver::ResolvedRef::Unresolvable(_) => {
+                        ctx.global_missing
+                            .entry(source_root.to_string())
+                            .or_default()
+                            .push(ref_val.to_string());
+                        ctx.base_uri = saved_base;
+                        return Ok(());
+                    }
+                };
+
+                let ref_str = effective_ref.as_str();
+
+                if !ctx.visited.contains(ref_str) {
+                    match resolve_pointer(ctx.root_schema, ref_str) {
+                        None => {
+                            ctx.global_missing
+                                .entry(source_root.to_string())
+                                .or_default()
+                                .push(ref_str.to_string());
+                        }
+                        Some(resolved) => {
+                            // Record the edge: source_root → ref_str
+                            ctx.edges
+                                .entry(source_root.to_string())
+                                .or_default()
+                                .push(ref_str.to_string());
+
+                            // Store the resolved node.
+                            let target_base = ctx
+                                .resolver
+                                .parent_base_uri_for_pointer(ctx.root_schema, ref_str);
+                            ctx.nodes
+                                .entry(ref_str.to_string())
+                                .or_insert((resolved, target_base.clone()));
+
+                            // Mark visited and recurse into the resolved node.
+                            ctx.visited.insert(ref_str.to_string());
+                            let saved_source_base = ctx.base_uri.clone();
+                            ctx.base_uri = target_base;
+                            collect_direct_edges(resolved, ref_str, ref_str, ctx)?;
+                            ctx.base_uri = saved_source_base;
+                        }
+                    }
+                } else {
+                    // Already visited — just record the edge (for closure computation).
+                    ctx.edges
+                        .entry(source_root.to_string())
+                        .or_default()
+                        .push(ref_str.to_string());
+                }
+
+                // Continue DFS into siblings (JSON Schema 2019-09+ allows schemas alongside $ref).
+                for (key, val) in obj {
+                    if key == "$ref" {
+                        continue;
+                    }
+                    let child_path = format!("{}/{}", current_path, key);
+                    collect_direct_edges(val, &child_path, source_root, ctx)?;
+                }
+                ctx.base_uri = saved_base;
+                return Ok(());
+            }
+
+            // No $ref — recurse into all values.
+            for (key, val) in obj {
+                let child_path = format!("{}/{}", current_path, key);
+                collect_direct_edges(val, &child_path, source_root, ctx)?;
+            }
+            ctx.base_uri = saved_base;
+        }
+        Value::Array(arr) => {
+            for (i, val) in arr.iter().enumerate() {
+                let child_path = format!("{}/{}", current_path, i);
+                collect_direct_edges(val, &child_path, source_root, ctx)?;
+            }
+        }
+        _ => {}
+    }
+
+    Ok(())
+}
+
 // ===========================================================================
 // Tests (TDD — written before implementation)
 // ===========================================================================
@@ -1241,5 +1578,136 @@ mod tests {
         let result = extract_component(&schema, "#/$defs/consumer", &opts())
             .expect("extract_component should resolve $id-scoped $anchor refs");
         assert_eq!(result.dependency_count, 1);
+    }
+
+    // -----------------------------------------------------------------------
+    // DependencyGraph — TDD acceptance tests (#190)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_dep_graph_build_basic() {
+        let schema = json!({
+            "$defs": {
+                "A": { "type": "object", "properties": { "b": { "$ref": "#/$defs/B" } } },
+                "B": { "type": "integer" },
+                "C": { "type": "string" }
+            }
+        });
+        let graph = DependencyGraph::build(&schema, &opts()).unwrap();
+        // A depends on B; B and C have no deps.
+        let a_result = graph.extract("#/$defs/A", &opts()).unwrap();
+        assert_eq!(a_result.dependency_count, 1);
+        assert!(a_result.schema["$defs"]["B"].is_object());
+
+        let b_result = graph.extract("#/$defs/B", &opts()).unwrap();
+        assert_eq!(b_result.dependency_count, 0);
+
+        let c_result = graph.extract("#/$defs/C", &opts()).unwrap();
+        assert_eq!(c_result.dependency_count, 0);
+    }
+
+    #[test]
+    fn test_dep_graph_extract_matches_extract_component() {
+        let schema = json!({
+            "$defs": {
+                "A": {
+                    "type": "object",
+                    "properties": {
+                        "b": { "$ref": "#/$defs/B" },
+                        "c": { "$ref": "#/$defs/C" }
+                    }
+                },
+                "B": { "type": "object", "properties": { "c": { "$ref": "#/$defs/C" } } },
+                "C": { "type": "string" }
+            }
+        });
+        let graph = DependencyGraph::build(&schema, &opts()).unwrap();
+        let pointers = list_components(&schema);
+
+        for pointer in &pointers {
+            let expected = extract_component(&schema, pointer, &opts()).unwrap();
+            let actual = graph.extract(pointer, &opts()).unwrap();
+
+            // Structural equality
+            assert_eq!(
+                actual.schema, expected.schema,
+                "schema mismatch for {pointer}"
+            );
+            assert_eq!(
+                actual.dependency_count, expected.dependency_count,
+                "dep count mismatch for {pointer}"
+            );
+            assert_eq!(
+                actual.missing_refs, expected.missing_refs,
+                "missing_refs mismatch for {pointer}"
+            );
+
+            // Serialized equality (catches key order drift)
+            let actual_json = serde_json::to_string(&actual.schema).unwrap();
+            let expected_json = serde_json::to_string(&expected.schema).unwrap();
+            assert_eq!(
+                actual_json, expected_json,
+                "serialized schema mismatch for {pointer}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_dep_graph_circular_refs() {
+        let schema = json!({
+            "$defs": {
+                "A": { "type": "object", "properties": { "b": { "$ref": "#/$defs/B" } } },
+                "B": { "type": "object", "properties": { "a": { "$ref": "#/$defs/A" } } }
+            }
+        });
+        // Must not panic or infinite loop
+        let graph = DependencyGraph::build(&schema, &opts()).unwrap();
+        let result = graph.extract("#/$defs/A", &opts()).unwrap();
+        assert!(result.dependency_count >= 1);
+        assert!(result.missing_refs.is_empty());
+    }
+
+    #[test]
+    fn test_dep_graph_oas_style() {
+        let schema = json!({
+            "components": {
+                "schemas": {
+                    "Pet": {
+                        "type": "object",
+                        "properties": {
+                            "tag": { "$ref": "#/components/schemas/Tag" }
+                        }
+                    },
+                    "Tag": { "type": "object", "properties": { "id": { "type": "integer" } } }
+                }
+            }
+        });
+        let graph = DependencyGraph::build(&schema, &opts()).unwrap();
+        let result = graph.extract("#/components/schemas/Pet", &opts()).unwrap();
+        assert_eq!(result.dependency_count, 1);
+        assert!(result.schema["$defs"]["Tag"].is_object());
+        assert_eq!(
+            result.schema["properties"]["tag"]["$ref"],
+            json!("#/$defs/Tag")
+        );
+    }
+
+    #[test]
+    fn test_dep_graph_shared_deps() {
+        // A→C and B→C: C should be correctly handled for both extractions
+        let schema = json!({
+            "$defs": {
+                "A": { "type": "object", "properties": { "c": { "$ref": "#/$defs/C" } } },
+                "B": { "type": "object", "properties": { "c": { "$ref": "#/$defs/C" } } },
+                "C": { "type": "string" }
+            }
+        });
+        let graph = DependencyGraph::build(&schema, &opts()).unwrap();
+        let a = graph.extract("#/$defs/A", &opts()).unwrap();
+        let b = graph.extract("#/$defs/B", &opts()).unwrap();
+        assert_eq!(a.dependency_count, 1);
+        assert_eq!(b.dependency_count, 1);
+        assert!(a.schema["$defs"]["C"].is_object());
+        assert!(b.schema["$defs"]["C"].is_object());
     }
 }
