@@ -8,8 +8,8 @@
 //!
 //! The upstream suite tests *validators* (`data` + `valid` fields).
 //! We test our *compiler* — only the `schema` field matters.
-//! A test group passes if `convert()` returns `Ok` (valid output)
-//! or a well-typed `Err(ConvertError)` (graceful rejection).
+//! A test group passes if `convert()` returns `Ok` (valid output).
+//! Well-typed `Err(ConvertError)` is allowed but tracked.
 //! Only panics constitute failure.
 //!
 //! ## Coverage
@@ -24,7 +24,9 @@ use serde::Deserialize;
 // Test Suite data model
 // ---------------------------------------------------------------------------
 
-/// A single test case within a group (unused fields kept for completeness).
+/// A single test case within a group.
+/// `data` and `valid` are kept for model completeness but unused —
+/// we test the compiler's structural output, not validator semantics.
 #[derive(Deserialize)]
 struct _TestCase {
     #[allow(dead_code)]
@@ -59,7 +61,8 @@ fn run_test_file(raw_json: &str, file_label: &str) {
     for (i, group) in groups.iter().enumerate() {
         let label = format!("{file_label}[{i}] {}", group.description);
 
-        // The pipeline must not panic. Both Ok and well-typed Err are acceptable.
+        // The pipeline must not panic. Well-typed Err(ConvertError) is allowed for
+        // schemas using features the pipeline explicitly doesn't support.
         match convert(&group.schema, &options) {
             Ok(result) => {
                 // Output schema must be a JSON object or boolean (Draft 2020-12 allows both).
@@ -69,21 +72,30 @@ fn run_test_file(raw_json: &str, file_label: &str) {
                     result.schema
                 );
                 // Codec must serialize cleanly.
-                let _codec_json = serde_json::to_string(&result.codec)
+                serde_json::to_string(&result.codec)
                     .unwrap_or_else(|e| panic!("[{label}] codec serialization failed: {e}"));
                 pass += 1;
             }
-            Err(_e) => {
-                // Graceful rejection — the pipeline recognized it can't handle this
-                // schema and returned a structured error. This is acceptable.
+            Err(e) => {
+                // Graceful rejection — pipeline returned a structured error.
+                // Should be rare for well-formed Draft 2020-12 schemas.
+                eprintln!("  [{label}] GRACEFUL ERR: {e:?}");
                 graceful_err += 1;
             }
         }
     }
 
     eprintln!(
-        "  {file_label}: {pass} pass, {graceful_err} graceful err, {} total",
+        "  {file_label}: {pass} ok | {graceful_err} graceful-err | {} total",
         groups.len()
+    );
+
+    // Regression guard: ALL schemas returning Err is a red flag even if errors are well-typed.
+    // At least one schema per keyword file should compile successfully.
+    assert!(
+        pass > 0,
+        "[{file_label}] ALL {graceful_err} test groups returned Err — pipeline regression? \
+         Expected at least one successful compilation per keyword file."
     );
 }
 
@@ -106,7 +118,7 @@ macro_rules! suite_test {
     };
 }
 
-// ── Draft 2020-12 keyword files (alphabetical) ────────────────────────────
+// -- Draft 2020-12 keyword files (alphabetical) ----------------------------
 // Skipped: dynamicRef.json, refRemote.json, vocabulary.json
 
 suite_test!(

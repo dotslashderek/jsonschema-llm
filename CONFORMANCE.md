@@ -6,15 +6,24 @@ Pipeline conformance against the [JSON Schema Test Suite](https://github.com/jso
 > suite survives the full multi-pass pipeline without panicking and produces valid output.
 > The `data`/`valid` fields in each test case are not applicable.
 
+### Terminology
+
+| Term             | Meaning                                                                       |
+| ---------------- | ----------------------------------------------------------------------------- |
+| **Pass**         | `convert()` returned `Ok(result)` with a valid JSON schema                    |
+| **Graceful-err** | `convert()` returned a well-typed `Err(ConvertError)` — intentional rejection |
+| **Fail**         | Panic or codec serialization error — always a bug                             |
+
 ## Draft 2020-12
 
-| Metric               | Value    |
-| -------------------- | -------- |
-| Keyword files tested | 43       |
-| Skipped              | 3        |
-| Passed               | 43       |
-| Failed               | 0        |
-| **Pass rate**        | **100%** |
+| Metric                  | Value    |
+| ----------------------- | -------- |
+| Keyword files tested    | 43       |
+| Skipped                 | 3        |
+| Pass (compiled Ok)      | 43 files |
+| Graceful-err            | 0        |
+| Failed                  | 0        |
+| **Effective pass rate** | **100%** |
 
 ### Skipped Files
 
