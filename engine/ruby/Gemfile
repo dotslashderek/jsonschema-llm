@@ -1,0 +1,10 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+gem "wasmtime", "~> 29.0"
+gem "minitest", "~> 5.0"
+gem "rake", "~> 13.0"
+
+# Optional: JSON Schema validation (graceful degradation if missing)
+gem "json_schemer", "~> 2.0"
