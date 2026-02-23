@@ -3,7 +3,7 @@ package com.jsonschema.llm.engine;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jsonschema.llm.wasi.ConvertResult;
-import com.jsonschema.llm.wasi.JsonSchemaLlmWasi;
+import com.jsonschema.llm.wasi.JslException;
 import com.jsonschema.llm.wasi.RehydrateResult;
 import com.jsonschema.llm.wasi.SchemaLlmEngine;
 import com.networknt.schema.JsonSchema;
@@ -90,7 +90,7 @@ public class LlmRoundtripEngine implements AutoCloseable {
         ConvertResult convertResult;
         try {
             convertResult = wasiEngine.convert(schema);
-        } catch (JsonSchemaLlmWasi.JslException e) {
+        } catch (JslException e) {
             throw new EngineException.SchemaConversionException(
                     "Schema conversion failed: " + e.getMessage(), e);
         }
@@ -179,7 +179,7 @@ public class LlmRoundtripEngine implements AutoCloseable {
         RehydrateResult rehydrateResult;
         try {
             rehydrateResult = wasiEngine.rehydrate(data, codec, schema);
-        } catch (JsonSchemaLlmWasi.JslException e) {
+        } catch (JslException e) {
             throw new EngineException.RehydrationException(
                     "Rehydration failed: " + e.getMessage(), e);
         }
