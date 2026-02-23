@@ -8,12 +8,7 @@
 require "json"
 
 # Optional JSON Schema validation
-HAS_JSON_SCHEMER = begin
-  require "json_schemer"
-  true
-rescue LoadError
-  false
-end
+
 
 module JsonSchemaLlmEngine
   # Orchestrates the full LLM roundtrip.
@@ -32,6 +27,13 @@ module JsonSchemaLlmEngine
   #   )
   #   result = engine.generate(schema_json, "Generate a user profile")
   class LlmRoundtripEngine
+    JSON_SCHEMER_AVAILABLE = begin
+      require "json_schemer"
+      true
+    rescue LoadError
+      false
+    end
+
     EXPECTED_ABI_VERSION = 1
     JSL_RESULT_SIZE = 12 # 3 × u32 (LE)
     STATUS_OK = 0
@@ -57,6 +59,19 @@ module JsonSchemaLlmEngine
       @module = Wasmtime::Module.new(@wasm_engine, wasm_bytes)
     end
 
+    # Creates an engine, yields it to the block, and ensures it is closed afterward.
+    #
+    # @param kwargs arguments passed to {#initialize}
+    # @yieldparam engine [LlmRoundtripEngine]
+    def self.open(**kwargs)
+      engine = new(**kwargs)
+      begin
+        yield engine
+      ensure
+        engine.close
+      end
+    end
+
     # Execute a full roundtrip: convert → format → call LLM → rehydrate → validate.
     #
     # @param schema_json [String] the original JSON Schema as a string
@@ -71,7 +86,7 @@ module JsonSchemaLlmEngine
       codec = convert_result["codec"] || {}
 
       generate_with_preconverted(
-        schema_json: schema_json,
+        original_schema_json: schema_json,
         codec_json: JSON.generate(codec),
         llm_schema: llm_schema,
         prompt: prompt
@@ -82,12 +97,12 @@ module JsonSchemaLlmEngine
 
     # Execute a roundtrip with a pre-converted schema (skips the convert step).
     #
-    # @param schema_json [String] the original JSON Schema as a string
+    # @param original_schema_json [String] the original JSON Schema as a string
     # @param codec_json [String] the codec (rehydration map) as a string
     # @param llm_schema [Hash] the LLM-compatible schema (already converted)
     # @param prompt [String] the natural language prompt for the LLM
     # @return [RoundtripResult]
-    def generate_with_preconverted(schema_json:, codec_json:, llm_schema:, prompt:)
+    def generate_with_preconverted(original_schema_json:, codec_json:, llm_schema:, prompt:)
       # Step 2: Format the request for the provider
       request = @formatter.format(prompt, llm_schema, @config)
 
@@ -105,7 +120,7 @@ module JsonSchemaLlmEngine
 
       # Step 5: Rehydrate the output
       begin
-        rehydrate_result = call_wasi("jsl_rehydrate", content, codec_json, schema_json)
+        rehydrate_result = call_wasi("jsl_rehydrate", content, codec_json, original_schema_json)
       rescue JslWasiError => e
         raise RehydrationError, "Rehydration failed: #{e.message}"
       end
@@ -114,7 +129,7 @@ module JsonSchemaLlmEngine
       warnings = (rehydrate_result["warnings"] || []).map { |w| w.is_a?(String) ? w : w.to_s }
 
       # Step 6: Validate against original schema
-      validation_errors = validate(rehydrated_data, schema_json)
+      validation_errors = validate(rehydrated_data, original_schema_json)
 
       RoundtripResult.new(
         data: rehydrated_data,
@@ -149,7 +164,7 @@ module JsonSchemaLlmEngine
     end
 
     def validate(data, schema_json)
-      return [] unless HAS_JSON_SCHEMER
+      return [] unless JSON_SCHEMER_AVAILABLE
 
       begin
         schema = JSON.parse(schema_json)

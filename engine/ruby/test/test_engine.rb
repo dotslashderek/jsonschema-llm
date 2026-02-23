@@ -132,8 +132,12 @@ class TestLlmRoundtripEngineGenerateWithPreconverted < Minitest::Test
     schema = { "$schema" => "https://json-schema.org/draft/2020-12/schema", "type" => "object", "properties" => { "name" => { "type" => "string" } } }
 
     result = engine.generate_with_preconverted(
-      schema_json: JSON.generate(schema),
-      codec_json: "{}",
+      original_schema_json: JSON.generate(schema),
+      codec_json: JSON.generate({
+        "$schema" => "https://json-schema-llm.dev/codec/v1",
+        "transforms" => [],
+        "droppedConstraints" => []
+      }),
       llm_schema: schema,
       prompt: "Generate a person"
     )

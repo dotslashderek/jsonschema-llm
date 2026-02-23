@@ -13,5 +13,6 @@ Gem::Specification.new do |spec|
   spec.files = Dir["lib/**/*.rb", "lib/**/*.json", "README.md"]
   spec.require_paths = ["lib"]
 
+  # TODO: Replace with published gem or path dependency when shipping
   spec.add_dependency "json_schema_llm_engine"
 end

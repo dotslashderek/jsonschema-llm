@@ -8,6 +8,5 @@
 require_relative "json_schema_llm_engine/types"
 require_relative "json_schema_llm_engine/exceptions"
 require_relative "json_schema_llm_engine/transport"
-require_relative "json_schema_llm_engine/formatter"
 require_relative "json_schema_llm_engine/formatters/chat_completions"
 require_relative "json_schema_llm_engine/llm_roundtrip_engine"

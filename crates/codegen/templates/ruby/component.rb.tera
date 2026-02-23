@@ -12,6 +12,7 @@ module {{ generator_module }}
     ORIGINAL_PATH = File.join(__dir__, "schemas", "{{ original_path }}")
 
     # Load the LLM-compatible schema for {{ component_name }}.
+    # Note: Schemas are memoized at the module level.
     # @return [Hash] the parsed JSON schema
     def self.schema
       @schema ||= JSON.parse(File.read(SCHEMA_PATH))
@@ -36,7 +37,7 @@ module {{ generator_module }}
     # @return [JsonSchemaLlmEngine::RoundtripResult]
     def self.generate(prompt, engine)
       engine.generate_with_preconverted(
-        schema_json: JSON.generate(original),
+        original_schema_json: JSON.generate(original),
         codec_json: JSON.generate(codec),
         llm_schema: schema,
         prompt: prompt

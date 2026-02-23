@@ -22,26 +22,4 @@ module JsonSchemaLlmEngine
     end
   end
 
-  # Duck-type interface for consumer-provided HTTP transport.
-  #
-  # The engine formats the request; the consumer handles transport
-  # (HTTP client, thread model, APM, debugging).
-  #
-  # Implementations must respond to:
-  #   execute(request) → String
-  #
-  # @example
-  #   class MyTransport
-  #     def execute(request)
-  #       # Make HTTP call, return raw response body
-  #     end
-  #   end
-  module LlmTransport
-    # @param request [LlmRequest] the formatted LLM request
-    # @return [String] the raw response body string
-    # @raise [LlmTransportError] if the transport fails
-    def execute(request)
-      raise NotImplementedError
-    end
-  end
 end

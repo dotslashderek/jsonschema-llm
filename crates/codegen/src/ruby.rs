@@ -85,11 +85,6 @@ fn to_module_name(name: &str) -> String {
         .collect()
 }
 
-/// Convert a component name to a Ruby module name.
-fn component_to_module_name(name: &str) -> String {
-    to_module_name(name)
-}
-
 /// Convert a component name to a snake_case file name.
 fn component_to_file_name(name: &str) -> String {
     // Convert CamelCase or PascalCase to snake_case
@@ -149,7 +144,7 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
     let mut readme_components = Vec::new();
 
     for comp in &manifest.components {
-        let module_name = component_to_module_name(&comp.name);
+        let module_name = to_module_name(&comp.name);
         let file_name = component_to_file_name(&comp.name);
 
         gen_components.push(GeneratorComponent {

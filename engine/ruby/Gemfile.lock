@@ -1,0 +1,37 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    bigdecimal (4.0.1)
+    hana (1.3.7)
+    json_schemer (2.5.0)
+      bigdecimal
+      hana (~> 1.3)
+      regexp_parser (~> 2.0)
+      simpleidn (~> 0.2)
+    minitest (5.27.0)
+    rake (13.3.1)
+    regexp_parser (2.11.3)
+    simpleidn (0.2.3)
+    wasmtime (29.0.0-aarch64-linux)
+    wasmtime (29.0.0-aarch64-linux-musl)
+    wasmtime (29.0.0-arm64-darwin)
+    wasmtime (29.0.0-x86_64-darwin)
+    wasmtime (29.0.0-x86_64-linux)
+    wasmtime (29.0.0-x86_64-linux-musl)
+
+PLATFORMS
+  aarch64-linux
+  aarch64-linux-musl
+  arm64-darwin
+  x86_64-darwin
+  x86_64-linux
+  x86_64-linux-musl
+
+DEPENDENCIES
+  json_schemer (~> 2.0)
+  minitest (~> 5.0)
+  rake (~> 13.0)
+  wasmtime (~> 29.0)
+
+BUNDLED WITH
+   2.5.22
