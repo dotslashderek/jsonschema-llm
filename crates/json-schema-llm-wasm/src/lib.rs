@@ -280,6 +280,8 @@ export type ProviderCompatError =
   | { type: "depth_budget_exceeded"; actual_depth: number; max_depth: number; target: Target; hint: string }
   | { type: "mixed_enum_types"; path: string; types_found: string[]; target: Target; hint: string }
   | { type: "unconstrained_schema"; path: string; schema_kind: string; target: Target; hint: string }
+  | { type: "ref_keyword_stripped"; path: string; keyword: string; target: Target; hint: string }
+  | { type: "bare_required_stripped"; path: string; target: Target; hint: string }
   | { type: "pattern_properties_stripped"; path: string; target: Target; hint: string }
   | { type: "pattern_properties_stringified"; path: string; target: Target; hint: string };
 
