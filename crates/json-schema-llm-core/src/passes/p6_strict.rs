@@ -81,9 +81,14 @@ fn walk(
 // Helpers
 // ---------------------------------------------------------------------------
 
-/// Detect schemas that are implicitly object-like: they have `properties` or
-/// `required` but no explicit `type` field. OpenAI strict mode demands
+/// Detect schemas that are implicitly object-like: they have `properties`
+/// but no explicit `type` field. OpenAI strict mode demands
 /// `additionalProperties: false` on these too.
+///
+/// Schemas with only `required` (no `properties`) are NOT treated as implicit
+/// objects — these are validation constraints (e.g., OAS31 `anyOf` discriminator
+/// hints like `{"required": ["paths"]}`) whose semantic value would be lost if
+/// sealed as empty objects.
 ///
 /// This is intentionally narrower than `is_typed_object` (which gates on
 /// `type: "object"`) to avoid false positives in p3/p9 where the explicit
@@ -93,8 +98,9 @@ fn is_implicit_object(obj: &serde_json::Map<String, Value>) -> bool {
     if obj.contains_key("type") {
         return false;
     }
-    // Has properties or required → object-like
-    obj.contains_key("properties") || obj.contains_key("required")
+    // Must have `properties` — bare `required` alone is a validation constraint,
+    // not an object definition.
+    obj.contains_key("properties")
 }
 
 // ===========================================================================

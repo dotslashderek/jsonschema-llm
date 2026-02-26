@@ -621,13 +621,11 @@ impl CompatVisitor<'_> {
                         if let Some(obj) = schema.as_object_mut() {
                             obj.remove(*keyword);
                         }
-                    } else {
-                        if let Some(arr_mut) =
-                            schema.get_mut(*keyword).and_then(|v| v.as_array_mut())
-                        {
-                            for i in bare_indices.iter().rev() {
-                                arr_mut.remove(*i);
-                            }
+                    } else if let Some(arr_mut) =
+                        schema.get_mut(*keyword).and_then(|v| v.as_array_mut())
+                    {
+                        for i in bare_indices.iter().rev() {
+                            arr_mut.remove(*i);
                         }
                     }
 
@@ -805,7 +803,16 @@ fn is_bare_required_only(v: &Value) -> bool {
         let k = key.as_str();
         // Allow ONLY `required` and strictly non-constraining metadata.
         // Any other keyword (including unknown ones) disqualifies it from being "bare".
-        if !["required", "description", "title", "$comment", "$id", "$anchor"].contains(&k) {
+        if ![
+            "required",
+            "description",
+            "title",
+            "$comment",
+            "$id",
+            "$anchor",
+        ]
+        .contains(&k)
+        {
             return false;
         }
     }
