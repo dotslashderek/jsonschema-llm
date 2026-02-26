@@ -169,7 +169,7 @@ fn walk(
             || obj.contains_key("allOf")
             || obj.contains_key("prefixItems");
 
-        if !(is_primitive && !has_sub_structure) {
+        if !is_primitive || has_sub_structure {
             violations.push(StrictModeViolation {
                 path: path.to_string(),
                 rule_id: StrictModeRule::DepthExceeded,
