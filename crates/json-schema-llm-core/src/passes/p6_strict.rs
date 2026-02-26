@@ -56,7 +56,13 @@ fn walk(
     // If this is an object (explicit `type: object` or implicitly object-like
     // via `properties` / `required`), enforce strict mode.
     // Objects without `properties` get sealed with an empty properties map.
-    if is_typed_object(&result) || is_implicit_object(&result) {
+    let implicit = is_implicit_object(&result);
+    if is_typed_object(&result) || implicit {
+        // Implicit objects need an explicit `type: "object"` — OpenAI strict
+        // mode requires every schema node to declare its type.
+        if implicit {
+            result.insert("type".to_string(), json!("object"));
+        }
         if !result.contains_key("properties") {
             result.insert("properties".to_string(), json!({}));
         }

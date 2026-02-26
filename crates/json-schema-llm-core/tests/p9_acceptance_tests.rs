@@ -118,7 +118,9 @@ fn p9_root_string_emits_error_and_wraps() {
 
 #[test]
 fn p9_root_missing_type_emits_error() {
-    // No explicit `type` field — p9 wraps in object wrapper
+    // No explicit `type` field — p6 now adds `type: "object"` for implicit
+    // objects (schemas with `properties` or `required`). This means p9 no
+    // longer sees a missing type and does NOT wrap.
     let schema = json!({
         "properties": {
             "x": { "type": "string" }
@@ -126,7 +128,7 @@ fn p9_root_missing_type_emits_error() {
     });
     let result = convert_strict(&schema);
 
-    // Should emit RootTypeIncompatible since root has no type: object
+    // p6 injects type: "object" → p9 should NOT emit RootTypeIncompatible
     let root_errors: Vec<_> = result
         .provider_compat_errors
         .iter()
@@ -134,29 +136,26 @@ fn p9_root_missing_type_emits_error() {
         .collect();
     assert_eq!(
         root_errors.len(),
-        1,
-        "missing type should trigger exactly 1 RootTypeIncompatible"
+        0,
+        "p6 now injects type: object on implicit objects — no wrapping needed"
     );
 
-    // Final schema must be the wrapper object
+    // Root schema is the object itself (not wrapped)
     assert_eq!(
         result.schema.get("type").and_then(|v| v.as_str()),
         Some("object"),
-        "wrapper must have type: object"
+        "root must have type: object (injected by p6)"
     );
     assert_eq!(
         result.schema.get("additionalProperties"),
         Some(&json!(false)),
-        "wrapper should be sealed"
+        "root should be sealed"
     );
 
-    // Original schema lives inside properties.result
+    // Property 'x' is at the root, not nested in properties.result
     assert!(
-        result
-            .schema
-            .pointer("/properties/result/properties/x")
-            .is_some(),
-        "original property 'x' should be inside properties.result"
+        result.schema.pointer("/properties/x").is_some(),
+        "property 'x' should be at root level"
     );
 }
 
@@ -743,8 +742,7 @@ fn p9_deep_combinator_stack_safety() {
 #[test]
 fn p9_wrapped_inner_schema_has_strict_enforcement() {
     // Root with `properties` but NO `type: object`.
-    // After p9 wraps, the inner schema at properties.result must have
-    // additionalProperties: false and required: ["x"].
+    // p6 now injects `type: "object"` and seals it directly — no p9 wrapping.
     let schema = json!({
         "properties": {
             "x": { "type": "string" }
@@ -752,39 +750,35 @@ fn p9_wrapped_inner_schema_has_strict_enforcement() {
     });
     let result = convert_strict(&schema);
 
-    // Wrapper itself should be sealed
+    // Root is the object itself (not wrapped)
     assert_eq!(
         result.schema.get("additionalProperties"),
         Some(&json!(false)),
-        "wrapper must be sealed"
+        "root must be sealed"
     );
-
-    // Inner schema at properties.result must also be sealed
-    let inner = result
-        .schema
-        .pointer("/properties/result")
-        .expect("inner schema must exist at properties.result");
     assert_eq!(
-        inner.get("additionalProperties"),
-        Some(&json!(false)),
-        "inner schema must have additionalProperties: false"
+        result.schema.get("type").and_then(|v| v.as_str()),
+        Some("object"),
+        "root must have type: object (injected by p6)"
     );
 
     // All properties must be required
-    let required = inner
+    let required = result
+        .schema
         .get("required")
         .and_then(|v| v.as_array())
-        .expect("inner schema must have required array");
+        .expect("root must have required array");
     assert!(
         required.contains(&json!("x")),
-        "inner schema must require 'x', got: {required:?}"
+        "root must require 'x', got: {required:?}"
     );
 }
 
 #[test]
 fn p9_wrapped_inner_schema_optional_props_nullable() {
     // Root with required + optional props, no `type: object`.
-    // After wrapping, optional prop `o` should be wrapped in anyOf nullable.
+    // p6 now injects `type: "object"` and handles strict enforcement directly.
+    // Optional prop `o` should be wrapped in anyOf nullable at root level.
     let schema = json!({
         "properties": {
             "r": { "type": "string" },
@@ -794,29 +788,30 @@ fn p9_wrapped_inner_schema_optional_props_nullable() {
     });
     let result = convert_strict(&schema);
 
-    let inner = result
-        .schema
-        .pointer("/properties/result")
-        .expect("inner schema must exist at properties.result");
+    // Root is the object itself (not wrapped)
+    assert_eq!(
+        result.schema.get("type").and_then(|v| v.as_str()),
+        Some("object"),
+        "root must have type: object"
+    );
 
     // Both properties must be required (strict mode)
-    let required = inner
+    let required = result
+        .schema
         .get("required")
         .and_then(|v| v.as_array())
-        .expect("inner schema must have required array");
-    assert!(
-        required.contains(&json!("r")),
-        "inner schema must require 'r'"
-    );
+        .expect("root must have required array");
+    assert!(required.contains(&json!("r")), "root must require 'r'");
     assert!(
         required.contains(&json!("o")),
-        "inner schema must require 'o' (promoted to required with nullable)"
+        "root must require 'o' (promoted)"
     );
 
-    // 'o' must be wrapped in anyOf nullable since it was originally optional
-    let o_prop = inner
+    // Optional 'o' should be wrapped in anyOf nullable
+    let o_prop = result
+        .schema
         .pointer("/properties/o")
-        .expect("inner schema must have property 'o'");
+        .expect("root must have property 'o'");
     let any_of = o_prop
         .get("anyOf")
         .and_then(|v| v.as_array())
@@ -910,8 +905,9 @@ fn p9_wrapped_root_with_type_object_but_combinator() {
 
 #[test]
 fn p9_inner_schema_with_partial_strict_still_enforced() {
-    // Edge case: inner schema has additionalProperties: false (user-provided)
-    // but incomplete required — enforce_object_strict must still complete it.
+    // Edge case: schema has additionalProperties: false (user-provided)
+    // but incomplete required — p6 injects type: object and
+    // enforce_object_strict must still complete the required list.
     let schema = json!({
         "properties": {
             "a": { "type": "string" },
@@ -922,35 +918,28 @@ fn p9_inner_schema_with_partial_strict_still_enforced() {
     });
     let result = convert_strict(&schema);
 
-    // Must be wrapped (no type: object)
-    let inner = result
-        .schema
-        .pointer("/properties/result")
-        .and_then(|v| v.as_object())
-        .expect("inner schema must exist as object");
+    // Root is the object itself (p6 injects type: object, no wrapping)
+    let root = result.schema.as_object().expect("root must be object");
 
     // All properties must be required
-    let req: Vec<String> = inner
+    let req: Vec<String> = root
         .get("required")
         .and_then(|v| v.as_array())
         .unwrap()
         .iter()
         .filter_map(|v| v.as_str().map(String::from))
         .collect();
-    assert!(
-        req.contains(&"a".to_string()),
-        "inner schema must require 'a'"
-    );
+    assert!(req.contains(&"a".to_string()), "root must require 'a'");
     assert!(
         req.contains(&"b".to_string()),
-        "inner schema must require 'b' (promoted to required)"
+        "root must require 'b' (promoted to required)"
     );
 
     // "b" was optional, so must be nullable-wrapped
-    let b_prop = inner
+    let b_prop = root
         .get("properties")
         .and_then(|v| v.get("b"))
-        .expect("inner schema must have property 'b'");
+        .expect("root must have property 'b'");
     let any_of = b_prop
         .get("anyOf")
         .and_then(|v| v.as_array())
