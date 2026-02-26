@@ -87,6 +87,12 @@ pub enum ProviderCompatError {
         target: Target,
         hint: String,
     },
+    /// #246: bare-required `anyOf` branch stripped (redundant in strict mode)
+    BareRequiredStripped {
+        path: String,
+        target: Target,
+        hint: String,
+    },
 }
 
 impl fmt::Display for ProviderCompatError {
@@ -151,6 +157,15 @@ impl fmt::Display for ProviderCompatError {
                 target: _,
                 hint,
             } => write!(f, "'{}' stripped at '{}'. {}", keyword, path, hint),
+            ProviderCompatError::BareRequiredStripped {
+                path,
+                target: _,
+                hint,
+            } => write!(
+                f,
+                "bare-required anyOf branch stripped at '{}'. {}",
+                path, hint
+            ),
         }
     }
 }

@@ -581,6 +581,170 @@ impl CompatVisitor<'_> {
             }
         }
 
+        // ── #246 Strip bare-required anyOf/oneOf branches ──────────
+        // Bare-required branches like `{"required": ["paths"]}` in anyOf are
+        // validation-only constraints that can't be expressed in strict mode
+        // (they'd need type + additionalProperties which contradicts the bare
+        // required). Since p6 already makes ALL properties required, these
+        // branches are redundant. Strip them and unwrap if only 1 remains.
+        for keyword in &["anyOf", "oneOf"] {
+            if let Some(arr) = schema.get(*keyword).and_then(|v| v.as_array()) {
+                // Find which indices are bare-required-only
+                let bare_indices: Vec<usize> = arr
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, v)| is_bare_required_only(v))
+                    .map(|(i, _)| i)
+                    .collect();
+
+                if !bare_indices.is_empty() && bare_indices.len() < arr.len() {
+                    // Collect the required field names for diagnostics
+                    let stripped_fields: Vec<String> = bare_indices
+                        .iter()
+                        .filter_map(|i| {
+                            arr[*i]
+                                .get("required")
+                                .and_then(|r| r.as_array())
+                                .map(|reqs| {
+                                    reqs.iter()
+                                        .filter_map(|v| v.as_str())
+                                        .collect::<Vec<_>>()
+                                        .join(", ")
+                                })
+                        })
+                        .collect();
+
+                    // Remove bare-required branches (reverse order to preserve indices)
+                    if let Some(arr_mut) = schema.get_mut(*keyword).and_then(|v| v.as_array_mut()) {
+                        for i in bare_indices.iter().rev() {
+                            arr_mut.remove(*i);
+                        }
+                    }
+
+                    self.errors.push(ProviderCompatError::BareRequiredStripped {
+                        path: path.to_string(),
+                        target: self.target,
+                        hint: format!(
+                            "Stripped bare-required {} branches referencing [{}]. \
+                             These constraints are redundant in strict mode \
+                             (all properties are already required by p6).",
+                            keyword,
+                            stripped_fields.join("; "),
+                        ),
+                    });
+
+                    // If only 1 branch remains, unwrap the anyOf/oneOf
+                    if let Some(arr) = schema.get(*keyword).and_then(|v| v.as_array()) {
+                        if arr.len() == 1 {
+                            let sole = arr[0].clone();
+                            if let Some(obj) = schema.as_object_mut() {
+                                obj.remove(*keyword);
+                                // Merge the sole variant's keys into the parent
+                                if let Some(sole_obj) = sole.as_object() {
+                                    for (k, v) in sole_obj {
+                                        obj.insert(k.clone(), v.clone());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── #246 Strip bare-required anyOf/oneOf branches ──────────
+        // Bare-required branches like `{"required": ["paths"]}` in anyOf are
+        // validation-only constraints. In strict mode, p6 makes all properties
+        // required-but-nullable. To preserve the "at least one of" semantic for
+        // the LLM without violating strict mode, we strip these branches and
+        // append the rule to the schema's description.
+        for keyword in &["anyOf", "oneOf"] {
+            if let Some(arr) = schema.get(*keyword).and_then(|v| v.as_array()) {
+                let bare_indices: Vec<usize> = arr
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, v)| is_bare_required_only(v))
+                    .map(|(i, _)| i)
+                    .collect();
+
+                if !bare_indices.is_empty() {
+                    let mut stripped_fields: Vec<String> = bare_indices
+                        .iter()
+                        .filter_map(|i| {
+                            arr[*i]
+                                .get("required")
+                                .and_then(|r| r.as_array())
+                                .map(|reqs| {
+                                    reqs.iter()
+                                        .filter_map(|v| v.as_str())
+                                        .collect::<Vec<_>>()
+                                        .join(", ")
+                                })
+                        })
+                        .collect();
+
+                    stripped_fields.sort();
+                    stripped_fields.dedup();
+
+                    let all_bare = bare_indices.len() == arr.len();
+
+                    if all_bare {
+                        if let Some(obj) = schema.as_object_mut() {
+                            obj.remove(*keyword);
+                        }
+                    } else {
+                        if let Some(arr_mut) =
+                            schema.get_mut(*keyword).and_then(|v| v.as_array_mut())
+                        {
+                            for i in bare_indices.iter().rev() {
+                                arr_mut.remove(*i);
+                            }
+                        }
+
+                        // Unwrap if 1 remains
+                        if let Some(arr) = schema.get(*keyword).and_then(|v| v.as_array()) {
+                            if arr.len() == 1 {
+                                let sole = arr[0].clone();
+                                if let Some(obj) = schema.as_object_mut() {
+                                    obj.remove(*keyword);
+                                    if let Some(sole_obj) = sole.as_object() {
+                                        for (k, v) in sole_obj {
+                                            obj.insert(k.clone(), v.clone());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Now, inject the description into the schema so the LLM knows
+                    let hint_text = format!(
+                        "Note: While properties may be nullable, a valid output MUST include a non-null value for at least one of these properties: {}",
+                        stripped_fields.join(", ")
+                    );
+
+                    if let Some(obj) = schema.as_object_mut() {
+                        let new_desc = match obj.get("description").and_then(|d| d.as_str()) {
+                            Some(existing) => format!("{}\n\n{}", existing, hint_text),
+                            None => hint_text.clone(),
+                        };
+                        obj.insert("description".to_string(), json!(new_desc));
+                    }
+
+                    self.errors.push(ProviderCompatError::BareRequiredStripped {
+                        path: path.to_string(),
+                        target: self.target,
+                        hint: format!(
+                            "Stripped bare-required {} branches referencing [{}]. \
+                             Injected plain-text constraint into description.",
+                            keyword,
+                            stripped_fields.join(", ")
+                        ),
+                    });
+                }
+            }
+        }
+
         // ── Non-data-shape: array-of-schemas (combinators) ────────
         // anyOf, oneOf, allOf
         for keyword in &["anyOf", "oneOf", "allOf"] {
@@ -703,6 +867,56 @@ fn json_type_name(v: &Value) -> &'static str {
         Value::Array(_) => "array",
         Value::Object(_) => "object",
     }
+}
+
+/// Returns true if a schema value is a bare-required-only constraint:
+/// `{"required": ["field1", ...]}` with no other structural keywords.
+///
+/// These appear as `anyOf` discriminator branches in specs like OAS31
+/// (e.g. "must have at least one of: paths, components, webhooks").
+/// They can't be expressed in strict mode and are redundant after p6
+/// makes all properties required.
+fn is_bare_required_only(v: &Value) -> bool {
+    let obj = match v.as_object() {
+        Some(o) => o,
+        None => return false,
+    };
+
+    // Must have `required`
+    if !obj.contains_key("required") {
+        return false;
+    }
+
+    // Must NOT have structural/constraining keywords
+    const STRUCTURAL: &[&str] = &[
+        "type",
+        "properties",
+        "additionalProperties",
+        "items",
+        "enum",
+        "const",
+        "anyOf",
+        "oneOf",
+        "allOf",
+        "not",
+        "if",
+        "then",
+        "else",
+        "$ref",
+        "patternProperties",
+    ];
+
+    for key in obj.keys() {
+        let k = key.as_str();
+        if k == "required" || k == "description" || k == "title" || k == "$comment" {
+            continue; // allowed metadata
+        }
+        if STRUCTURAL.contains(&k) {
+            return false; // has structural keywords → not bare
+        }
+    }
+
+    true
 }
 
 /// Returns true if a schema object is unconstrained:

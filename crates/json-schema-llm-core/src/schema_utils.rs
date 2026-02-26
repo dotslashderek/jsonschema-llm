@@ -347,7 +347,22 @@ fn collect_constraint_hints(schema: &Value) -> String {
         hints.push("items must be unique".to_string());
     }
 
-    hints.join(". ")
+    // patternProperties
+    if let Some(pp) = obj.get("patternProperties").and_then(|v| v.as_object()) {
+        let patterns: Vec<String> = pp.keys().cloned().collect();
+        if !patterns.is_empty() {
+            hints.push(format!(
+                "includes properties matching pattern(s) [{}]",
+                patterns.join(", ")
+            ));
+        }
+    }
+
+    let mut joined = hints.join(". ");
+    if !joined.is_empty() {
+        joined.push('.');
+    }
+    joined
 }
 
 /// Recursively convert a schema into a compact structural description.
