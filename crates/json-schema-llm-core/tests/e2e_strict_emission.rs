@@ -202,43 +202,13 @@ fn test_strict_emission_real_world_full_schema_no_banned_keywords() {
     }
 }
 
-/// 3. Real-world schemas: per-component convert is CLEAN of core banned keywords.
-///
-/// Core banned keywords (if/then/else/not/unevaluated*/contains*/dependent*)
-/// should NEVER appear in component output. Hard zero tolerance.
-#[test]
-fn test_strict_emission_real_world_components_no_core_banned() {
-    let options = strict_options();
-    let extract_opts = ExtractOptions::default();
-
-    let real_fixtures = [
-        ("arazzo", "arazzo/source/arazzo-schema.json"),
-        ("asyncapi", "asyncapi/source/asyncapi-2.6-schema-local.json"),
-        ("oas31", "oas31/source/oas31-schema.json"),
-    ];
-
-    for (label, path) in &real_fixtures {
-        let schema = load_real_fixture(path);
-        let all = convert_all_components(&schema, &options, &extract_opts)
-            .unwrap_or_else(|e| panic!("{label} convert_all_components failed: {e}"));
-
-        for (pointer, comp_result) in &all.components {
-            assert_no_banned_keys(
-                &comp_result.schema,
-                &format!("{label}:{pointer}"),
-                BANNED_KEYWORDS,
-            );
-        }
-    }
-}
-
-/// 4. Real-world schemas: per-component output is fully clean.
+/// 3. Real-world schemas: per-component output is fully clean.
 ///
 /// All banned keywords — including `$ref` — must be absent from
 /// component output. The walker's `parent_key` awareness prevents
 /// false positives on user-defined property names like `$ref`.
 #[test]
-fn test_strict_emission_real_world_components_no_ref_leaks() {
+fn test_strict_emission_real_world_components_no_banned_keywords() {
     let options = strict_options();
     let extract_opts = ExtractOptions::default();
 
