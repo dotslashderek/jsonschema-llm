@@ -147,7 +147,7 @@ fn test_e2e_fixture_codec_entry_counts() {
         ("discriminator", 1),
         ("opaque", 6),
         ("allof", 3),
-        ("recursive", 5),
+        ("recursive", 6),
         ("kitchen_sink", 22),
     ];
 

@@ -26,14 +26,14 @@ use super::pass_utils::{enforce_object_strict, extract_types};
 
 /// OpenAI Strict Mode maximum nesting depth.
 ///
-/// OpenAI enforces a 10-level nesting limit for structured output schemas.
+/// OpenAI enforces a 5-level nesting limit for structured output schemas.
 /// Schemas exceeding this are rejected with:
-///   "N levels of nesting exceeds limit of 10"
+///   "N levels of nesting exceeds limit of 5"
 ///
 /// Our `semantic_depth` counter tracks data-shape edges (properties, items,
 /// additionalProperties, etc.) which maps 1:1 to OpenAI's nesting count.
 /// Combinators (anyOf, oneOf, allOf) do NOT increment semantic depth.
-const OPENAI_MAX_DEPTH: usize = 10;
+const OPENAI_MAX_DEPTH: usize = 5;
 
 /// Hard guard against infinite recursion in traversal.
 const HARD_RECURSION_LIMIT: usize = 100;
@@ -465,6 +465,33 @@ impl CompatVisitor<'_> {
                     // with relevant constraints from the parent.
                     // Bare object (no properties) and bare array (no items)
                     // would violate strict mode, so we opaque-stringify them.
+                    //
+                    // Type-specific keyword taxonomy (JSON Schema spec):
+                    const OBJECT_KEYWORDS: &[&str] = &[
+                        "properties",
+                        "required",
+                        "additionalProperties",
+                        "patternProperties",
+                        "minProperties",
+                        "maxProperties",
+                        "propertyNames",
+                        "dependentSchemas",
+                        "dependentRequired",
+                        "unevaluatedProperties",
+                    ];
+                    const ARRAY_KEYWORDS: &[&str] = &[
+                        "items",
+                        "prefixItems",
+                        "minItems",
+                        "maxItems",
+                        "uniqueItems",
+                        "contains",
+                        "minContains",
+                        "maxContains",
+                        "additionalItems",
+                        "unevaluatedItems",
+                    ];
+
                     let has_properties = obj
                         .get("properties")
                         .and_then(Value::as_object)
@@ -475,11 +502,10 @@ impl CompatVisitor<'_> {
                         .iter()
                         .map(|t| {
                             let mut branch = json!({"type": t});
-                            // For object branches, carry over properties-related keywords
+                            // For object branches, carry over all object-applicable keywords
                             if t == "object" {
                                 if has_properties {
-                                    for kw in &["properties", "required", "additionalProperties"]
-                                    {
+                                    for kw in OBJECT_KEYWORDS {
                                         if let Some(val) = obj.get(*kw) {
                                             branch[*kw] = val.clone();
                                         }
@@ -492,10 +518,10 @@ impl CompatVisitor<'_> {
                                     });
                                 }
                             }
-                            // For array branches, carry over items-related keywords
+                            // For array branches, carry over all array-applicable keywords
                             if t == "array" {
                                 if has_items {
-                                    for kw in &["items", "prefixItems", "minItems", "maxItems"] {
+                                    for kw in ARRAY_KEYWORDS {
                                         if let Some(val) = obj.get(*kw) {
                                             branch[*kw] = val.clone();
                                         }
@@ -512,16 +538,8 @@ impl CompatVisitor<'_> {
                         })
                         .collect();
 
-                    // Remove keywords that were moved into branches
-                    for kw in &[
-                        "properties",
-                        "required",
-                        "additionalProperties",
-                        "items",
-                        "prefixItems",
-                        "minItems",
-                        "maxItems",
-                    ] {
+                    // Remove type-specific keywords that were moved into branches
+                    for kw in OBJECT_KEYWORDS.iter().chain(ARRAY_KEYWORDS.iter()) {
                         obj.remove(*kw);
                     }
 
@@ -1110,9 +1128,9 @@ mod tests {
 
     #[test]
     fn deep_emits_error() {
-        // Build 12 levels deep — exceeds OPENAI_MAX_DEPTH (10)
+        // Build 7 levels deep — exceeds OPENAI_MAX_DEPTH (5)
         let mut inner = json!({"type": "string"});
-        for i in (0..12).rev() {
+        for i in (0..7).rev() {
             inner = json!({"type": "object", "properties": {format!("l{i}"): inner}});
         }
         let r = check_provider_compat(inner, &opts());
@@ -1140,21 +1158,21 @@ mod tests {
 
     #[test]
     fn deep_schema_truncated_at_limit() {
-        // Build 12 levels deep: root -> l0 -> ... -> l11(string)
-        // At OPENAI_MAX_DEPTH (10), the sub-tree should become opaque string
+        // Build 7 levels deep: root -> l0 -> ... -> l6(string)
+        // At OPENAI_MAX_DEPTH (5), the sub-tree should become opaque string
         let mut inner = json!({"type": "string"});
-        for i in (0..12).rev() {
+        for i in (0..7).rev() {
             inner = json!({"type": "object", "properties": {format!("l{i}"): inner}});
         }
         let r = check_provider_compat(inner, &opts());
 
-        // The sub-tree at depth >= 10 should be replaced with opaque string
+        // The sub-tree at depth >= 5 should be replaced with opaque string
         // Navigate to the deepening path and check for truncation
         let mut cursor = &r.pass.schema;
-        for i in 0..10 {
+        for i in 0..5 {
             cursor = &cursor["properties"][format!("l{i}")];
         }
-        // At depth 10, the schema should be an opaque string placeholder
+        // At depth 5, the schema should be an opaque string placeholder
         assert_eq!(
             cursor.get("type").and_then(|v| v.as_str()),
             Some("string"),
@@ -1168,9 +1186,9 @@ mod tests {
 
     #[test]
     fn depth_truncation_preserves_shallow_branches() {
-        // One branch 12 deep (exceeds limit), one branch 2 deep (under limit)
+        // One branch 7 deep (exceeds limit), one branch 2 deep (under limit)
         let mut deep = json!({"type": "string"});
-        for i in (0..11).rev() {
+        for i in (0..6).rev() {
             deep = json!({"type": "object", "properties": {format!("d{i}"): deep}});
         }
         let schema = json!({
@@ -1207,10 +1225,10 @@ mod tests {
 
     #[test]
     fn depth_truncation_emits_per_path_errors() {
-        // Build two parallel deep branches (12 levels each, exceeds limit of 10)
+        // Build two parallel deep branches (7 levels each, exceeds limit of 5)
         let mut deep_a = json!({"type": "string"});
         let mut deep_b = json!({"type": "integer"});
-        for i in (0..11).rev() {
+        for i in (0..6).rev() {
             deep_a = json!({"type": "object", "properties": {format!("a{i}"): deep_a}});
             deep_b = json!({"type": "object", "properties": {format!("b{i}"): deep_b}});
         }

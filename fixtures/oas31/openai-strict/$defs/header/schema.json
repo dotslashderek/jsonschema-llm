@@ -19,42 +19,12 @@
                     "additionalProperties": false,
                     "properties": {
                       "example": {
-                        "anyOf": [
-                          {
-                            "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                            "type": "string"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
+                        "description": "MUST be a valid JSON value serialized as a string. Structure: any. Do NOT output plain text — the value must parse with JSON.parse().",
+                        "type": "string"
                       },
                       "examples": {
-                        "anyOf": [
-                          {
-                            "items": {
-                              "additionalProperties": false,
-                              "properties": {
-                                "key": {
-                                  "type": "string"
-                                },
-                                "value": {
-                                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                                  "type": "string"
-                                }
-                              },
-                              "required": [
-                                "key",
-                                "value"
-                              ],
-                              "type": "object"
-                            },
-                            "type": "array"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
+                        "description": "MUST be a valid JSON value serialized as a string. Structure: any. Do NOT output plain text — the value must parse with JSON.parse().",
+                        "type": "string"
                       }
                     },
                     "required": [

@@ -64,8 +64,9 @@ pub struct StrictModeViolation {
 // ---------------------------------------------------------------------------
 
 /// OpenAI strict-mode maximum semantic nesting depth.
+/// OpenAI's documented limit is 5 levels of nesting.
 /// Mirrors `OPENAI_MAX_DEPTH` in `p9_provider_compat.rs`.
-const MAX_SEMANTIC_DEPTH: usize = 10;
+const MAX_SEMANTIC_DEPTH: usize = 5;
 
 /// Banned keywords mapped to their rule IDs.
 const BANNED_KEYWORD_RULES: &[(&str, StrictModeRule)] = &[
@@ -152,18 +153,34 @@ fn walk(
     };
 
     // ── Depth check ──────────────────────────────────────────────
-    // Use >= to match p9_provider_compat.rs behavior (depth 10 IS the limit).
+    // Use >= to match p9_provider_compat.rs behavior (depth 5 IS the limit).
+    // Exempt primitive leaves — they don't contribute nesting.
     if semantic_depth >= MAX_SEMANTIC_DEPTH && path != "#" {
-        violations.push(StrictModeViolation {
-            path: path.to_string(),
-            rule_id: StrictModeRule::DepthExceeded,
-            message: format!(
-                "Semantic depth {} reaches limit {} at '{}'",
-                semantic_depth, MAX_SEMANTIC_DEPTH, path
-            ),
-        });
-        // Don't recurse further — everything below is also over the limit
-        return;
+        let schema_type = obj.get("type").and_then(|v| v.as_str()).unwrap_or("");
+        let is_primitive = matches!(
+            schema_type,
+            "string" | "integer" | "number" | "boolean" | "null"
+        );
+        let has_sub_structure = obj.contains_key("properties")
+            || obj.contains_key("items")
+            || obj.contains_key("additionalProperties")
+            || obj.contains_key("anyOf")
+            || obj.contains_key("oneOf")
+            || obj.contains_key("allOf")
+            || obj.contains_key("prefixItems");
+
+        if !(is_primitive && !has_sub_structure) {
+            violations.push(StrictModeViolation {
+                path: path.to_string(),
+                rule_id: StrictModeRule::DepthExceeded,
+                message: format!(
+                    "Semantic depth {} reaches limit {} at '{}'",
+                    semantic_depth, MAX_SEMANTIC_DEPTH, path
+                ),
+            });
+            // Don't recurse further — everything below is also over the limit
+            return;
+        }
     }
 
     // ── Banned keywords ──────────────────────────────────────────

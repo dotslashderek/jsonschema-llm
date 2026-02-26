@@ -77,7 +77,7 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/content/items/properties/value/properties/examples/anyOf/0/items/properties/value"
+      "path": "#/properties/content/items/properties/value/properties/examples/anyOf/0/items"
     }
   ],
   "droppedConstraints": [

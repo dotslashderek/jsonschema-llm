@@ -111,7 +111,7 @@
     "extraData": {
       "anyOf": [
         {
-          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text \u2014 the value must parse with JSON.parse().",
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
           "type": "string"
         },
         {
@@ -177,67 +177,8 @@
                         "anyOf": [
                           {
                             "items": {
-                              "additionalProperties": false,
-                              "properties": {
-                                "children": {
-                                  "anyOf": [
-                                    {
-                                      "items": {
-                                        "additionalProperties": false,
-                                        "properties": {
-                                          "children": {
-                                            "anyOf": [
-                                              {
-                                                "items": {
-                                                  "additionalProperties": false,
-                                                  "properties": {
-                                                    "children": {
-                                                      "description": "MUST be a valid JSON value serialized as a string. Structure: any. Do NOT output plain text \u2014 the value must parse with JSON.parse().",
-                                                      "type": "string"
-                                                    },
-                                                    "name": {
-                                                      "type": "string"
-                                                    }
-                                                  },
-                                                  "required": [
-                                                    "children",
-                                                    "name"
-                                                  ],
-                                                  "type": "object"
-                                                },
-                                                "type": "array"
-                                              },
-                                              {
-                                                "type": "null"
-                                              }
-                                            ]
-                                          },
-                                          "name": {
-                                            "type": "string"
-                                          }
-                                        },
-                                        "required": [
-                                          "children",
-                                          "name"
-                                        ],
-                                        "type": "object"
-                                      },
-                                      "type": "array"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "name": {
-                                  "type": "string"
-                                }
-                              },
-                              "required": [
-                                "children",
-                                "name"
-                              ],
-                              "type": "object"
+                              "description": "MUST be a valid JSON value serialized as a string. Structure: {children: any, name: string}. Do NOT output plain text — the value must parse with JSON.parse().",
+                              "type": "string"
                             },
                             "type": "array"
                           },
@@ -281,7 +222,7 @@
     "preferences": {
       "anyOf": [
         {
-          "description": "Opaque preferences blob\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text \u2014 the value must parse with JSON.parse().)",
+          "description": "Opaque preferences blob\n\n(Note: This field MUST be a valid JSON object serialized as a string. Do NOT output plain text — the value must parse with JSON.parse().)",
           "type": "string"
         },
         {

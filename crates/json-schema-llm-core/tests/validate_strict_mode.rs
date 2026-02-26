@@ -275,9 +275,9 @@ fn test_banned_not() {
 
 #[test]
 fn test_depth_exceeded() {
-    // Build a schema with 12 levels of nesting (exceeds limit 10)
+    // Build a schema with 7 levels of nesting (exceeds limit 5)
     let mut schema = json!({ "type": "string" });
-    for _ in 0..12 {
+    for _ in 0..7 {
         schema = json!({
             "type": "object",
             "properties": { "nested": schema },
@@ -291,9 +291,14 @@ fn test_depth_exceeded() {
 
 #[test]
 fn test_depth_exactly_at_limit() {
-    // Build a schema at exactly depth 10 — should be flagged (>= 10)
-    let mut schema = json!({ "type": "string" });
-    for _ in 0..10 {
+    // Build a schema at exactly depth 5 — should be flagged (>= 5)
+    // Use an object leaf (not primitive) to trigger the depth check
+    let mut schema = json!({
+        "type": "object",
+        "properties": { "x": { "type": "string" } },
+        "additionalProperties": false
+    });
+    for _ in 0..5 {
         schema = json!({
             "type": "object",
             "properties": { "nested": schema },

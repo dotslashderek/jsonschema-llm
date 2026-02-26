@@ -71,10 +71,8 @@
                       "type": "string"
                     },
                     "value": {
-                      "items": {
-                        "type": "string"
-                      },
-                      "type": "array"
+                      "description": "MUST be a valid JSON value serialized as a string. Structure: [string]. Do NOT output plain text — the value must parse with JSON.parse().",
+                      "type": "string"
                     }
                   },
                   "required": [
