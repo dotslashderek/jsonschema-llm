@@ -583,66 +583,6 @@ impl CompatVisitor<'_> {
 
         // ── #246 Strip bare-required anyOf/oneOf branches ──────────
         // Bare-required branches like `{"required": ["paths"]}` in anyOf are
-        // validation-only constraints that can't be expressed in strict mode
-        // (they'd need type + additionalProperties which contradicts the bare
-        // required). Since p6 already makes ALL properties required, these
-        // branches are redundant. Strip them and unwrap if only 1 remains.
-        for keyword in &["anyOf", "oneOf"] {
-            if let Some(arr) = schema.get(*keyword).and_then(|v| v.as_array()) {
-                // Find which indices are bare-required-only
-                let bare_indices: Vec<usize> = arr
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, v)| is_bare_required_only(v))
-                    .map(|(i, _)| i)
-                    .collect();
-
-                if !bare_indices.is_empty() && bare_indices.len() < arr.len() {
-                    // Collect the required field names for diagnostics
-                    let stripped_fields: Vec<String> = bare_indices
-                        .iter()
-                        .filter_map(|i| {
-                            arr[*i]
-                                .get("required")
-                                .and_then(|r| r.as_array())
-                                .map(|reqs| {
-                                    reqs.iter()
-                                        .filter_map(|v| v.as_str())
-                                        .collect::<Vec<_>>()
-                                        .join(", ")
-                                })
-                        })
-                        .collect();
-
-                    // Remove bare-required branches (reverse order to preserve indices)
-                    if let Some(arr_mut) = schema.get_mut(*keyword).and_then(|v| v.as_array_mut()) {
-                        for i in bare_indices.iter().rev() {
-                            arr_mut.remove(*i);
-                        }
-                    }
-
-                    self.errors.push(ProviderCompatError::BareRequiredStripped {
-                        path: path.to_string(),
-                        target: self.target,
-                        hint: format!(
-                            "Stripped bare-required {} branches referencing [{}]. \
-                             These constraints are redundant in strict mode \
-                             (all properties are already required by p6).",
-                            keyword,
-                            stripped_fields.join("; "),
-                        ),
-                    });
-
-                    // We no longer unwrap 1-element anyOf/oneOf arrays per review feedback:
-                    // Blindly merging a sole variant's keys into the parent can destructively
-                    // overwrite the parent's existing constraints (e.g. `required`, `properties`).
-                    // A 1-element union is valid JSON schema anyway.
-                }
-            }
-        }
-
-        // ── #246 Strip bare-required anyOf/oneOf branches ──────────
-        // Bare-required branches like `{"required": ["paths"]}` in anyOf are
         // validation-only constraints. In strict mode, p6 makes all properties
         // required-but-nullable. To preserve the "at least one of" semantic for
         // the LLM without violating strict mode, we strip these branches and
@@ -687,21 +627,6 @@ impl CompatVisitor<'_> {
                         {
                             for i in bare_indices.iter().rev() {
                                 arr_mut.remove(*i);
-                            }
-                        }
-
-                        // Unwrap if 1 remains
-                        if let Some(arr) = schema.get(*keyword).and_then(|v| v.as_array()) {
-                            if arr.len() == 1 {
-                                let sole = arr[0].clone();
-                                if let Some(obj) = schema.as_object_mut() {
-                                    obj.remove(*keyword);
-                                    if let Some(sole_obj) = sole.as_object() {
-                                        for (k, v) in sole_obj {
-                                            obj.insert(k.clone(), v.clone());
-                                        }
-                                    }
-                                }
                             }
                         }
                     }
