@@ -352,6 +352,74 @@ impl CompatVisitor<'_> {
             }
         }
 
+        // ── #246 patternProperties → strip or opaque-stringify ────
+        // OpenAI strict mode does not support `patternProperties`. Handle it
+        // based on the schema shape:
+        //   1. Typed object with properties → strip patternProperties (keep structure)
+        //   2. Typed sterile (no properties) or untyped nested → opaque-stringify
+        //   3. Root (any shape) → strip only (check_root_type already wrapped)
+        if let Some(obj) = schema.as_object() {
+            if obj.contains_key("patternProperties") {
+                let is_typed_obj = obj.get("type").and_then(Value::as_str) == Some("object");
+                let has_properties = obj
+                    .get("properties")
+                    .and_then(Value::as_object)
+                    .is_some_and(|p| !p.is_empty());
+
+                // Collect dropped pattern keys for the hint message.
+                let dropped_keys: Vec<String> = obj
+                    .get("patternProperties")
+                    .and_then(Value::as_object)
+                    .map(|pp| pp.keys().cloned().collect())
+                    .unwrap_or_default();
+                let hint_keys = dropped_keys.join(", ");
+
+                if is_typed_obj && has_properties {
+                    // Branch 1: typed with properties → strip patternProperties
+                    let obj = schema.as_object_mut().unwrap();
+                    obj.remove("patternProperties");
+                    self.errors
+                        .push(ProviderCompatError::PatternPropertiesStripped {
+                            path: path.to_string(),
+                            target: self.target,
+                            hint: format!(
+                                "Dropped patterns [{}] from typed object with explicit properties.",
+                                hint_keys
+                            ),
+                        });
+                } else if path != "#" {
+                    // Branch 2: untyped OR typed-but-sterile (nested) → opaque-stringify
+                    let desc = build_opaque_description(schema);
+                    self.errors.push(ProviderCompatError::PatternPropertiesStringified {
+                        path: path.to_string(),
+                        target: self.target,
+                        hint: format!(
+                            "Patterns [{}] opaque-stringified (no explicit properties to preserve).",
+                            hint_keys
+                        ),
+                    });
+                    *schema = json!({
+                        "type": "string",
+                        "description": desc
+                    });
+                    self.transforms.push(Transform::JsonStringParse {
+                        path: path.to_string(),
+                    });
+                    return; // Don't recurse into children (they're gone)
+                } else {
+                    // Branch 3: root → strip only (already wrapped by check_root_type)
+                    let obj = schema.as_object_mut().unwrap();
+                    obj.remove("patternProperties");
+                    self.errors
+                        .push(ProviderCompatError::PatternPropertiesStripped {
+                            path: path.to_string(),
+                            target: self.target,
+                            hint: format!("Dropped patterns [{}] from root schema.", hint_keys),
+                        });
+                }
+            }
+        }
+
         // ── Recurse into children ──────────────────────────────────
         // Data-shape keywords increment semantic_depth.
         // Non-data-shape keywords (combinators, conditionals, defs) do not.
@@ -1037,8 +1105,10 @@ mod tests {
 
     // ── #109 Keyword recursion ────────────────────────────────
     #[test]
-    fn visitor_recurses_pattern_properties() {
-        // patternProperties values should be visited for mixed enum detection
+    fn visitor_strips_pattern_properties_before_recursion() {
+        // #246: patternProperties is stripped/stringified before the visitor
+        // recurses into children. At root with type:object (no properties),
+        // patternProperties is stripped (Branch 3: root).
         let mut schema = json!({
             "type": "object",
             "patternProperties": {
@@ -1054,14 +1124,17 @@ mod tests {
             max_depth_observed: 0,
         };
         visitor.visit(&mut schema, "#", 0, 0);
-        let enum_errs: Vec<_> = errors
-            .iter()
-            .filter(|e| matches!(e, ProviderCompatError::MixedEnumTypes { .. }))
-            .collect();
-        assert_eq!(
-            enum_errs.len(),
-            1,
-            "mixed enum inside patternProperties should be detected"
+        // patternProperties should be stripped at root
+        assert!(
+            schema.get("patternProperties").is_none(),
+            "patternProperties should be stripped at root"
+        );
+        // Should emit a PatternPropertiesStripped error (not MixedEnumTypes)
+        assert!(
+            errors
+                .iter()
+                .any(|e| matches!(e, ProviderCompatError::PatternPropertiesStripped { .. })),
+            "should emit PatternPropertiesStripped error"
         );
     }
 
@@ -1540,6 +1613,180 @@ mod tests {
         assert!(
             inner.get("items").is_some(),
             "items should be preserved when there are no prefixItems"
+        );
+    }
+
+    // ── #246: patternProperties handling ──────────────────────────
+
+    #[test]
+    fn pattern_properties_typed_with_props_stripped() {
+        // Typed object with both properties AND patternProperties →
+        // strip patternProperties, keep structure intact.
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" }
+            },
+            "patternProperties": {
+                "^x-": { "type": "string" }
+            },
+            "additionalProperties": false,
+            "required": ["name"]
+        });
+        let r = check_provider_compat(schema, &opts());
+
+        // Root should still be an object with properties
+        assert_eq!(r.pass.schema["type"], "object");
+        assert!(r.pass.schema["properties"]["name"].is_object());
+        // patternProperties should be stripped
+        assert!(
+            r.pass.schema.get("patternProperties").is_none(),
+            "patternProperties should be stripped from typed object with properties"
+        );
+        // Should emit PatternPropertiesStripped error
+        assert!(
+            r.errors
+                .iter()
+                .any(|e| matches!(e, ProviderCompatError::PatternPropertiesStripped { .. })),
+            "should emit PatternPropertiesStripped error"
+        );
+    }
+
+    #[test]
+    fn pattern_properties_typed_sterile_stringified() {
+        // Typed object with patternProperties but NO properties →
+        // opaque-stringify (stripping would leave useless {}).
+        // Wrap in a parent so it's not root.
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "ext": {
+                    "type": "object",
+                    "patternProperties": {
+                        "^x-": {}
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "required": ["ext"]
+        });
+        let r = check_provider_compat(schema, &opts());
+
+        // Inner "ext" should be opaque-stringified
+        assert_eq!(
+            r.pass.schema["properties"]["ext"]["type"], "string",
+            "sterile typed object should be opaque-stringified"
+        );
+        // Should have a JsonStringParse transform for the ext path
+        assert!(
+            r.pass.transforms.iter().any(|t| matches!(
+                t,
+                Transform::JsonStringParse { path } if path.contains("ext")
+            )),
+            "should emit JsonStringParse transform for sterile object"
+        );
+    }
+
+    #[test]
+    fn pattern_properties_untyped_stringified() {
+        // Untyped schema with only patternProperties (nested, not root) →
+        // opaque-stringify.
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "value": {
+                    "patternProperties": {
+                        "^x-": { "type": "string" }
+                    }
+                }
+            },
+            "additionalProperties": false,
+            "required": ["value"]
+        });
+        let r = check_provider_compat(schema, &opts());
+
+        // Inner "value" should be opaque-stringified
+        assert_eq!(
+            r.pass.schema["properties"]["value"]["type"], "string",
+            "untyped patternProperties-only schema should be opaque-stringified"
+        );
+        assert!(
+            r.pass.transforms.iter().any(|t| matches!(
+                t,
+                Transform::JsonStringParse { path } if path.contains("value")
+            )),
+            "should emit JsonStringParse transform"
+        );
+    }
+
+    #[test]
+    fn pattern_properties_nested_in_anyof() {
+        // patternProperties inside anyOf variant → opaque-stringify.
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "field": {
+                    "anyOf": [
+                        {
+                            "patternProperties": {
+                                "^x-": {}
+                            },
+                            "description": "Extension object"
+                        },
+                        { "type": "null" }
+                    ]
+                }
+            },
+            "additionalProperties": false,
+            "required": ["field"]
+        });
+        let r = check_provider_compat(schema, &opts());
+
+        // The anyOf[0] (patternProperties variant) should be opaque-stringified
+        let anyof = r.pass.schema["properties"]["field"]["anyOf"]
+            .as_array()
+            .expect("anyOf should exist");
+        let pp_variant = &anyof[0];
+        assert_eq!(
+            pp_variant["type"], "string",
+            "patternProperties variant in anyOf should be opaque-stringified"
+        );
+        assert!(
+            pp_variant.get("patternProperties").is_none(),
+            "patternProperties should not remain after stringification"
+        );
+    }
+
+    #[test]
+    fn pattern_properties_root_stripped() {
+        // Root with patternProperties but no type → check_root_type wraps it,
+        // then visitor should strip patternProperties from the inner schema.
+        let schema = json!({
+            "patternProperties": {
+                "^x-": { "type": "string" }
+            },
+            "properties": {
+                "name": { "type": "string" }
+            }
+        });
+        let r = check_provider_compat(schema, &opts());
+
+        // Root should be wrapped (no explicit type)
+        assert_eq!(r.pass.schema["type"], "object");
+        // patternProperties should not survive anywhere in the output
+        fn has_pattern_props(v: &Value) -> bool {
+            match v {
+                Value::Object(obj) => {
+                    obj.contains_key("patternProperties") || obj.values().any(has_pattern_props)
+                }
+                Value::Array(arr) => arr.iter().any(has_pattern_props),
+                _ => false,
+            }
+        }
+        assert!(
+            !has_pattern_props(&r.pass.schema),
+            "patternProperties should not survive in the output schema"
         );
     }
 }

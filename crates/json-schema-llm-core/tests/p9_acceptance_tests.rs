@@ -590,10 +590,11 @@ fn p9_unconstrained_inside_oneof_detected() {
 }
 
 #[test]
-fn p9_mixed_enum_inside_pattern_properties_detected() {
-    // A mixed-type enum nested inside patternProperties must be found.
-    // (Note: if/then/else is tested at the unit level since p7 strips
-    // conditionals from OpenAI schemas before p9 runs.)
+fn p9_pattern_properties_stripped_before_enum_detection() {
+    // #246: patternProperties is stripped/stringified before the visitor recurses
+    // into children. At root with type:object (no explicit properties),
+    // patternProperties is stripped.
+    // The mixed enum inside patternProperties is never visited.
     let schema = json!({
         "type": "object",
         "patternProperties": {
@@ -606,14 +607,21 @@ fn p9_mixed_enum_inside_pattern_properties_detected() {
         }
     });
     let result = convert_strict(&schema);
-    let enum_errors: Vec<_> = result
+    // patternProperties should be stripped
+    let pp_errors: Vec<_> = result
         .provider_compat_errors
         .iter()
-        .filter(|e| matches!(e, ProviderCompatError::MixedEnumTypes { .. }))
+        .filter(|e| {
+            matches!(
+                e,
+                ProviderCompatError::PatternPropertiesStripped { .. }
+                    | ProviderCompatError::PatternPropertiesStringified { .. }
+            )
+        })
         .collect();
     assert!(
-        !enum_errors.is_empty(),
-        "mixed-type enum inside patternProperties should trigger MixedEnumTypes"
+        !pp_errors.is_empty(),
+        "patternProperties should trigger a PatternProperties error"
     );
 }
 

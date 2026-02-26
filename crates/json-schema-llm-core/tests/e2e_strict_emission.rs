@@ -39,22 +39,15 @@ const BANNED_KEYWORDS: &[&str] = &[
     // Dependency keywords
     "dependentSchemas",
     "dependentRequired",
+    // #246: patternProperties are stripped/opaque-stringified by p9
+    "patternProperties",
 ];
 
 // Keywords banned by OpenAI strict mode but EXPECTED as pipeline leaks.
 // These are tracked via pinned counts rather than hard assertions because:
 // - `$ref` / `$anchor` / `$dynamicRef` / `$dynamicAnchor`: the pipeline
 //   soft-fails on unresolvable external references.
-// - `patternProperties`: the pipeline preserves these in output because
-//   the codec records them for rehydration at runtime. Stripping them
-//   would require a separate pipeline pass (tracked as tech debt).
-const SOFT_FAIL_KEYWORDS: &[&str] = &[
-    "$ref",
-    "$anchor",
-    "$dynamicRef",
-    "$dynamicAnchor",
-    "patternProperties",
-];
+const SOFT_FAIL_KEYWORDS: &[&str] = &["$ref", "$anchor", "$dynamicRef", "$dynamicAnchor"];
 
 // ── Walker ────────────────────────────────────────────────────────────────
 

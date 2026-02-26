@@ -68,6 +68,18 @@ pub enum ProviderCompatError {
         target: Target,
         hint: String,
     },
+    /// #246: patternProperties stripped from typed object (lossy constraint drop)
+    PatternPropertiesStripped {
+        path: String,
+        target: Target,
+        hint: String,
+    },
+    /// #246: patternProperties-only schema opaque-stringified
+    PatternPropertiesStringified {
+        path: String,
+        target: Target,
+        hint: String,
+    },
 }
 
 impl fmt::Display for ProviderCompatError {
@@ -111,6 +123,20 @@ impl fmt::Display for ProviderCompatError {
                 f,
                 "{} schema at '{}' is unconstrained. {}",
                 schema_kind, path, hint
+            ),
+            ProviderCompatError::PatternPropertiesStripped {
+                path,
+                target: _,
+                hint,
+            } => write!(f, "patternProperties stripped at '{}'. {}", path, hint),
+            ProviderCompatError::PatternPropertiesStringified {
+                path,
+                target: _,
+                hint,
+            } => write!(
+                f,
+                "patternProperties schema opaque-stringified at '{}'. {}",
+                path, hint
             ),
         }
     }
