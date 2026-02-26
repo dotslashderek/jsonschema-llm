@@ -41,30 +41,45 @@ const BANNED_KEYWORDS: &[&str] = &[
     "dependentRequired",
     // #246: patternProperties are stripped/opaque-stringified by p9
     "patternProperties",
+    // #246: reference-mechanism keywords stripped by p9
+    "$anchor",
+    "$dynamicRef",
+    "$dynamicAnchor",
 ];
 
-// Keywords banned by OpenAI strict mode but EXPECTED as pipeline leaks.
-// These are tracked via pinned counts rather than hard assertions because:
-// - `$ref` / `$anchor` / `$dynamicRef` / `$dynamicAnchor`: the pipeline
-//   soft-fails on unresolvable external references.
-const SOFT_FAIL_KEYWORDS: &[&str] = &["$ref", "$anchor", "$dynamicRef", "$dynamicAnchor"];
+// Keywords banned by OpenAI strict mode but tracked as soft-fail leaks.
+// `$ref` is soft-fail because it can legitimately appear as a *property name*
+// (e.g., AsyncAPI's ReferenceObject has a field named `$ref`). The walker
+// skips `$ref` keys inside `properties` maps to avoid false positives.
+// Only true schema-level `$ref` directives are counted.
+const SOFT_FAIL_KEYWORDS: &[&str] = &["$ref"];
 
 // ── Walker ────────────────────────────────────────────────────────────────
 
 /// Recursively walk a JSON Value and panic if any banned key is found.
+///
+/// The `parent_key` parameter is used to suppress false positives: when the
+/// parent key is `"properties"`, child keys are property *names* (not schema
+/// keywords), so they are not checked against the banned list.
 fn assert_no_banned_keys(value: &Value, path: &str, banned: &[&str]) {
+    assert_no_banned_keys_inner(value, path, banned, "");
+}
+
+fn assert_no_banned_keys_inner(value: &Value, path: &str, banned: &[&str], parent_key: &str) {
     match value {
         Value::Object(map) => {
             for (key, child) in map {
-                if banned.contains(&key.as_str()) {
+                // Skip banned-key check when inside a `properties` map —
+                // child keys are user-defined property names, not schema keywords.
+                if parent_key != "properties" && banned.contains(&key.as_str()) {
                     panic!("Banned keyword '{}' found at path {}/{}", key, path, key);
                 }
-                assert_no_banned_keys(child, &format!("{}/{}", path, key), banned);
+                assert_no_banned_keys_inner(child, &format!("{}/{}", path, key), banned, key);
             }
         }
         Value::Array(arr) => {
             for (i, child) in arr.iter().enumerate() {
-                assert_no_banned_keys(child, &format!("{}[{}]", path, i), banned);
+                assert_no_banned_keys_inner(child, &format!("{}[{}]", path, i), banned, parent_key);
             }
         }
         _ => {}
@@ -73,27 +88,41 @@ fn assert_no_banned_keys(value: &Value, path: &str, banned: &[&str]) {
 
 /// Collect all banned key occurrences (non-panicking).
 /// Returns a Vec of (keyword, path) tuples.
+///
+/// Skips banned-key checks when inside a `properties` map (property names
+/// are user-defined, not schema keywords).
 fn collect_banned_keys(value: &Value, path: &str, banned: &[&str]) -> Vec<(String, String)> {
+    collect_banned_keys_inner(value, path, banned, "")
+}
+
+fn collect_banned_keys_inner(
+    value: &Value,
+    path: &str,
+    banned: &[&str],
+    parent_key: &str,
+) -> Vec<(String, String)> {
     let mut found = Vec::new();
     match value {
         Value::Object(map) => {
             for (key, child) in map {
-                if banned.contains(&key.as_str()) {
+                if parent_key != "properties" && banned.contains(&key.as_str()) {
                     found.push((key.clone(), format!("{}/{}", path, key)));
                 }
-                found.extend(collect_banned_keys(
+                found.extend(collect_banned_keys_inner(
                     child,
                     &format!("{}/{}", path, key),
                     banned,
+                    key,
                 ));
             }
         }
         Value::Array(arr) => {
             for (i, child) in arr.iter().enumerate() {
-                found.extend(collect_banned_keys(
+                found.extend(collect_banned_keys_inner(
                     child,
                     &format!("{}[{}]", path, i),
                     banned,
+                    parent_key,
                 ));
             }
         }
@@ -219,16 +248,19 @@ fn test_strict_emission_real_world_components_ref_leak_pins() {
 
     // (label, fixture_path, max_ref_like_leaks)
     //
-    // Pins capture the CURRENT state. If a pass fix drops the count, update
-    // the pin. If the count rises, you have a regression.
+    // Pins capture the CURRENT state after p5 opaque-stringifies non-local
+    // refs and p9 strips $anchor/$dynamicRef/$dynamicAnchor. Remaining leaks
+    // are `$ref` as property names inside `properties` maps (false positives
+    // are already filtered by the walker). If a pass fix drops the count,
+    // update the pin.
     let cases = [
-        ("arazzo", "arazzo/source/arazzo-schema.json", 40),
+        ("arazzo", "arazzo/source/arazzo-schema.json", 0),
         (
             "asyncapi",
             "asyncapi/source/asyncapi-2.6-schema-local.json",
-            466,
+            0,
         ),
-        ("oas31", "oas31/source/oas31-schema.json", 55),
+        ("oas31", "oas31/source/oas31-schema.json", 0),
     ];
 
     for (label, path, max_leaks) in &cases {

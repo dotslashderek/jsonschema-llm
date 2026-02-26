@@ -125,9 +125,23 @@ impl crate::schema_walker::SchemaFolder for RecursionFolder<'_> {
                 return Ok(crate::schema_walker::FoldAction::Replace(result));
             }
 
-            // Non-local ref — preserve as-is.
+            // Non-local ref — opaque-stringify for strict mode compliance.
+            // External URLs and unresolvable anchors cannot be resolved at
+            // conversion time. Replace with an opaque JSON-string placeholder
+            // so the output is free of $ref nodes.
+            self.transforms.push(Transform::JsonStringParse {
+                path: path.to_string(),
+            });
             return Ok(crate::schema_walker::FoldAction::Replace(
-                serde_json::json!({ "$ref": ref_str }),
+                serde_json::json!({
+                    "type": "string",
+                    "description": format!(
+                        "MUST be a valid JSON value serialized as a string. \
+                         This represents a {} reference that could not be resolved. \
+                         Do NOT output plain text — the value must parse with JSON.parse().",
+                        type_name
+                    )
+                }),
             ));
         }
 
