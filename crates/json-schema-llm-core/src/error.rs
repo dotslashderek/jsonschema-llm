@@ -80,6 +80,13 @@ pub enum ProviderCompatError {
         target: Target,
         hint: String,
     },
+    /// #246: reference-mechanism keyword stripped (not supported in strict mode)
+    RefKeywordStripped {
+        path: String,
+        keyword: String,
+        target: Target,
+        hint: String,
+    },
 }
 
 impl fmt::Display for ProviderCompatError {
@@ -138,6 +145,12 @@ impl fmt::Display for ProviderCompatError {
                 "patternProperties schema opaque-stringified at '{}'. {}",
                 path, hint
             ),
+            ProviderCompatError::RefKeywordStripped {
+                path,
+                keyword,
+                target: _,
+                hint,
+            } => write!(f, "'{}' stripped at '{}'. {}", keyword, path, hint),
         }
     }
 }

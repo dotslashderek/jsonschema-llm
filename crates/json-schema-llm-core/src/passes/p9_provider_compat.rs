@@ -424,6 +424,23 @@ impl CompatVisitor<'_> {
             }
         }
 
+        // ── #246 Strip reference-mechanism keywords ───────────────
+        // $anchor, $dynamicAnchor, $dynamicRef are resolution-mechanism
+        // keywords with no semantic value after pipeline flattening.
+        // OpenAI strict mode does not support them.
+        if let Some(obj) = schema.as_object_mut() {
+            for keyword in &["$anchor", "$dynamicAnchor", "$dynamicRef"] {
+                if obj.remove(*keyword).is_some() {
+                    self.errors.push(ProviderCompatError::RefKeywordStripped {
+                        path: path.to_string(),
+                        keyword: keyword.to_string(),
+                        target: self.target,
+                        hint: format!("{} stripped (not supported in strict mode).", keyword),
+                    });
+                }
+            }
+        }
+
         // ── Recurse into children ──────────────────────────────────
         // Data-shape keywords increment semantic_depth.
         // Non-data-shape keywords (combinators, conditionals, defs) do not.
