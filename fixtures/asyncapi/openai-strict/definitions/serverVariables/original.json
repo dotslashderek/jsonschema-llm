@@ -1,0 +1,77 @@
+{
+  "$defs": {
+    "Reference": {
+      "properties": {
+        "$ref": {
+          "$ref": "#/$defs/ReferenceObject"
+        }
+      },
+      "required": [
+        "$ref"
+      ],
+      "type": "object"
+    },
+    "ReferenceObject": {
+      "description": "A simple object to allow referencing other components in the specification, internally and externally.",
+      "examples": [
+        {
+          "$ref": "#/components/schemas/Pet"
+        }
+      ],
+      "format": "uri-reference",
+      "type": "string"
+    },
+    "serverVariable": {
+      "additionalProperties": false,
+      "description": "An object representing a Server Variable for server URL template substitution.",
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "default": {
+          "description": "The default value to use for substitution, and to send, if an alternate value is not supplied.",
+          "type": "string"
+        },
+        "description": {
+          "description": "An optional description for the server variable. ",
+          "type": "string"
+        },
+        "enum": {
+          "description": "An enumeration of string values to be used if the substitution options are from a limited set.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "examples": {
+          "description": "An array of examples of the server variable.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "additionalProperties": {
+    "oneOf": [
+      {
+        "$ref": "#/$defs/Reference"
+      },
+      {
+        "$ref": "#/$defs/serverVariable"
+      }
+    ]
+  },
+  "description": "A map between a variable name and its value. The value is used for substitution in the server's URL template.",
+  "type": "object"
+}

@@ -4,30 +4,7 @@
     "result": {
       "$comment": "https://spec.openapis.org/arazzo/v1.0#step-object'",
       "additionalProperties": false,
-      "anyOf": [
-        {
-          "required": [
-            "operationId"
-          ]
-        },
-        {
-          "required": [
-            "operationPath"
-          ]
-        },
-        {
-          "required": [
-            "workflowId"
-          ]
-        }
-      ],
-      "description": "Describes a single workflow step which MAY be a call to an API operation (OpenAPI Operation Object or another Workflow Object)",
-      "patternProperties": {
-        "^x-": {
-          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-          "type": "string"
-        }
-      },
+      "description": "Describes a single workflow step which MAY be a call to an API operation (OpenAPI Operation Object or another Workflow Object)\n\nNote: While properties may be nullable, a valid output MUST include a non-null value for at least one of these properties: operationId, operationPath, workflowId",
       "properties": {
         "description": {
           "anyOf": [
@@ -47,14 +24,8 @@
               "items": {
                 "anyOf": [
                   {
-                    "$comment": "https://spec.openapis.org/arazzo/v1.0#specification-extensions",
-                    "description": "While the Arazzo Specification tries to accommodate most use cases, additional data can be added to extend the specification at certain points",
-                    "patternProperties": {
-                      "^x-": {
-                        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                        "type": "string"
-                      }
-                    }
+                    "description": "MUST be a valid JSON value serialized as a string. Structure: any. includes properties matching pattern(s) [^x-]. Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
                   },
                   {
                     "$comment": "https://spec.openapis.org/arazzo/v1.0#reusable-object",
@@ -99,14 +70,8 @@
               "items": {
                 "anyOf": [
                   {
-                    "$comment": "https://spec.openapis.org/arazzo/v1.0#specification-extensions",
-                    "description": "While the Arazzo Specification tries to accommodate most use cases, additional data can be added to extend the specification at certain points",
-                    "patternProperties": {
-                      "^x-": {
-                        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                        "type": "string"
-                      }
-                    }
+                    "description": "MUST be a valid JSON value serialized as a string. Structure: any. includes properties matching pattern(s) [^x-]. Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
                   },
                   {
                     "$comment": "https://spec.openapis.org/arazzo/v1.0#reusable-object",
@@ -169,16 +134,8 @@
         "outputs": {
           "anyOf": [
             {
-              "additionalProperties": false,
-              "description": "A map between a friendly name and a dynamic output value defined using a runtime expression",
-              "patternProperties": {
-                "^[a-zA-Z0-9\\.\\-_]+$": {
-                  "type": "string"
-                }
-              },
-              "properties": {},
-              "required": [],
-              "type": "object"
+              "description": "MUST be a valid JSON value serialized as a string. Structure: {}. includes properties matching pattern(s) [^[a-zA-Z0-9\\.\\-_]+$]. Do NOT output plain text — the value must parse with JSON.parse().",
+              "type": "string"
             },
             {
               "type": "null"
@@ -203,14 +160,8 @@
         "requestBody": {
           "anyOf": [
             {
-              "$comment": "https://spec.openapis.org/arazzo/v1.0#specification-extensions",
-              "description": "While the Arazzo Specification tries to accommodate most use cases, additional data can be added to extend the specification at certain points",
-              "patternProperties": {
-                "^x-": {
-                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                  "type": "string"
-                }
-              }
+              "description": "MUST be a valid JSON value serialized as a string. Structure: any. includes properties matching pattern(s) [^x-]. Do NOT output plain text — the value must parse with JSON.parse().",
+              "type": "string"
             },
             {
               "type": "null"
@@ -218,7 +169,6 @@
           ]
         },
         "stepId": {
-          "$anchor": "stepId",
           "description": "Unique string to represent the step",
           "type": "string"
         },
@@ -227,14 +177,8 @@
             {
               "description": "A list of assertions to determine the success of the step. Constraints: items must be unique; minimum 1 item(s).",
               "items": {
-                "$comment": "https://spec.openapis.org/arazzo/v1.0#specification-extensions",
-                "description": "While the Arazzo Specification tries to accommodate most use cases, additional data can be added to extend the specification at certain points",
-                "patternProperties": {
-                  "^x-": {
-                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                    "type": "string"
-                  }
-                }
+                "description": "MUST be a valid JSON value serialized as a string. Structure: any. includes properties matching pattern(s) [^x-]. Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
               },
               "type": "array"
             },
@@ -246,7 +190,6 @@
         "workflowId": {
           "anyOf": [
             {
-              "$anchor": "workflowId",
               "description": "Unique string to represent the workflow",
               "type": "string"
             },

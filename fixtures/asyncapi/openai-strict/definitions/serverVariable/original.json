@@ -1,0 +1,42 @@
+{
+  "$defs": {
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "additionalProperties": false,
+  "description": "An object representing a Server Variable for server URL template substitution.",
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "default": {
+      "description": "The default value to use for substitution, and to send, if an alternate value is not supplied.",
+      "type": "string"
+    },
+    "description": {
+      "description": "An optional description for the server variable. ",
+      "type": "string"
+    },
+    "enum": {
+      "description": "An enumeration of string values to be used if the substitution options are from a limited set.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "examples": {
+      "description": "An array of examples of the server variable.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "type": "object"
+}

@@ -1,0 +1,10 @@
+{
+  "description": "A simple object to allow referencing other components in the specification, internally and externally.",
+  "examples": [
+    {
+      "$ref": "#/components/schemas/Pet"
+    }
+  ],
+  "format": "uri-reference",
+  "type": "string"
+}

@@ -1,0 +1,54 @@
+{
+  "$defs": {
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "in": "header",
+      "name": "api_key",
+      "type": "httpApiKey"
+    }
+  ],
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "description": {
+      "description": "A short description for security scheme.",
+      "type": "string"
+    },
+    "in": {
+      "description": "The location of the API key. ",
+      "enum": [
+        "header",
+        "query",
+        "cookie"
+      ],
+      "type": "string"
+    },
+    "name": {
+      "description": "The name of the header, query or cookie parameter to be used.",
+      "type": "string"
+    },
+    "type": {
+      "description": "The type of the security scheme. ",
+      "enum": [
+        "httpApiKey"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "name",
+    "in"
+  ],
+  "type": "object"
+}

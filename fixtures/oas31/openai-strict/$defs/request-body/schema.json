@@ -1,12 +1,6 @@
 {
   "$comment": "https://spec.openapis.org/oas/v3.1.0#request-body-object",
   "additionalProperties": false,
-  "patternProperties": {
-    "^x-": {
-      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-      "type": "string"
-    }
-  },
   "properties": {
     "content": {
       "items": {
@@ -16,32 +10,52 @@
             "type": "string"
           },
           "value": {
+            "additionalProperties": false,
             "properties": {
               "example": {
-                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                "type": "string"
+                "anyOf": [
+                  {
+                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "examples": {
-                "items": {
-                  "additionalProperties": false,
-                  "properties": {
-                    "key": {
-                      "type": "string"
+                "anyOf": [
+                  {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "key",
+                        "value"
+                      ],
+                      "type": "object"
                     },
-                    "value": {
-                      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                      "type": "string"
-                    }
+                    "type": "array"
                   },
-                  "required": [
-                    "key",
-                    "value"
-                  ],
-                  "type": "object"
-                },
-                "type": "array"
+                  {
+                    "type": "null"
+                  }
+                ]
               }
-            }
+            },
+            "required": [
+              "example",
+              "examples"
+            ],
+            "type": "object"
           }
         },
         "required": [

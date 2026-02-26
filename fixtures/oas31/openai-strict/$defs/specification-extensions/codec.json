@@ -8,7 +8,7 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/patternProperties/^x-"
+      "path": "#/properties/result"
     }
   ],
   "droppedConstraints": []

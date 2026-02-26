@@ -220,35 +220,31 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/components/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/result/properties/components/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/externalDocs/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/result/properties/externalDocs/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/info/patternProperties/^x-"
+      "path": "#/properties/result/properties/info"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/paths/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/result/properties/paths/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/servers/anyOf/0/items/patternProperties/^x-"
+      "path": "#/properties/result/properties/servers/anyOf/0/items"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/tags/anyOf/0/items/patternProperties/^x-"
+      "path": "#/properties/result/properties/tags/anyOf/0/items"
     },
     {
       "type": "json_string_parse",
       "path": "#/properties/result/properties/webhooks/anyOf/0/items/properties/value"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/patternProperties/^x-"
     }
   ],
   "droppedConstraints": [

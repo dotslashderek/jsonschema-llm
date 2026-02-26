@@ -28,23 +28,19 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/components/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/components/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/info/patternProperties/^x-"
+      "path": "#/properties/info"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/sourceDescriptions/items/patternProperties/^x-"
+      "path": "#/properties/sourceDescriptions/items"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/workflows/items/patternProperties/^x-"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^x-"
+      "path": "#/properties/workflows/items"
     }
   ],
   "droppedConstraints": [

@@ -1,0 +1,32 @@
+{
+  "$defs": {
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "description": {
+      "description": "A short description for security scheme.",
+      "type": "string"
+    },
+    "type": {
+      "description": "The type of the security scheme.",
+      "enum": [
+        "asymmetricEncryption"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "type"
+  ],
+  "type": "object"
+}

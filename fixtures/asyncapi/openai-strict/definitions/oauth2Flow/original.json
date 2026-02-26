@@ -1,0 +1,66 @@
+{
+  "$defs": {
+    "oauth2Scopes": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "additionalProperties": false,
+  "description": "Configuration details for a supported OAuth Flow",
+  "examples": [
+    {
+      "flows": {
+        "authorizationCode": {
+          "authorizationUrl": "https://example.com/api/oauth/dialog",
+          "scopes": {
+            "read:pets": "read your pets",
+            "write:pets": "modify pets in your account"
+          },
+          "tokenUrl": "https://example.com/api/oauth/token"
+        },
+        "implicit": {
+          "authorizationUrl": "https://example.com/api/oauth/dialog",
+          "scopes": {
+            "read:pets": "read your pets",
+            "write:pets": "modify pets in your account"
+          }
+        }
+      },
+      "type": "oauth2"
+    }
+  ],
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "authorizationUrl": {
+      "description": "The authorization URL to be used for this flow. This MUST be in the form of an absolute URL.",
+      "format": "uri",
+      "type": "string"
+    },
+    "refreshUrl": {
+      "description": "The URL to be used for obtaining refresh tokens. This MUST be in the form of an absolute URL.",
+      "format": "uri",
+      "type": "string"
+    },
+    "scopes": {
+      "$ref": "#/$defs/oauth2Scopes",
+      "description": "The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it."
+    },
+    "tokenUrl": {
+      "description": "The token URL to be used for this flow. This MUST be in the form of an absolute URL.",
+      "format": "uri",
+      "type": "string"
+    }
+  },
+  "type": "object"
+}

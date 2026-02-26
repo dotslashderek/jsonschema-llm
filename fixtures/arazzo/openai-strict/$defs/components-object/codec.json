@@ -22,6 +22,10 @@
       "keyField": "key"
     },
     {
+      "type": "json_string_parse",
+      "path": "#/properties/inputs/items/properties/value"
+    },
+    {
       "type": "nullable_optional",
       "path": "#/properties/failureActions",
       "originalRequired": false
@@ -43,19 +47,15 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/failureActions/anyOf/0/items/properties/value/patternProperties/^x-"
+      "path": "#/properties/failureActions/anyOf/0/items/properties/value"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/parameters/anyOf/0/items/properties/value/patternProperties/^x-"
+      "path": "#/properties/parameters/anyOf/0/items/properties/value"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/successActions/anyOf/0/items/properties/value/patternProperties/^x-"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^(inputs|parameters|successActions|failureActions)$"
+      "path": "#/properties/successActions/anyOf/0/items/properties/value"
     }
   ],
   "droppedConstraints": [

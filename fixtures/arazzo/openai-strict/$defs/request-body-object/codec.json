@@ -22,11 +22,7 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/replacements/anyOf/0/items/patternProperties/^x-"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^x-"
+      "path": "#/properties/replacements/anyOf/0/items"
     }
   ],
   "droppedConstraints": [

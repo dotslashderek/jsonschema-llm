@@ -1,0 +1,26 @@
+{
+  "$defs": {
+    "primitiveType": {
+      "description": "Basic type primitives.",
+      "enum": [
+        "null",
+        "boolean",
+        "int",
+        "long",
+        "float",
+        "double",
+        "bytes",
+        "string"
+      ],
+      "title": "Primitive Type",
+      "type": "string"
+    }
+  },
+  "description": "Reference to a ComplexType",
+  "not": {
+    "$ref": "#/$defs/primitiveType"
+  },
+  "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*$",
+  "title": "Custom Type",
+  "type": "string"
+}

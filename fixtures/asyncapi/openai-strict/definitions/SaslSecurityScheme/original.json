@@ -1,0 +1,111 @@
+{
+  "$defs": {
+    "SaslGssapiSecurityScheme": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "type": "scramSha512"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme.",
+          "enum": [
+            "gssapi"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "SaslPlainSecurityScheme": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "type": "scramSha512"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme. Valid values",
+          "enum": [
+            "plain"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "SaslScramSecurityScheme": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "type": "scramSha512"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme.",
+          "enum": [
+            "scramSha256",
+            "scramSha512"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SaslPlainSecurityScheme"
+    },
+    {
+      "$ref": "#/$defs/SaslScramSecurityScheme"
+    },
+    {
+      "$ref": "#/$defs/SaslGssapiSecurityScheme"
+    }
+  ]
+}

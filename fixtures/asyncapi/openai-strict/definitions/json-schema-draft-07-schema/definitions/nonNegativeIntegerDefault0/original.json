@@ -1,0 +1,16 @@
+{
+  "$defs": {
+    "nonNegativeInteger": {
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/nonNegativeInteger"
+    },
+    {
+      "default": 0
+    }
+  ]
+}

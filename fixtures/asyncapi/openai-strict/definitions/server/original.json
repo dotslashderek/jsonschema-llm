@@ -1,0 +1,247 @@
+{
+  "$defs": {
+    "Reference": {
+      "properties": {
+        "$ref": {
+          "$ref": "#/$defs/ReferenceObject"
+        }
+      },
+      "required": [
+        "$ref"
+      ],
+      "type": "object"
+    },
+    "ReferenceObject": {
+      "description": "A simple object to allow referencing other components in the specification, internally and externally.",
+      "examples": [
+        {
+          "$ref": "#/components/schemas/Pet"
+        }
+      ],
+      "format": "uri-reference",
+      "type": "string"
+    },
+    "SecurityRequirement": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "uniqueItems": true
+      },
+      "description": "Lists of the required security schemes that can be used to execute an operation",
+      "examples": [
+        {
+          "petstore_auth": [
+            "write:pets",
+            "read:pets"
+          ]
+        }
+      ],
+      "type": "object"
+    },
+    "bindingsObject": {
+      "additionalProperties": true,
+      "description": "Map describing protocol-specific definitions for a server.",
+      "properties": {
+        "amqp": {},
+        "amqp1": {},
+        "anypointmq": {},
+        "googlepubsub": {},
+        "http": {},
+        "ibmmq": {},
+        "jms": {},
+        "kafka": {},
+        "mqtt": {},
+        "mqtt5": {},
+        "nats": {},
+        "pulsar": {},
+        "redis": {},
+        "sns": {},
+        "solace": {},
+        "sqs": {},
+        "stomp": {},
+        "ws": {}
+      },
+      "type": "object"
+    },
+    "externalDocs": {
+      "additionalProperties": false,
+      "description": "Allows referencing an external resource for extended documentation.",
+      "examples": [
+        {
+          "description": "Find more info here",
+          "url": "https://example.com"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description of the target documentation.",
+          "type": "string"
+        },
+        "url": {
+          "description": "The URL for the target documentation. This MUST be in the form of an absolute URL.",
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "type": "object"
+    },
+    "serverVariable": {
+      "additionalProperties": false,
+      "description": "An object representing a Server Variable for server URL template substitution.",
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "default": {
+          "description": "The default value to use for substitution, and to send, if an alternate value is not supplied.",
+          "type": "string"
+        },
+        "description": {
+          "description": "An optional description for the server variable. ",
+          "type": "string"
+        },
+        "enum": {
+          "description": "An enumeration of string values to be used if the substitution options are from a limited set.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "examples": {
+          "description": "An array of examples of the server variable.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "serverVariables": {
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/Reference"
+          },
+          {
+            "$ref": "#/$defs/serverVariable"
+          }
+        ]
+      },
+      "description": "A map between a variable name and its value. The value is used for substitution in the server's URL template.",
+      "type": "object"
+    },
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    },
+    "tag": {
+      "additionalProperties": false,
+      "description": "Allows adding meta data to a single tag.",
+      "examples": [
+        {
+          "description": "User-related messages",
+          "name": "user"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for the tag.",
+          "type": "string"
+        },
+        "externalDocs": {
+          "$ref": "#/$defs/externalDocs",
+          "description": "Additional external documentation for this tag."
+        },
+        "name": {
+          "description": "The name of the tag.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "An object representing a message broker, a server or any other kind of computer program capable of sending and/or receiving data",
+  "examples": [
+    {
+      "description": "Development server",
+      "protocol": "kafka",
+      "protocolVersion": "1.0.0",
+      "url": "development.gigantic-server.com"
+    }
+  ],
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "bindings": {
+      "$ref": "#/$defs/bindingsObject",
+      "description": "A map where the keys describe the name of the protocol and the values describe protocol-specific definitions for the server."
+    },
+    "description": {
+      "description": "An optional string describing the host designated by the URL. CommonMark syntax MAY be used for rich text representation.",
+      "type": "string"
+    },
+    "protocol": {
+      "description": "The protocol this URL supports for connection. Supported protocol include, but are not limited to: amqp, amqps, http, https, ibmmq, jms, kafka, kafka-secure, anypointmq, mqtt, secure-mqtt, solace, stomp, stomps, ws, wss, mercure, googlepubsub.",
+      "type": "string"
+    },
+    "protocolVersion": {
+      "description": "The version of the protocol used for connection. For instance: AMQP 0.9.1, HTTP 2.0, Kafka 1.0.0, etc.",
+      "type": "string"
+    },
+    "security": {
+      "description": "A declaration of which security mechanisms can be used with this server. The list of values includes alternative security requirement objects that can be used. ",
+      "items": {
+        "$ref": "#/$defs/SecurityRequirement"
+      },
+      "type": "array"
+    },
+    "tags": {
+      "description": "A list of tags for logical grouping and categorization of servers.",
+      "items": {
+        "$ref": "#/$defs/tag"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "url": {
+      "description": "A URL to the target host. This URL supports Server Variables and MAY be relative, to indicate that the host location is relative to the location where the AsyncAPI document is being served.",
+      "type": "string"
+    },
+    "variables": {
+      "$ref": "#/$defs/serverVariables",
+      "description": "A map between a variable name and its value. The value is used for substitution in the server's URL template."
+    }
+  },
+  "required": [
+    "url",
+    "protocol"
+  ],
+  "type": "object"
+}

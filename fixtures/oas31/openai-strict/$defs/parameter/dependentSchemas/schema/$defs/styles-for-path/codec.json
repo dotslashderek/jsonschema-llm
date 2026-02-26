@@ -2,6 +2,16 @@
   "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     {
+      "type": "nullable_optional",
+      "path": "#/then/properties/name",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/then/properties/style",
+      "originalRequired": false
+    },
+    {
       "type": "root_object_wrapper",
       "path": "#",
       "wrapperKey": "result"
@@ -16,6 +26,7 @@
       "path": "#",
       "constraint": "if",
       "value": {
+        "additionalProperties": false,
         "properties": {
           "in": {
             "const": "path"
@@ -23,32 +34,51 @@
         },
         "required": [
           "in"
-        ]
+        ],
+        "type": "object"
       }
     },
     {
       "path": "#",
       "constraint": "then",
       "value": {
+        "additionalProperties": false,
         "properties": {
           "name": {
-            "pattern": "[^/#?]+$"
+            "anyOf": [
+              {
+                "pattern": "[^/#?]+$"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "required": {
             "const": true
           },
           "style": {
-            "default": "simple",
-            "enum": [
-              "matrix",
-              "label",
-              "simple"
+            "anyOf": [
+              {
+                "default": "simple",
+                "enum": [
+                  "matrix",
+                  "label",
+                  "simple"
+                ]
+              },
+              {
+                "type": "null"
+              }
             ]
           }
         },
         "required": [
-          "required"
-        ]
+          "name",
+          "required",
+          "style"
+        ],
+        "type": "object"
       }
     }
   ]

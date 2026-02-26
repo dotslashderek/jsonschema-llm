@@ -1,0 +1,5 @@
+{
+  "additionalItems": true,
+  "additionalProperties": true,
+  "description": "Any property starting with x- is valid."
+}

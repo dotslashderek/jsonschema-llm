@@ -1,0 +1,176 @@
+{
+  "$defs": {
+    "oauth2Flow": {
+      "additionalProperties": false,
+      "description": "Configuration details for a supported OAuth Flow",
+      "examples": [
+        {
+          "flows": {
+            "authorizationCode": {
+              "authorizationUrl": "https://example.com/api/oauth/dialog",
+              "scopes": {
+                "read:pets": "read your pets",
+                "write:pets": "modify pets in your account"
+              },
+              "tokenUrl": "https://example.com/api/oauth/token"
+            },
+            "implicit": {
+              "authorizationUrl": "https://example.com/api/oauth/dialog",
+              "scopes": {
+                "read:pets": "read your pets",
+                "write:pets": "modify pets in your account"
+              }
+            }
+          },
+          "type": "oauth2"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "authorizationUrl": {
+          "description": "The authorization URL to be used for this flow. This MUST be in the form of an absolute URL.",
+          "format": "uri",
+          "type": "string"
+        },
+        "refreshUrl": {
+          "description": "The URL to be used for obtaining refresh tokens. This MUST be in the form of an absolute URL.",
+          "format": "uri",
+          "type": "string"
+        },
+        "scopes": {
+          "$ref": "#/$defs/oauth2Scopes",
+          "description": "The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it."
+        },
+        "tokenUrl": {
+          "description": "The token URL to be used for this flow. This MUST be in the form of an absolute URL.",
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "oauth2Scopes": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "description": "Allows configuration of the supported OAuth Flows.",
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "description": {
+      "description": "A short description for security scheme.",
+      "type": "string"
+    },
+    "flows": {
+      "additionalProperties": false,
+      "properties": {
+        "authorizationCode": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/oauth2Flow"
+            },
+            {
+              "required": [
+                "authorizationUrl",
+                "tokenUrl",
+                "scopes"
+              ]
+            }
+          ],
+          "description": "Configuration for the OAuth Authorization Code flow."
+        },
+        "clientCredentials": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/oauth2Flow"
+            },
+            {
+              "required": [
+                "tokenUrl",
+                "scopes"
+              ]
+            },
+            {
+              "not": {
+                "required": [
+                  "authorizationUrl"
+                ]
+              }
+            }
+          ],
+          "description": "Configuration for the OAuth Client Credentials flow."
+        },
+        "implicit": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/oauth2Flow"
+            },
+            {
+              "required": [
+                "authorizationUrl",
+                "scopes"
+              ]
+            },
+            {
+              "not": {
+                "required": [
+                  "tokenUrl"
+                ]
+              }
+            }
+          ],
+          "description": "Configuration for the OAuth Implicit flow."
+        },
+        "password": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/oauth2Flow"
+            },
+            {
+              "required": [
+                "tokenUrl",
+                "scopes"
+              ]
+            },
+            {
+              "not": {
+                "required": [
+                  "authorizationUrl"
+                ]
+              }
+            }
+          ],
+          "description": "Configuration for the OAuth Resource Owner Protected Credentials flow."
+        }
+      },
+      "type": "object"
+    },
+    "type": {
+      "description": "A short description for security scheme.",
+      "enum": [
+        "oauth2"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "flows"
+  ],
+  "type": "object"
+}

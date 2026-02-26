@@ -28,23 +28,19 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/authorizationCode/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/authorizationCode/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/clientCredentials/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/clientCredentials/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/implicit/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/implicit/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/password/anyOf/0/patternProperties/^x-"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^x-"
+      "path": "#/properties/password/anyOf/0"
     }
   ],
   "droppedConstraints": []

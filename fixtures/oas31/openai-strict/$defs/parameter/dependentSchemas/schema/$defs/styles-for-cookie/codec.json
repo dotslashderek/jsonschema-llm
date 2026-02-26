@@ -2,6 +2,11 @@
   "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     {
+      "type": "nullable_optional",
+      "path": "#/then/properties/style",
+      "originalRequired": false
+    },
+    {
       "type": "root_object_wrapper",
       "path": "#",
       "wrapperKey": "result"
@@ -16,6 +21,7 @@
       "path": "#",
       "constraint": "if",
       "value": {
+        "additionalProperties": false,
         "properties": {
           "in": {
             "const": "cookie"
@@ -23,19 +29,32 @@
         },
         "required": [
           "in"
-        ]
+        ],
+        "type": "object"
       }
     },
     {
       "path": "#",
       "constraint": "then",
       "value": {
+        "additionalProperties": false,
         "properties": {
           "style": {
-            "const": "form",
-            "default": "form"
+            "anyOf": [
+              {
+                "const": "form",
+                "default": "form"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
-        }
+        },
+        "required": [
+          "style"
+        ],
+        "type": "object"
       }
     }
   ]

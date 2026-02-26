@@ -1,0 +1,11 @@
+{
+  "enum": [
+    "array",
+    "boolean",
+    "integer",
+    "null",
+    "number",
+    "object",
+    "string"
+  ]
+}

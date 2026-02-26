@@ -30,10 +30,6 @@
       "type": "root_object_wrapper",
       "path": "#",
       "wrapperKey": "result"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
     }
   ],
   "droppedConstraints": [

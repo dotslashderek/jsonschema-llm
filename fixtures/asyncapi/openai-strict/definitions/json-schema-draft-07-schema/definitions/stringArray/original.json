@@ -1,0 +1,8 @@
+{
+  "default": [],
+  "items": {
+    "type": "string"
+  },
+  "type": "array",
+  "uniqueItems": true
+}

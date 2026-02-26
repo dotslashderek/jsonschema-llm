@@ -1,0 +1,38 @@
+{
+  "$comment": "https://spec.openapis.org/arazzo/v1.0#info-object",
+  "$defs": {
+    "specification-extensions": {
+      "$comment": "https://spec.openapis.org/arazzo/v1.0#specification-extensions",
+      "description": "While the Arazzo Specification tries to accommodate most use cases, additional data can be added to extend the specification at certain points",
+      "patternProperties": {
+        "^x-": true
+      }
+    }
+  },
+  "$ref": "#/$defs/specification-extensions",
+  "description": "Provides metadata about the Arazzo description",
+  "properties": {
+    "description": {
+      "description": "A description of the purpose of the workflows defined. CommonMark syntax MAY be used for rich text representation",
+      "type": "string"
+    },
+    "summary": {
+      "description": "A short summary of the Arazzo Description",
+      "type": "string"
+    },
+    "title": {
+      "description": "A human readable title of the Arazzo Description",
+      "type": "string"
+    },
+    "version": {
+      "description": "The version identifier of the Arazzo document (which is distinct from the Arazzo Specification version)",
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "version"
+  ],
+  "type": "object",
+  "unevaluatedProperties": false
+}

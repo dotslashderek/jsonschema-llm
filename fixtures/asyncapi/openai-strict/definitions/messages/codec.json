@@ -171,6 +171,10 @@
       "path": "#/items/properties/value/anyOf/1/anyOf/1/properties/traits/items/anyOf/1/properties/examples/items/properties/payload"
     },
     {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/anyOf/1/anyOf/0/properties/oneOf/items"
+    },
+    {
       "type": "nullable_optional",
       "path": "#/items/properties/value/anyOf/1/anyOf/1/properties/bindings",
       "originalRequired": false
@@ -368,6 +372,11 @@
     {
       "type": "nullable_optional",
       "path": "#/items/properties/value/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/anyOf/1/properties/headers/anyOf/0/properties/type",
       "originalRequired": false
     },
     {
@@ -577,6 +586,11 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/items/properties/value/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/headers/anyOf/0/properties/type",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/items/properties/value/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/tags/anyOf/0/items/properties/description",
       "originalRequired": false
     },
@@ -594,46 +608,6 @@
       "type": "root_object_wrapper",
       "path": "#",
       "wrapperKey": "result"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/properties/correlationId/anyOf/0/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/properties/tags/anyOf/0/items/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/properties/tags/anyOf/0/items/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/correlationId/anyOf/0/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/tags/anyOf/0/items/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/tags/anyOf/0/items/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
     }
   ],
   "droppedConstraints": [
@@ -1093,7 +1067,7 @@
       "value": "uri"
     },
     {
-      "path": "#/items/properties/value/anyOf/1/anyOf/1/properties/headers/anyOf/0/properties/type",
+      "path": "#/items/properties/value/anyOf/1/anyOf/1/properties/headers/anyOf/0/properties/type/anyOf/0",
       "constraint": "const",
       "value": "object"
     },
@@ -1128,7 +1102,7 @@
       "value": "uri"
     },
     {
-      "path": "#/items/properties/value/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/headers/anyOf/0/properties/type",
+      "path": "#/items/properties/value/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/headers/anyOf/0/properties/type/anyOf/0",
       "constraint": "const",
       "value": "object"
     },

@@ -1,0 +1,30 @@
+{
+  "if": {
+    "properties": {
+      "type": {
+        "const": "apiKey"
+      }
+    },
+    "required": [
+      "type"
+    ]
+  },
+  "then": {
+    "properties": {
+      "in": {
+        "enum": [
+          "query",
+          "header",
+          "cookie"
+        ]
+      },
+      "name": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "name",
+      "in"
+    ]
+  }
+}

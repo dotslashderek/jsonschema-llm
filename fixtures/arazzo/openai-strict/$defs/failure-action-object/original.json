@@ -1,0 +1,224 @@
+{
+  "$comment": "https://spec.openapis.org/arazzo/v1.0#failure-action-object",
+  "$defs": {
+    "criterion-expression-type-object": {
+      "$comment": "https://spec.openapis.org/arazzo/v1.0#criterion-expression-type-object",
+      "$ref": "#/$defs/specification-extensions",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "jsonpath"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "version": {
+                "const": "draft-goessner-dispatch-jsonpath-00"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "xpath"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "version": {
+                "enum": [
+                  "xpath-10",
+                  "xpath-20",
+                  "xpath-30"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "description": "An object used to describe the type and version of an expression used within a Criterion Object",
+      "properties": {
+        "type": {
+          "description": "The type of condition to be applied",
+          "enum": [
+            "jsonpath",
+            "xpath"
+          ]
+        },
+        "version": {
+          "description": "A short hand string representing the version of the expression type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "version"
+      ],
+      "type": "object"
+    },
+    "criterion-object": {
+      "$comment": "https://spec.openapis.org/arazzo/v1.0#criterion-object",
+      "$ref": "#/$defs/specification-extensions",
+      "anyOf": [
+        {
+          "properties": {
+            "type": {
+              "default": "simple",
+              "description": "The type of condition to be applied",
+              "enum": [
+                "simple",
+                "regex",
+                "jsonpath",
+                "xpath"
+              ]
+            }
+          },
+          "type": "object"
+        },
+        {
+          "$ref": "#/$defs/criterion-expression-type-object"
+        }
+      ],
+      "dependentRequired": {
+        "type": [
+          "context"
+        ]
+      },
+      "description": "An object used to specify the context, conditions, and condition types that can be used to prove or satisfy assertions specified in Step Object successCriteria, Success Action Object criteria, and Failure Action Object criteria",
+      "properties": {
+        "condition": {
+          "description": "The condition to apply",
+          "type": "string"
+        },
+        "context": {
+          "description": "A runtime expression used to set the context for the condition to be applied on",
+          "type": "string"
+        }
+      },
+      "required": [
+        "condition"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "specification-extensions": {
+      "$comment": "https://spec.openapis.org/arazzo/v1.0#specification-extensions",
+      "description": "While the Arazzo Specification tries to accommodate most use cases, additional data can be added to extend the specification at certain points",
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "stepId": {
+      "$anchor": "stepId",
+      "description": "Unique string to represent the step",
+      "type": "string"
+    },
+    "workflowId": {
+      "$anchor": "workflowId",
+      "description": "Unique string to represent the workflow",
+      "type": "string"
+    }
+  },
+  "$ref": "#/$defs/specification-extensions",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "enum": [
+              "goto",
+              "retry"
+            ]
+          }
+        }
+      },
+      "then": {
+        "oneOf": [
+          {
+            "required": [
+              "workflowId"
+            ]
+          },
+          {
+            "required": [
+              "stepId"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "retry"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "retryAfter"
+        ]
+      }
+    }
+  ],
+  "description": "A single failure action which describes an action to take upon failure of a workflow step",
+  "properties": {
+    "criteria": {
+      "description": "A list of assertions to determine if this action SHALL be executed",
+      "items": {
+        "$ref": "#/$defs/criterion-object"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "name": {
+      "description": "The name of the failure action",
+      "type": "string"
+    },
+    "retryAfter": {
+      "description": "A non-negative decimal indicating the seconds to delay after the step failure before another attempt SHALL be made",
+      "minimum": 0,
+      "type": "number"
+    },
+    "retryLimit": {
+      "description": "A non-negative integer indicating how many attempts to retry the step MAY be attempted before failing the overall step",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stepId": {
+      "$ref": "#/$defs/stepId",
+      "description": "The stepId to transfer to upon failure of the step"
+    },
+    "type": {
+      "description": "The type of action to take",
+      "enum": [
+        "end",
+        "goto",
+        "retry"
+      ]
+    },
+    "workflowId": {
+      "$ref": "#/$defs/workflowId",
+      "description": "The workflowId referencing an existing workflow within the Arazzo description to transfer to upon failure of the step"
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ],
+  "type": "object",
+  "unevaluatedProperties": false
+}

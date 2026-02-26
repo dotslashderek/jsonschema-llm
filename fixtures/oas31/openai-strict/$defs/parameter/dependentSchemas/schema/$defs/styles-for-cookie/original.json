@@ -1,0 +1,20 @@
+{
+  "if": {
+    "properties": {
+      "in": {
+        "const": "cookie"
+      }
+    },
+    "required": [
+      "in"
+    ]
+  },
+  "then": {
+    "properties": {
+      "style": {
+        "const": "form",
+        "default": "form"
+      }
+    }
+  }
+}

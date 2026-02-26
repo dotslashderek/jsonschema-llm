@@ -1,17 +1,6 @@
 {
   "$comment": "https://spec.openapis.org/oas/v3.1.0#paths-object",
   "additionalProperties": false,
-  "patternProperties": {
-    "^/": {
-      "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
-      "patternProperties": {
-        "^x-": {
-          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-          "type": "string"
-        }
-      }
-    }
-  },
   "properties": {},
   "required": [],
   "type": "object"

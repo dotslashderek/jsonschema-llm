@@ -1,0 +1,1033 @@
+{
+  "$comment": "https://spec.openapis.org/oas/v3.1.0#paths-object",
+  "$defs": {
+    "callbacks": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#callback-object",
+      "$ref": "#/$defs/specification-extensions",
+      "additionalProperties": {
+        "$ref": "#/$defs/path-item-or-reference"
+      },
+      "type": "object"
+    },
+    "callbacks-or-reference": {
+      "else": {
+        "$ref": "#/$defs/callbacks"
+      },
+      "if": {
+        "required": [
+          "$ref"
+        ],
+        "type": "object"
+      },
+      "then": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "content": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#fixed-fields-10",
+      "additionalProperties": {
+        "$ref": "#/$defs/media-type"
+      },
+      "propertyNames": {
+        "format": "media-range"
+      },
+      "type": "object"
+    },
+    "encoding": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#encoding-object",
+      "$defs": {
+        "explode-default": {
+          "else": {
+            "properties": {
+              "explode": {
+                "default": false
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "style": {
+                "const": "form"
+              }
+            },
+            "required": [
+              "style"
+            ]
+          },
+          "then": {
+            "properties": {
+              "explode": {
+                "default": true
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/specification-extensions"
+        },
+        {
+          "$ref": "#/$defs/explode-default"
+        }
+      ],
+      "properties": {
+        "allowReserved": {
+          "default": false,
+          "type": "boolean"
+        },
+        "contentType": {
+          "format": "media-range",
+          "type": "string"
+        },
+        "explode": {
+          "type": "boolean"
+        },
+        "headers": {
+          "additionalProperties": {
+            "$ref": "#/$defs/header-or-reference"
+          },
+          "type": "object"
+        },
+        "style": {
+          "default": "form",
+          "enum": [
+            "form",
+            "spaceDelimited",
+            "pipeDelimited",
+            "deepObject"
+          ]
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "example": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#example-object",
+      "$ref": "#/$defs/specification-extensions",
+      "not": {
+        "required": [
+          "value",
+          "externalValue"
+        ]
+      },
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "externalValue": {
+          "format": "uri",
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "value": true
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "example-or-reference": {
+      "else": {
+        "$ref": "#/$defs/example"
+      },
+      "if": {
+        "required": [
+          "$ref"
+        ],
+        "type": "object"
+      },
+      "then": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "examples": {
+      "properties": {
+        "example": true,
+        "examples": {
+          "additionalProperties": {
+            "$ref": "#/$defs/example-or-reference"
+          },
+          "type": "object"
+        }
+      }
+    },
+    "explode-default": {
+      "else": {
+        "properties": {
+          "explode": {
+            "default": false
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "style": {
+            "const": "form"
+          }
+        },
+        "required": [
+          "style"
+        ]
+      },
+      "then": {
+        "properties": {
+          "explode": {
+            "default": true
+          }
+        }
+      }
+    },
+    "external-documentation": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#external-documentation-object",
+      "$ref": "#/$defs/specification-extensions",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "url": {
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "header": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#header-object",
+      "$ref": "#/$defs/specification-extensions",
+      "dependentSchemas": {
+        "schema": {
+          "$ref": "#/$defs/examples",
+          "properties": {
+            "explode": {
+              "default": false,
+              "type": "boolean"
+            },
+            "style": {
+              "const": "simple",
+              "default": "simple"
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "schema"
+          ]
+        },
+        {
+          "required": [
+            "content"
+          ]
+        }
+      ],
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/content",
+          "maxProperties": 1,
+          "minProperties": 1
+        },
+        "deprecated": {
+          "default": false,
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        },
+        "schema": {
+          "$dynamicRef": "#meta"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "header-or-reference": {
+      "else": {
+        "$ref": "#/$defs/header"
+      },
+      "if": {
+        "required": [
+          "$ref"
+        ],
+        "type": "object"
+      },
+      "then": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "link": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#link-object",
+      "$ref": "#/$defs/specification-extensions",
+      "oneOf": [
+        {
+          "required": [
+            "operationRef"
+          ]
+        },
+        {
+          "required": [
+            "operationId"
+          ]
+        }
+      ],
+      "properties": {
+        "body": {
+          "$ref": "#/$defs/server"
+        },
+        "description": {
+          "type": "string"
+        },
+        "operationId": {
+          "type": "string"
+        },
+        "operationRef": {
+          "format": "uri-reference",
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "#/$defs/map-of-strings"
+        },
+        "requestBody": true
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "link-or-reference": {
+      "else": {
+        "$ref": "#/$defs/link"
+      },
+      "if": {
+        "required": [
+          "$ref"
+        ],
+        "type": "object"
+      },
+      "then": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "map-of-strings": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "media-type": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#media-type-object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/specification-extensions"
+        },
+        {
+          "$ref": "#/$defs/examples"
+        }
+      ],
+      "properties": {
+        "encoding": {
+          "additionalProperties": {
+            "$ref": "#/$defs/encoding"
+          },
+          "type": "object"
+        },
+        "schema": {
+          "$dynamicRef": "#meta"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "operation": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#operation-object",
+      "$ref": "#/$defs/specification-extensions",
+      "properties": {
+        "callbacks": {
+          "additionalProperties": {
+            "$ref": "#/$defs/callbacks-or-reference"
+          },
+          "type": "object"
+        },
+        "deprecated": {
+          "default": false,
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "externalDocs": {
+          "$ref": "#/$defs/external-documentation"
+        },
+        "operationId": {
+          "type": "string"
+        },
+        "parameters": {
+          "items": {
+            "$ref": "#/$defs/parameter-or-reference"
+          },
+          "type": "array"
+        },
+        "requestBody": {
+          "$ref": "#/$defs/request-body-or-reference"
+        },
+        "responses": {
+          "$ref": "#/$defs/responses"
+        },
+        "security": {
+          "items": {
+            "$ref": "#/$defs/security-requirement"
+          },
+          "type": "array"
+        },
+        "servers": {
+          "items": {
+            "$ref": "#/$defs/server"
+          },
+          "type": "array"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "parameter": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#parameter-object",
+      "$ref": "#/$defs/specification-extensions",
+      "dependentSchemas": {
+        "schema": {
+          "$defs": {
+            "styles-for-cookie": {
+              "if": {
+                "properties": {
+                  "in": {
+                    "const": "cookie"
+                  }
+                },
+                "required": [
+                  "in"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "style": {
+                    "const": "form",
+                    "default": "form"
+                  }
+                }
+              }
+            },
+            "styles-for-form": {
+              "else": {
+                "properties": {
+                  "explode": {
+                    "default": false
+                  }
+                }
+              },
+              "if": {
+                "properties": {
+                  "style": {
+                    "const": "form"
+                  }
+                },
+                "required": [
+                  "style"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "explode": {
+                    "default": true
+                  }
+                }
+              }
+            },
+            "styles-for-header": {
+              "if": {
+                "properties": {
+                  "in": {
+                    "const": "header"
+                  }
+                },
+                "required": [
+                  "in"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "style": {
+                    "const": "simple",
+                    "default": "simple"
+                  }
+                }
+              }
+            },
+            "styles-for-path": {
+              "if": {
+                "properties": {
+                  "in": {
+                    "const": "path"
+                  }
+                },
+                "required": [
+                  "in"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "name": {
+                    "pattern": "[^/#?]+$"
+                  },
+                  "required": {
+                    "const": true
+                  },
+                  "style": {
+                    "default": "simple",
+                    "enum": [
+                      "matrix",
+                      "label",
+                      "simple"
+                    ]
+                  }
+                },
+                "required": [
+                  "required"
+                ]
+              }
+            },
+            "styles-for-query": {
+              "if": {
+                "properties": {
+                  "in": {
+                    "const": "query"
+                  }
+                },
+                "required": [
+                  "in"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "allowReserved": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "style": {
+                    "default": "form",
+                    "enum": [
+                      "form",
+                      "spaceDelimited",
+                      "pipeDelimited",
+                      "deepObject"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/$defs/examples"
+            },
+            {
+              "$ref": "#/$defs/styles-for-path"
+            },
+            {
+              "$ref": "#/$defs/styles-for-header"
+            },
+            {
+              "$ref": "#/$defs/styles-for-query"
+            },
+            {
+              "$ref": "#/$defs/styles-for-cookie"
+            },
+            {
+              "$ref": "#/$defs/styles-for-form"
+            }
+          ],
+          "properties": {
+            "explode": {
+              "type": "boolean"
+            },
+            "style": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "in": {
+            "const": "query"
+          }
+        },
+        "required": [
+          "in"
+        ]
+      },
+      "oneOf": [
+        {
+          "required": [
+            "schema"
+          ]
+        },
+        {
+          "required": [
+            "content"
+          ]
+        }
+      ],
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/content",
+          "maxProperties": 1,
+          "minProperties": 1
+        },
+        "deprecated": {
+          "default": false,
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "in": {
+          "enum": [
+            "query",
+            "header",
+            "path",
+            "cookie"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        },
+        "schema": {
+          "$dynamicRef": "#meta"
+        }
+      },
+      "required": [
+        "name",
+        "in"
+      ],
+      "then": {
+        "properties": {
+          "allowEmptyValue": {
+            "default": false,
+            "type": "boolean"
+          }
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "parameter-or-reference": {
+      "else": {
+        "$ref": "#/$defs/parameter"
+      },
+      "if": {
+        "required": [
+          "$ref"
+        ],
+        "type": "object"
+      },
+      "then": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "path-item": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#path-item-object",
+      "$ref": "#/$defs/specification-extensions",
+      "properties": {
+        "delete": {
+          "$ref": "#/$defs/operation"
+        },
+        "description": {
+          "type": "string"
+        },
+        "get": {
+          "$ref": "#/$defs/operation"
+        },
+        "head": {
+          "$ref": "#/$defs/operation"
+        },
+        "options": {
+          "$ref": "#/$defs/operation"
+        },
+        "parameters": {
+          "items": {
+            "$ref": "#/$defs/parameter-or-reference"
+          },
+          "type": "array"
+        },
+        "patch": {
+          "$ref": "#/$defs/operation"
+        },
+        "post": {
+          "$ref": "#/$defs/operation"
+        },
+        "put": {
+          "$ref": "#/$defs/operation"
+        },
+        "servers": {
+          "items": {
+            "$ref": "#/$defs/server"
+          },
+          "type": "array"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "trace": {
+          "$ref": "#/$defs/operation"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "path-item-or-reference": {
+      "else": {
+        "$ref": "#/$defs/path-item"
+      },
+      "if": {
+        "required": [
+          "$ref"
+        ],
+        "type": "object"
+      },
+      "then": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "reference": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#reference-object",
+      "properties": {
+        "$ref": {
+          "format": "uri-reference",
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "request-body": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#request-body-object",
+      "$ref": "#/$defs/specification-extensions",
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/content"
+        },
+        "description": {
+          "type": "string"
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "content"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "request-body-or-reference": {
+      "else": {
+        "$ref": "#/$defs/request-body"
+      },
+      "if": {
+        "required": [
+          "$ref"
+        ],
+        "type": "object"
+      },
+      "then": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "response": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#response-object",
+      "$ref": "#/$defs/specification-extensions",
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/content"
+        },
+        "description": {
+          "type": "string"
+        },
+        "headers": {
+          "additionalProperties": {
+            "$ref": "#/$defs/header-or-reference"
+          },
+          "type": "object"
+        },
+        "links": {
+          "additionalProperties": {
+            "$ref": "#/$defs/link-or-reference"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "description"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "response-or-reference": {
+      "else": {
+        "$ref": "#/$defs/response"
+      },
+      "if": {
+        "required": [
+          "$ref"
+        ],
+        "type": "object"
+      },
+      "then": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "responses": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#responses-object",
+      "$ref": "#/$defs/specification-extensions",
+      "minProperties": 1,
+      "patternProperties": {
+        "^[1-5](?:[0-9]{2}|XX)$": {
+          "$ref": "#/$defs/response-or-reference"
+        }
+      },
+      "properties": {
+        "default": {
+          "$ref": "#/$defs/response-or-reference"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "security-requirement": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#security-requirement-object",
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "type": "object"
+    },
+    "server": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#server-object",
+      "$ref": "#/$defs/specification-extensions",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "url": {
+          "format": "uri-reference",
+          "type": "string"
+        },
+        "variables": {
+          "additionalProperties": {
+            "$ref": "#/$defs/server-variable"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "server-variable": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#server-variable-object",
+      "$ref": "#/$defs/specification-extensions",
+      "properties": {
+        "default": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "enum": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": [
+        "default"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "specification-extensions": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "styles-for-cookie": {
+      "if": {
+        "properties": {
+          "in": {
+            "const": "cookie"
+          }
+        },
+        "required": [
+          "in"
+        ]
+      },
+      "then": {
+        "properties": {
+          "style": {
+            "const": "form",
+            "default": "form"
+          }
+        }
+      }
+    },
+    "styles-for-form": {
+      "else": {
+        "properties": {
+          "explode": {
+            "default": false
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "style": {
+            "const": "form"
+          }
+        },
+        "required": [
+          "style"
+        ]
+      },
+      "then": {
+        "properties": {
+          "explode": {
+            "default": true
+          }
+        }
+      }
+    },
+    "styles-for-header": {
+      "if": {
+        "properties": {
+          "in": {
+            "const": "header"
+          }
+        },
+        "required": [
+          "in"
+        ]
+      },
+      "then": {
+        "properties": {
+          "style": {
+            "const": "simple",
+            "default": "simple"
+          }
+        }
+      }
+    },
+    "styles-for-path": {
+      "if": {
+        "properties": {
+          "in": {
+            "const": "path"
+          }
+        },
+        "required": [
+          "in"
+        ]
+      },
+      "then": {
+        "properties": {
+          "name": {
+            "pattern": "[^/#?]+$"
+          },
+          "required": {
+            "const": true
+          },
+          "style": {
+            "default": "simple",
+            "enum": [
+              "matrix",
+              "label",
+              "simple"
+            ]
+          }
+        },
+        "required": [
+          "required"
+        ]
+      }
+    },
+    "styles-for-query": {
+      "if": {
+        "properties": {
+          "in": {
+            "const": "query"
+          }
+        },
+        "required": [
+          "in"
+        ]
+      },
+      "then": {
+        "properties": {
+          "allowReserved": {
+            "default": false,
+            "type": "boolean"
+          },
+          "style": {
+            "default": "form",
+            "enum": [
+              "form",
+              "spaceDelimited",
+              "pipeDelimited",
+              "deepObject"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$ref": "#/$defs/specification-extensions",
+  "patternProperties": {
+    "^/": {
+      "$ref": "#/$defs/path-item"
+    }
+  },
+  "type": "object",
+  "unevaluatedProperties": false
+}

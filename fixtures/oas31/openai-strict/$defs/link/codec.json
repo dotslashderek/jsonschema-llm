@@ -48,15 +48,11 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/body/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/result/properties/body/anyOf/0"
     },
     {
       "type": "json_string_parse",
       "path": "#/properties/result/properties/requestBody/anyOf/0"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/patternProperties/^x-"
     }
   ],
   "droppedConstraints": [

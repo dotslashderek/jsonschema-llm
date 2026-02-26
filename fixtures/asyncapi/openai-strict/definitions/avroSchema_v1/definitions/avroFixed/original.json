@@ -1,0 +1,44 @@
+{
+  "$defs": {
+    "name": {
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+      "type": "string"
+    },
+    "namespace": {
+      "pattern": "^([A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*)*$",
+      "type": "string"
+    }
+  },
+  "description": "A fixed sized array of bytes",
+  "properties": {
+    "aliases": {
+      "items": {
+        "$ref": "#/$defs/name"
+      },
+      "type": "array"
+    },
+    "doc": {
+      "type": "string"
+    },
+    "name": {
+      "$ref": "#/$defs/name"
+    },
+    "namespace": {
+      "$ref": "#/$defs/namespace"
+    },
+    "size": {
+      "type": "number"
+    },
+    "type": {
+      "const": "fixed",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "name",
+    "size"
+  ],
+  "title": "Fixed",
+  "type": "object"
+}

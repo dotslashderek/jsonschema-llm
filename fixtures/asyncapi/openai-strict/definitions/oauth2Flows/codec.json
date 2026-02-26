@@ -80,26 +80,6 @@
       "type": "nullable_optional",
       "path": "#/properties/flows/properties/password/anyOf/0/properties/refreshUrl",
       "originalRequired": false
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/flows/properties/authorizationCode/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/flows/properties/clientCredentials/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/flows/properties/implicit/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/flows/properties/password/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
     }
   ],
   "droppedConstraints": [

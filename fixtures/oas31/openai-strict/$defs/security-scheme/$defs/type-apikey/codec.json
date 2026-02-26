@@ -16,6 +16,7 @@
       "path": "#",
       "constraint": "if",
       "value": {
+        "additionalProperties": false,
         "properties": {
           "type": {
             "const": "apiKey"
@@ -23,13 +24,15 @@
         },
         "required": [
           "type"
-        ]
+        ],
+        "type": "object"
       }
     },
     {
       "path": "#",
       "constraint": "then",
       "value": {
+        "additionalProperties": false,
         "properties": {
           "in": {
             "enum": [
@@ -43,9 +46,10 @@
           }
         },
         "required": [
-          "name",
-          "in"
-        ]
+          "in",
+          "name"
+        ],
+        "type": "object"
       }
     }
   ]

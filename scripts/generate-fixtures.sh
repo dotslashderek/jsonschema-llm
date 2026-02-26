@@ -15,7 +15,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-CLI="$PROJECT_ROOT/target/release/jsonschema-llm"
+CLI="$PROJECT_ROOT/target/release/json-schema-llm"
 
 # ── Spec configuration ──────────────────────────────────────────────────────
 
@@ -81,7 +81,7 @@ done
 # ── Step 2: Build the CLI ────────────────────────────────────────────────────
 
 echo "🔧 Building CLI (release)..."
-cargo build --release -p jsonschema-llm --manifest-path "$PROJECT_ROOT/Cargo.toml" 2>&1 | tail -3
+cargo build --release -p json-schema-llm --manifest-path "$PROJECT_ROOT/Cargo.toml" 2>&1 | tail -3
 
 # ── Step 3: Generate fixtures per spec ───────────────────────────────────────
 

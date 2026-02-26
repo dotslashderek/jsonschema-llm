@@ -1,12 +1,6 @@
 {
   "$comment": "https://spec.openapis.org/oas/v3.1.0#components-object",
   "additionalProperties": false,
-  "patternProperties": {
-    "^(schemas|responses|parameters|examples|requestBodies|headers|securitySchemes|links|callbacks|pathItems)$": {
-      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-      "type": "string"
-    }
-  },
   "properties": {
     "callbacks": {
       "anyOf": [
@@ -233,9 +227,7 @@
               "key": {
                 "type": "string"
               },
-              "value": {
-                "$dynamicRef": "#meta"
-              }
+              "value": {}
             },
             "required": [
               "key",

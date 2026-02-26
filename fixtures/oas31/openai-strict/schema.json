@@ -6,41 +6,13 @@
       "$id": "https://spec.openapis.org/oas/3.1/schema/2022-10-07",
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "additionalProperties": false,
-      "anyOf": [
-        {
-          "required": [
-            "paths"
-          ]
-        },
-        {
-          "required": [
-            "components"
-          ]
-        },
-        {
-          "required": [
-            "webhooks"
-          ]
-        }
-      ],
-      "description": "The description of OpenAPI v3.1.x documents without schema validation, as defined by https://spec.openapis.org/oas/v3.1.0",
-      "patternProperties": {
-        "^x-": {
-          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-          "type": "string"
-        }
-      },
+      "description": "The description of OpenAPI v3.1.x documents without schema validation, as defined by https://spec.openapis.org/oas/v3.1.0\n\nNote: While properties may be nullable, a valid output MUST include a non-null value for at least one of these properties: components, paths, webhooks",
       "properties": {
         "components": {
           "anyOf": [
             {
-              "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
-              "patternProperties": {
-                "^x-": {
-                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                  "type": "string"
-                }
-              }
+              "description": "MUST be a valid JSON value serialized as a string. Structure: any. includes properties matching pattern(s) [^x-]. Do NOT output plain text — the value must parse with JSON.parse().",
+              "type": "string"
             },
             {
               "type": "null"
@@ -50,13 +22,8 @@
         "externalDocs": {
           "anyOf": [
             {
-              "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
-              "patternProperties": {
-                "^x-": {
-                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                  "type": "string"
-                }
-              }
+              "description": "MUST be a valid JSON value serialized as a string. Structure: any. includes properties matching pattern(s) [^x-]. Do NOT output plain text — the value must parse with JSON.parse().",
+              "type": "string"
             },
             {
               "type": "null"
@@ -64,13 +31,8 @@
           ]
         },
         "info": {
-          "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
-          "patternProperties": {
-            "^x-": {
-              "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-              "type": "string"
-            }
-          }
+          "description": "MUST be a valid JSON value serialized as a string. Structure: any. includes properties matching pattern(s) [^x-]. Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
         },
         "jsonSchemaDialect": {
           "anyOf": [
@@ -90,13 +52,8 @@
         "paths": {
           "anyOf": [
             {
-              "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
-              "patternProperties": {
-                "^x-": {
-                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                  "type": "string"
-                }
-              }
+              "description": "MUST be a valid JSON value serialized as a string. Structure: any. includes properties matching pattern(s) [^x-]. Do NOT output plain text — the value must parse with JSON.parse().",
+              "type": "string"
             },
             {
               "type": "null"
@@ -139,13 +96,8 @@
           "anyOf": [
             {
               "items": {
-                "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
-                "patternProperties": {
-                  "^x-": {
-                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                    "type": "string"
-                  }
-                }
+                "description": "MUST be a valid JSON value serialized as a string. Structure: any. includes properties matching pattern(s) [^x-]. Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
               },
               "type": "array"
             },
@@ -158,13 +110,8 @@
           "anyOf": [
             {
               "items": {
-                "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
-                "patternProperties": {
-                  "^x-": {
-                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                    "type": "string"
-                  }
-                }
+                "description": "MUST be a valid JSON value serialized as a string. Structure: any. includes properties matching pattern(s) [^x-]. Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
               },
               "type": "array"
             },

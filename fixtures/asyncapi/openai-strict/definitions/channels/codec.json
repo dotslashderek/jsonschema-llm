@@ -724,6 +724,14 @@
       "path": "#/items/properties/value/properties/subscribe/properties/traits/items/anyOf/1/properties/bindings/properties/ws"
     },
     {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/properties/publish/properties/message/anyOf/1/anyOf/0/properties/oneOf/items"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value/properties/subscribe/properties/message/anyOf/1/anyOf/0/properties/oneOf/items"
+    },
+    {
       "type": "nullable_optional",
       "path": "#/items/properties/value/properties/$ref",
       "originalRequired": false
@@ -851,6 +859,21 @@
     {
       "type": "nullable_optional",
       "path": "#/items/properties/value/properties/bindings/anyOf/0/properties/ws",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/properties/parameters/anyOf/0/items/properties/value/anyOf/1/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/properties/parameters/anyOf/0/items/properties/value/anyOf/1/properties/location",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/properties/parameters/anyOf/0/items/properties/value/anyOf/1/properties/schema",
       "originalRequired": false
     },
     {
@@ -1195,6 +1218,11 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/headers/anyOf/0/properties/type",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/tags/anyOf/0/items/properties/description",
       "originalRequired": false
     },
@@ -1396,6 +1424,11 @@
     {
       "type": "nullable_optional",
       "path": "#/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/headers/anyOf/0/properties/type",
       "originalRequired": false
     },
     {
@@ -1915,6 +1948,11 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/headers/anyOf/0/properties/type",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/tags/anyOf/0/items/properties/description",
       "originalRequired": false
     },
@@ -2120,6 +2158,11 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/headers/anyOf/0/properties/type",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/tags/anyOf/0/items/properties/description",
       "originalRequired": false
     },
@@ -2300,63 +2343,7 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/parameters/anyOf/0/items/properties/value/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/correlationId/anyOf/0/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/tags/anyOf/0/items/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/tags/anyOf/0/items/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/correlationId/anyOf/0/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
       "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/tags/anyOf/0/items/properties/externalDocs"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/tags/anyOf/0/items/patternProperties/^x-[\\w\\d\\.\\x2d_]+$"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/tags/anyOf/0/items/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/tags/anyOf/0/items/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
     },
     {
       "type": "json_string_parse",
@@ -2364,99 +2351,11 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/traits/anyOf/0/items/anyOf/1/properties/tags/anyOf/0/items/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/traits/anyOf/0/items/anyOf/1/properties/tags/anyOf/0/items/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/properties/traits/anyOf/0/items/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/publish/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/correlationId/anyOf/0/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/tags/anyOf/0/items/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/tags/anyOf/0/items/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/correlationId/anyOf/0/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
       "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/tags/anyOf/0/items/properties/externalDocs"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/tags/anyOf/0/items/patternProperties/^x-[\\w\\d\\.\\x2d_]+$"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/tags/anyOf/0/items/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/tags/anyOf/0/items/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/traits/anyOf/0/items/anyOf/1/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
       "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/traits/anyOf/0/items/anyOf/1/properties/security/anyOf/0/items/items/properties/value"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/traits/anyOf/0/items/anyOf/1/properties/tags/anyOf/0/items/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/traits/anyOf/0/items/anyOf/1/properties/tags/anyOf/0/items/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/properties/traits/anyOf/0/items/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/properties/subscribe/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/items/properties/value/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
     }
   ],
   "droppedConstraints": [
@@ -3081,7 +2980,7 @@
       "value": "uri"
     },
     {
-      "path": "#/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/headers/anyOf/0/properties/type",
+      "path": "#/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/headers/anyOf/0/properties/type/anyOf/0",
       "constraint": "const",
       "value": "object"
     },
@@ -3116,7 +3015,7 @@
       "value": "uri"
     },
     {
-      "path": "#/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/headers/anyOf/0/properties/type",
+      "path": "#/items/properties/value/properties/publish/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/headers/anyOf/0/properties/type/anyOf/0",
       "constraint": "const",
       "value": "object"
     },
@@ -3201,7 +3100,7 @@
       "value": "uri"
     },
     {
-      "path": "#/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/headers/anyOf/0/properties/type",
+      "path": "#/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/headers/anyOf/0/properties/type/anyOf/0",
       "constraint": "const",
       "value": "object"
     },
@@ -3236,7 +3135,7 @@
       "value": "uri"
     },
     {
-      "path": "#/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/headers/anyOf/0/properties/type",
+      "path": "#/items/properties/value/properties/subscribe/anyOf/0/properties/message/anyOf/0/anyOf/1/anyOf/1/properties/traits/anyOf/0/items/anyOf/1/properties/headers/anyOf/0/properties/type/anyOf/0",
       "constraint": "const",
       "value": "object"
     },

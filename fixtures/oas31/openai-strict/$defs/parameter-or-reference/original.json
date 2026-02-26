@@ -1,0 +1,648 @@
+{
+  "$defs": {
+    "content": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#fixed-fields-10",
+      "additionalProperties": {
+        "$ref": "#/$defs/media-type"
+      },
+      "propertyNames": {
+        "format": "media-range"
+      },
+      "type": "object"
+    },
+    "encoding": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#encoding-object",
+      "$defs": {
+        "explode-default": {
+          "else": {
+            "properties": {
+              "explode": {
+                "default": false
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "style": {
+                "const": "form"
+              }
+            },
+            "required": [
+              "style"
+            ]
+          },
+          "then": {
+            "properties": {
+              "explode": {
+                "default": true
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/specification-extensions"
+        },
+        {
+          "$ref": "#/$defs/explode-default"
+        }
+      ],
+      "properties": {
+        "allowReserved": {
+          "default": false,
+          "type": "boolean"
+        },
+        "contentType": {
+          "format": "media-range",
+          "type": "string"
+        },
+        "explode": {
+          "type": "boolean"
+        },
+        "headers": {
+          "additionalProperties": {
+            "$ref": "#/$defs/header-or-reference"
+          },
+          "type": "object"
+        },
+        "style": {
+          "default": "form",
+          "enum": [
+            "form",
+            "spaceDelimited",
+            "pipeDelimited",
+            "deepObject"
+          ]
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "example": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#example-object",
+      "$ref": "#/$defs/specification-extensions",
+      "not": {
+        "required": [
+          "value",
+          "externalValue"
+        ]
+      },
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "externalValue": {
+          "format": "uri",
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "value": true
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "example-or-reference": {
+      "else": {
+        "$ref": "#/$defs/example"
+      },
+      "if": {
+        "required": [
+          "$ref"
+        ],
+        "type": "object"
+      },
+      "then": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "examples": {
+      "properties": {
+        "example": true,
+        "examples": {
+          "additionalProperties": {
+            "$ref": "#/$defs/example-or-reference"
+          },
+          "type": "object"
+        }
+      }
+    },
+    "explode-default": {
+      "else": {
+        "properties": {
+          "explode": {
+            "default": false
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "style": {
+            "const": "form"
+          }
+        },
+        "required": [
+          "style"
+        ]
+      },
+      "then": {
+        "properties": {
+          "explode": {
+            "default": true
+          }
+        }
+      }
+    },
+    "header": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#header-object",
+      "$ref": "#/$defs/specification-extensions",
+      "dependentSchemas": {
+        "schema": {
+          "$ref": "#/$defs/examples",
+          "properties": {
+            "explode": {
+              "default": false,
+              "type": "boolean"
+            },
+            "style": {
+              "const": "simple",
+              "default": "simple"
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "schema"
+          ]
+        },
+        {
+          "required": [
+            "content"
+          ]
+        }
+      ],
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/content",
+          "maxProperties": 1,
+          "minProperties": 1
+        },
+        "deprecated": {
+          "default": false,
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        },
+        "schema": {
+          "$dynamicRef": "#meta"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "header-or-reference": {
+      "else": {
+        "$ref": "#/$defs/header"
+      },
+      "if": {
+        "required": [
+          "$ref"
+        ],
+        "type": "object"
+      },
+      "then": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "media-type": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#media-type-object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/specification-extensions"
+        },
+        {
+          "$ref": "#/$defs/examples"
+        }
+      ],
+      "properties": {
+        "encoding": {
+          "additionalProperties": {
+            "$ref": "#/$defs/encoding"
+          },
+          "type": "object"
+        },
+        "schema": {
+          "$dynamicRef": "#meta"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "parameter": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#parameter-object",
+      "$ref": "#/$defs/specification-extensions",
+      "dependentSchemas": {
+        "schema": {
+          "$defs": {
+            "styles-for-cookie": {
+              "if": {
+                "properties": {
+                  "in": {
+                    "const": "cookie"
+                  }
+                },
+                "required": [
+                  "in"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "style": {
+                    "const": "form",
+                    "default": "form"
+                  }
+                }
+              }
+            },
+            "styles-for-form": {
+              "else": {
+                "properties": {
+                  "explode": {
+                    "default": false
+                  }
+                }
+              },
+              "if": {
+                "properties": {
+                  "style": {
+                    "const": "form"
+                  }
+                },
+                "required": [
+                  "style"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "explode": {
+                    "default": true
+                  }
+                }
+              }
+            },
+            "styles-for-header": {
+              "if": {
+                "properties": {
+                  "in": {
+                    "const": "header"
+                  }
+                },
+                "required": [
+                  "in"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "style": {
+                    "const": "simple",
+                    "default": "simple"
+                  }
+                }
+              }
+            },
+            "styles-for-path": {
+              "if": {
+                "properties": {
+                  "in": {
+                    "const": "path"
+                  }
+                },
+                "required": [
+                  "in"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "name": {
+                    "pattern": "[^/#?]+$"
+                  },
+                  "required": {
+                    "const": true
+                  },
+                  "style": {
+                    "default": "simple",
+                    "enum": [
+                      "matrix",
+                      "label",
+                      "simple"
+                    ]
+                  }
+                },
+                "required": [
+                  "required"
+                ]
+              }
+            },
+            "styles-for-query": {
+              "if": {
+                "properties": {
+                  "in": {
+                    "const": "query"
+                  }
+                },
+                "required": [
+                  "in"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "allowReserved": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "style": {
+                    "default": "form",
+                    "enum": [
+                      "form",
+                      "spaceDelimited",
+                      "pipeDelimited",
+                      "deepObject"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "allOf": [
+            {
+              "$ref": "#/$defs/examples"
+            },
+            {
+              "$ref": "#/$defs/styles-for-path"
+            },
+            {
+              "$ref": "#/$defs/styles-for-header"
+            },
+            {
+              "$ref": "#/$defs/styles-for-query"
+            },
+            {
+              "$ref": "#/$defs/styles-for-cookie"
+            },
+            {
+              "$ref": "#/$defs/styles-for-form"
+            }
+          ],
+          "properties": {
+            "explode": {
+              "type": "boolean"
+            },
+            "style": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "in": {
+            "const": "query"
+          }
+        },
+        "required": [
+          "in"
+        ]
+      },
+      "oneOf": [
+        {
+          "required": [
+            "schema"
+          ]
+        },
+        {
+          "required": [
+            "content"
+          ]
+        }
+      ],
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/content",
+          "maxProperties": 1,
+          "minProperties": 1
+        },
+        "deprecated": {
+          "default": false,
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "in": {
+          "enum": [
+            "query",
+            "header",
+            "path",
+            "cookie"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        },
+        "schema": {
+          "$dynamicRef": "#meta"
+        }
+      },
+      "required": [
+        "name",
+        "in"
+      ],
+      "then": {
+        "properties": {
+          "allowEmptyValue": {
+            "default": false,
+            "type": "boolean"
+          }
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "reference": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#reference-object",
+      "properties": {
+        "$ref": {
+          "format": "uri-reference",
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "specification-extensions": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
+      "patternProperties": {
+        "^x-": true
+      }
+    },
+    "styles-for-cookie": {
+      "if": {
+        "properties": {
+          "in": {
+            "const": "cookie"
+          }
+        },
+        "required": [
+          "in"
+        ]
+      },
+      "then": {
+        "properties": {
+          "style": {
+            "const": "form",
+            "default": "form"
+          }
+        }
+      }
+    },
+    "styles-for-form": {
+      "else": {
+        "properties": {
+          "explode": {
+            "default": false
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "style": {
+            "const": "form"
+          }
+        },
+        "required": [
+          "style"
+        ]
+      },
+      "then": {
+        "properties": {
+          "explode": {
+            "default": true
+          }
+        }
+      }
+    },
+    "styles-for-header": {
+      "if": {
+        "properties": {
+          "in": {
+            "const": "header"
+          }
+        },
+        "required": [
+          "in"
+        ]
+      },
+      "then": {
+        "properties": {
+          "style": {
+            "const": "simple",
+            "default": "simple"
+          }
+        }
+      }
+    },
+    "styles-for-path": {
+      "if": {
+        "properties": {
+          "in": {
+            "const": "path"
+          }
+        },
+        "required": [
+          "in"
+        ]
+      },
+      "then": {
+        "properties": {
+          "name": {
+            "pattern": "[^/#?]+$"
+          },
+          "required": {
+            "const": true
+          },
+          "style": {
+            "default": "simple",
+            "enum": [
+              "matrix",
+              "label",
+              "simple"
+            ]
+          }
+        },
+        "required": [
+          "required"
+        ]
+      }
+    },
+    "styles-for-query": {
+      "if": {
+        "properties": {
+          "in": {
+            "const": "query"
+          }
+        },
+        "required": [
+          "in"
+        ]
+      },
+      "then": {
+        "properties": {
+          "allowReserved": {
+            "default": false,
+            "type": "boolean"
+          },
+          "style": {
+            "default": "form",
+            "enum": [
+              "form",
+              "spaceDelimited",
+              "pipeDelimited",
+              "deepObject"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "else": {
+    "$ref": "#/$defs/parameter"
+  },
+  "if": {
+    "required": [
+      "$ref"
+    ],
+    "type": "object"
+  },
+  "then": {
+    "$ref": "#/$defs/reference"
+  }
+}

@@ -1,0 +1,307 @@
+{
+  "$defs": {
+    "content": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#fixed-fields-10",
+      "additionalProperties": {
+        "$ref": "#/$defs/media-type"
+      },
+      "propertyNames": {
+        "format": "media-range"
+      },
+      "type": "object"
+    },
+    "encoding": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#encoding-object",
+      "$defs": {
+        "explode-default": {
+          "else": {
+            "properties": {
+              "explode": {
+                "default": false
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "style": {
+                "const": "form"
+              }
+            },
+            "required": [
+              "style"
+            ]
+          },
+          "then": {
+            "properties": {
+              "explode": {
+                "default": true
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/$defs/specification-extensions"
+        },
+        {
+          "$ref": "#/$defs/explode-default"
+        }
+      ],
+      "properties": {
+        "allowReserved": {
+          "default": false,
+          "type": "boolean"
+        },
+        "contentType": {
+          "format": "media-range",
+          "type": "string"
+        },
+        "explode": {
+          "type": "boolean"
+        },
+        "headers": {
+          "additionalProperties": {
+            "$ref": "#/$defs/header-or-reference"
+          },
+          "type": "object"
+        },
+        "style": {
+          "default": "form",
+          "enum": [
+            "form",
+            "spaceDelimited",
+            "pipeDelimited",
+            "deepObject"
+          ]
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "example": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#example-object",
+      "$ref": "#/$defs/specification-extensions",
+      "not": {
+        "required": [
+          "value",
+          "externalValue"
+        ]
+      },
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "externalValue": {
+          "format": "uri",
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "value": true
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "example-or-reference": {
+      "else": {
+        "$ref": "#/$defs/example"
+      },
+      "if": {
+        "required": [
+          "$ref"
+        ],
+        "type": "object"
+      },
+      "then": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "examples": {
+      "properties": {
+        "example": true,
+        "examples": {
+          "additionalProperties": {
+            "$ref": "#/$defs/example-or-reference"
+          },
+          "type": "object"
+        }
+      }
+    },
+    "explode-default": {
+      "else": {
+        "properties": {
+          "explode": {
+            "default": false
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "style": {
+            "const": "form"
+          }
+        },
+        "required": [
+          "style"
+        ]
+      },
+      "then": {
+        "properties": {
+          "explode": {
+            "default": true
+          }
+        }
+      }
+    },
+    "header": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#header-object",
+      "$ref": "#/$defs/specification-extensions",
+      "dependentSchemas": {
+        "schema": {
+          "$ref": "#/$defs/examples",
+          "properties": {
+            "explode": {
+              "default": false,
+              "type": "boolean"
+            },
+            "style": {
+              "const": "simple",
+              "default": "simple"
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "required": [
+            "schema"
+          ]
+        },
+        {
+          "required": [
+            "content"
+          ]
+        }
+      ],
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/content",
+          "maxProperties": 1,
+          "minProperties": 1
+        },
+        "deprecated": {
+          "default": false,
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        },
+        "schema": {
+          "$dynamicRef": "#meta"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "header-or-reference": {
+      "else": {
+        "$ref": "#/$defs/header"
+      },
+      "if": {
+        "required": [
+          "$ref"
+        ],
+        "type": "object"
+      },
+      "then": {
+        "$ref": "#/$defs/reference"
+      }
+    },
+    "media-type": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#media-type-object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/specification-extensions"
+        },
+        {
+          "$ref": "#/$defs/examples"
+        }
+      ],
+      "properties": {
+        "encoding": {
+          "additionalProperties": {
+            "$ref": "#/$defs/encoding"
+          },
+          "type": "object"
+        },
+        "schema": {
+          "$dynamicRef": "#meta"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "reference": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#reference-object",
+      "properties": {
+        "$ref": {
+          "format": "uri-reference",
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "request-body": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#request-body-object",
+      "$ref": "#/$defs/specification-extensions",
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/content"
+        },
+        "description": {
+          "type": "string"
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "content"
+      ],
+      "type": "object",
+      "unevaluatedProperties": false
+    },
+    "specification-extensions": {
+      "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
+      "patternProperties": {
+        "^x-": true
+      }
+    }
+  },
+  "else": {
+    "$ref": "#/$defs/request-body"
+  },
+  "if": {
+    "required": [
+      "$ref"
+    ],
+    "type": "object"
+  },
+  "then": {
+    "$ref": "#/$defs/reference"
+  }
+}

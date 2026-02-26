@@ -7,6 +7,10 @@
       "keyField": "key"
     },
     {
+      "type": "json_string_parse",
+      "path": "#/items/properties/value"
+    },
+    {
       "type": "root_object_wrapper",
       "path": "#",
       "wrapperKey": "result"

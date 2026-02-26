@@ -1,0 +1,49 @@
+{
+  "$defs": {
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "additionalProperties": false,
+  "not": {
+    "properties": {
+      "scheme": {
+        "description": "A short description for security scheme.",
+        "enum": [
+          "bearer"
+        ],
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "description": {
+      "description": "A short description for security scheme.",
+      "type": "string"
+    },
+    "scheme": {
+      "description": "The name of the HTTP Authorization scheme to be used in the Authorization header as defined in RFC7235.",
+      "type": "string"
+    },
+    "type": {
+      "description": "The type of the security scheme. ",
+      "enum": [
+        "http"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "scheme",
+    "type"
+  ],
+  "type": "object"
+}

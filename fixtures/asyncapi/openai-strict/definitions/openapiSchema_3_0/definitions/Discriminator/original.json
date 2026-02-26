@@ -1,0 +1,17 @@
+{
+  "properties": {
+    "mapping": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "propertyName": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "propertyName"
+  ],
+  "type": "object"
+}

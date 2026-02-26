@@ -1,0 +1,35 @@
+{
+  "$defs": {
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "description": {
+      "type": "string"
+    },
+    "openIdConnectUrl": {
+      "format": "uri",
+      "type": "string"
+    },
+    "type": {
+      "enum": [
+        "openIdConnect"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "openIdConnectUrl"
+  ],
+  "type": "object"
+}

@@ -1,56 +1,48 @@
 {
   "additionalProperties": false,
   "properties": {
-    "result": {
-      "additionalProperties": false,
-      "properties": {
-        "example": {
-          "anyOf": [
-            {
-              "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ]
+    "example": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
         },
-        "examples": {
-          "anyOf": [
-            {
-              "items": {
-                "additionalProperties": false,
-                "properties": {
-                  "key": {
-                    "type": "string"
-                  },
-                  "value": {
-                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "key",
-                  "value"
-                ],
-                "type": "object"
-              },
-              "type": "array"
-            },
-            {
-              "type": "null"
-            }
-          ]
+        {
+          "type": "null"
         }
-      },
-      "required": [
-        "example",
-        "examples"
+      ]
+    },
+    "examples": {
+      "anyOf": [
+        {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "value": {
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "value"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
       ]
     }
   },
   "required": [
-    "result"
+    "example",
+    "examples"
   ],
   "type": "object"
 }

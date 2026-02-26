@@ -1,0 +1,22 @@
+{
+  "if": {
+    "properties": {
+      "type": {
+        "const": "http"
+      }
+    },
+    "required": [
+      "type"
+    ]
+  },
+  "then": {
+    "properties": {
+      "scheme": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "scheme"
+    ]
+  }
+}

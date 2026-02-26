@@ -1,0 +1,19 @@
+{
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-": {}
+  },
+  "properties": {
+    "description": {
+      "type": "string"
+    },
+    "url": {
+      "format": "uri-reference",
+      "type": "string"
+    }
+  },
+  "required": [
+    "url"
+  ],
+  "type": "object"
+}

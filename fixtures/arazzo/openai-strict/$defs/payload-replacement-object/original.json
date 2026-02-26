@@ -1,0 +1,30 @@
+{
+  "$comment": "https://spec.openapis.org/arazzo/v1.0#payload-replacement-object",
+  "$defs": {
+    "specification-extensions": {
+      "$comment": "https://spec.openapis.org/arazzo/v1.0#specification-extensions",
+      "description": "While the Arazzo Specification tries to accommodate most use cases, additional data can be added to extend the specification at certain points",
+      "patternProperties": {
+        "^x-": true
+      }
+    }
+  },
+  "$ref": "#/$defs/specification-extensions",
+  "description": "Describes a location within a payload (e.g., a request body) and a value to set within the location",
+  "properties": {
+    "target": {
+      "description": "A JSON Pointer or XPath Expression which MUST be resolved against the request body",
+      "type": "string"
+    },
+    "value": {
+      "description": "The value set within the target location",
+      "type": "string"
+    }
+  },
+  "required": [
+    "target",
+    "value"
+  ],
+  "type": "object",
+  "unevaluatedProperties": false
+}

@@ -10,10 +10,6 @@
       "type": "nullable_optional",
       "path": "#/not/properties/scheme",
       "originalRequired": false
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
     }
   ],
   "droppedConstraints": [

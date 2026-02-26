@@ -1,0 +1,27 @@
+{
+  "additionalProperties": false,
+  "patternProperties": {
+    "^x-": {}
+  },
+  "properties": {
+    "attribute": {
+      "default": false,
+      "type": "boolean"
+    },
+    "name": {
+      "type": "string"
+    },
+    "namespace": {
+      "format": "uri",
+      "type": "string"
+    },
+    "prefix": {
+      "type": "string"
+    },
+    "wrapped": {
+      "default": false,
+      "type": "boolean"
+    }
+  },
+  "type": "object"
+}

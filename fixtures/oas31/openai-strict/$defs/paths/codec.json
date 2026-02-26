@@ -110,10 +110,6 @@
     {
       "type": "json_string_parse",
       "path": "#/$defs/styles-for-form/else/properties/explode"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^~1/patternProperties/^x-"
     }
   ],
   "droppedConstraints": []

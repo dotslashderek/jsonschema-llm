@@ -1,0 +1,24 @@
+{
+  "if": {
+    "properties": {
+      "scheme": {
+        "pattern": "^[Bb][Ee][Aa][Rr][Ee][Rr]$",
+        "type": "string"
+      },
+      "type": {
+        "const": "http"
+      }
+    },
+    "required": [
+      "type",
+      "scheme"
+    ]
+  },
+  "then": {
+    "properties": {
+      "bearerFormat": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -12,66 +12,61 @@
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/examples/items/properties/value/then/properties/$ref",
+      "path": "#/properties/example",
       "originalRequired": false
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/examples/items/properties/value/then/properties/description",
+      "path": "#/properties/examples",
       "originalRequired": false
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/examples/items/properties/value/then/properties/summary",
+      "path": "#/properties/examples/anyOf/0/items/properties/value/then/properties/$ref",
       "originalRequired": false
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/examples/items/properties/value/else/properties/description",
+      "path": "#/properties/examples/anyOf/0/items/properties/value/then/properties/description",
       "originalRequired": false
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/examples/items/properties/value/else/properties/externalValue",
+      "path": "#/properties/examples/anyOf/0/items/properties/value/then/properties/summary",
       "originalRequired": false
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/examples/items/properties/value/else/properties/summary",
+      "path": "#/properties/examples/anyOf/0/items/properties/value/else/properties/description",
       "originalRequired": false
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/examples/items/properties/value/else/properties/value",
-      "originalRequired": false
-    },
-    {
-      "type": "root_object_wrapper",
-      "path": "#",
-      "wrapperKey": "result"
-    },
-    {
-      "type": "nullable_optional",
-      "path": "#/properties/result/properties/example",
+      "path": "#/properties/examples/anyOf/0/items/properties/value/else/properties/externalValue",
       "originalRequired": false
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/result/properties/examples",
+      "path": "#/properties/examples/anyOf/0/items/properties/value/else/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/examples/anyOf/0/items/properties/value/else/properties/value",
       "originalRequired": false
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/example/anyOf/0"
+      "path": "#/properties/example/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/examples/anyOf/0/items/properties/value"
+      "path": "#/properties/examples/anyOf/0/items/properties/value"
     }
   ],
   "droppedConstraints": [
     {
-      "path": "#/properties/examples/items/properties/value",
+      "path": "#/properties/examples/anyOf/0/items/properties/value",
       "constraint": "if",
       "value": {
         "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
@@ -79,7 +74,7 @@
       }
     },
     {
-      "path": "#/properties/examples/items/properties/value",
+      "path": "#/properties/examples/anyOf/0/items/properties/value",
       "constraint": "then",
       "value": {
         "$comment": "https://spec.openapis.org/oas/v3.1.0#reference-object",
@@ -126,7 +121,7 @@
       }
     },
     {
-      "path": "#/properties/examples/items/properties/value",
+      "path": "#/properties/examples/anyOf/0/items/properties/value",
       "constraint": "else",
       "value": {
         "$comment": "https://spec.openapis.org/oas/v3.1.0#example-object",

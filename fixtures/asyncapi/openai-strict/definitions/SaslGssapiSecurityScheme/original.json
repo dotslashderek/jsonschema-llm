@@ -1,0 +1,37 @@
+{
+  "$defs": {
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "type": "scramSha512"
+    }
+  ],
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "description": {
+      "description": "A short description for security scheme.",
+      "type": "string"
+    },
+    "type": {
+      "description": "The type of the security scheme.",
+      "enum": [
+        "gssapi"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "type"
+  ],
+  "type": "object"
+}

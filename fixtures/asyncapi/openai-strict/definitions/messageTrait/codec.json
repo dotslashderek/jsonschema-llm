@@ -273,6 +273,11 @@
     },
     {
       "type": "nullable_optional",
+      "path": "#/properties/headers/anyOf/0/properties/type",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
       "path": "#/properties/tags/anyOf/0/items/properties/description",
       "originalRequired": false
     },
@@ -285,26 +290,6 @@
       "type": "nullable_optional",
       "path": "#/properties/tags/anyOf/0/items/properties/externalDocs/anyOf/0/properties/description",
       "originalRequired": false
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/correlationId/anyOf/0/anyOf/1/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/tags/anyOf/0/items/properties/externalDocs/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/tags/anyOf/0/items/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
     }
   ],
   "droppedConstraints": [
@@ -324,7 +309,7 @@
       "value": "uri"
     },
     {
-      "path": "#/properties/headers/anyOf/0/properties/type",
+      "path": "#/properties/headers/anyOf/0/properties/type/anyOf/0",
       "constraint": "const",
       "value": "object"
     },

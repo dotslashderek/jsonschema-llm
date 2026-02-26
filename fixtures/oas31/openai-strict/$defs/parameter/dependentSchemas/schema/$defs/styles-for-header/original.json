@@ -1,0 +1,20 @@
+{
+  "if": {
+    "properties": {
+      "in": {
+        "const": "header"
+      }
+    },
+    "required": [
+      "in"
+    ]
+  },
+  "then": {
+    "properties": {
+      "style": {
+        "const": "simple",
+        "default": "simple"
+      }
+    }
+  }
+}

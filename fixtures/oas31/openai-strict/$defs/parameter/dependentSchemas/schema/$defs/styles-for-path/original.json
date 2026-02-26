@@ -1,0 +1,33 @@
+{
+  "if": {
+    "properties": {
+      "in": {
+        "const": "path"
+      }
+    },
+    "required": [
+      "in"
+    ]
+  },
+  "then": {
+    "properties": {
+      "name": {
+        "pattern": "[^/#?]+$"
+      },
+      "required": {
+        "const": true
+      },
+      "style": {
+        "default": "simple",
+        "enum": [
+          "matrix",
+          "label",
+          "simple"
+        ]
+      }
+    },
+    "required": [
+      "required"
+    ]
+  }
+}

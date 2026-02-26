@@ -1,0 +1,23 @@
+{
+  "$defs": {
+    "ReferenceObject": {
+      "description": "A simple object to allow referencing other components in the specification, internally and externally.",
+      "examples": [
+        {
+          "$ref": "#/components/schemas/Pet"
+        }
+      ],
+      "format": "uri-reference",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "$ref": {
+      "$ref": "#/$defs/ReferenceObject"
+    }
+  },
+  "required": [
+    "$ref"
+  ],
+  "type": "object"
+}

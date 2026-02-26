@@ -1,0 +1,488 @@
+{
+  "$defs": {
+    "externalDocs": {
+      "additionalProperties": false,
+      "description": "Allows referencing an external resource for extended documentation.",
+      "examples": [
+        {
+          "description": "Find more info here",
+          "url": "https://example.com"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description of the target documentation.",
+          "type": "string"
+        },
+        "url": {
+          "description": "The URL for the target documentation. This MUST be in the form of an absolute URL.",
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "type": "object"
+    },
+    "json-schema-draft-07-schema": {
+      "default": true,
+      "definitions": {
+        "nonNegativeInteger": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "nonNegativeIntegerDefault0": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/nonNegativeInteger"
+            },
+            {
+              "default": 0
+            }
+          ]
+        },
+        "schemaArray": {
+          "items": {
+            "$ref": "#/$defs/json-schema-draft-07-schema"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "simpleTypes": {
+          "enum": [
+            "array",
+            "boolean",
+            "integer",
+            "null",
+            "number",
+            "object",
+            "string"
+          ]
+        },
+        "stringArray": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "$id": {
+          "format": "uri-reference",
+          "type": "string"
+        },
+        "$ref": {
+          "format": "uri-reference",
+          "type": "string"
+        },
+        "$schema": {
+          "format": "uri",
+          "type": "string"
+        },
+        "additionalItems": {
+          "$ref": "#/$defs/json-schema-draft-07-schema"
+        },
+        "additionalProperties": {
+          "$ref": "#/$defs/json-schema-draft-07-schema"
+        },
+        "allOf": {
+          "$ref": "#/$defs/schemaArray"
+        },
+        "anyOf": {
+          "$ref": "#/$defs/schemaArray"
+        },
+        "const": true,
+        "contains": {
+          "$ref": "#/$defs/json-schema-draft-07-schema"
+        },
+        "contentEncoding": {
+          "type": "string"
+        },
+        "contentMediaType": {
+          "type": "string"
+        },
+        "default": true,
+        "definitions": {
+          "additionalProperties": {
+            "$ref": "#/$defs/json-schema-draft-07-schema"
+          },
+          "default": {},
+          "type": "object"
+        },
+        "dependencies": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/json-schema-draft-07-schema"
+              },
+              {
+                "$ref": "#/$defs/stringArray"
+              }
+            ]
+          },
+          "type": "object"
+        },
+        "description": {
+          "type": "string"
+        },
+        "else": {
+          "$ref": "#/$defs/json-schema-draft-07-schema"
+        },
+        "enum": {
+          "items": true,
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "examples": {
+          "items": true,
+          "type": "array"
+        },
+        "exclusiveMaximum": {
+          "type": "number"
+        },
+        "exclusiveMinimum": {
+          "type": "number"
+        },
+        "format": {
+          "type": "string"
+        },
+        "if": {
+          "$ref": "#/$defs/json-schema-draft-07-schema"
+        },
+        "items": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/json-schema-draft-07-schema"
+            },
+            {
+              "$ref": "#/$defs/schemaArray"
+            }
+          ],
+          "default": true
+        },
+        "maxItems": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "maxLength": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "maxProperties": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "minItems": {
+          "$ref": "#/$defs/nonNegativeIntegerDefault0"
+        },
+        "minLength": {
+          "$ref": "#/$defs/nonNegativeIntegerDefault0"
+        },
+        "minProperties": {
+          "$ref": "#/$defs/nonNegativeIntegerDefault0"
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "multipleOf": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "not": {
+          "$ref": "#/$defs/json-schema-draft-07-schema"
+        },
+        "oneOf": {
+          "$ref": "#/$defs/schemaArray"
+        },
+        "pattern": {
+          "format": "regex",
+          "type": "string"
+        },
+        "patternProperties": {
+          "additionalProperties": {
+            "$ref": "#/$defs/json-schema-draft-07-schema"
+          },
+          "default": {},
+          "propertyNames": {
+            "format": "regex"
+          },
+          "type": "object"
+        },
+        "properties": {
+          "additionalProperties": {
+            "$ref": "#/$defs/json-schema-draft-07-schema"
+          },
+          "default": {},
+          "type": "object"
+        },
+        "propertyNames": {
+          "$ref": "#/$defs/json-schema-draft-07-schema"
+        },
+        "readOnly": {
+          "default": false,
+          "type": "boolean"
+        },
+        "required": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "then": {
+          "$ref": "#/$defs/json-schema-draft-07-schema"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/simpleTypes"
+            },
+            {
+              "items": {
+                "$ref": "#/$defs/simpleTypes"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            }
+          ]
+        },
+        "uniqueItems": {
+          "default": false,
+          "type": "boolean"
+        },
+        "writeOnly": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "title": "Core schema meta-schema",
+      "type": [
+        "object",
+        "boolean"
+      ]
+    },
+    "nonNegativeInteger": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "nonNegativeIntegerDefault0": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        {
+          "default": 0
+        }
+      ]
+    },
+    "schema": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/json-schema-draft-07-schema"
+        },
+        {
+          "patternProperties": {
+            "^x-[\\w\\d\\.\\x2d_]+$": {
+              "$ref": "#/$defs/specificationExtension"
+            }
+          },
+          "properties": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/schema"
+                },
+                {
+                  "type": "boolean"
+                }
+              ],
+              "default": {}
+            },
+            "allOf": {
+              "items": {
+                "$ref": "#/$defs/schema"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "anyOf": {
+              "items": {
+                "$ref": "#/$defs/schema"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "contains": {
+              "$ref": "#/$defs/schema"
+            },
+            "deprecated": {
+              "default": false,
+              "description": "Specifies that a schema is deprecated and SHOULD be transitioned out of usage",
+              "type": "boolean"
+            },
+            "discriminator": {
+              "description": "Adds support for polymorphism. The discriminator is the schema property name that is used to differentiate between other schema that inherit this schema. ",
+              "type": "string"
+            },
+            "externalDocs": {
+              "$ref": "#/$defs/externalDocs",
+              "description": "Additional external documentation for this schema."
+            },
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/schema"
+                },
+                {
+                  "items": {
+                    "$ref": "#/$defs/schema"
+                  },
+                  "minItems": 1,
+                  "type": "array"
+                }
+              ],
+              "default": {}
+            },
+            "not": {
+              "$ref": "#/$defs/schema"
+            },
+            "oneOf": {
+              "items": {
+                "$ref": "#/$defs/schema"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "patternProperties": {
+              "additionalProperties": {
+                "$ref": "#/$defs/schema"
+              },
+              "default": {},
+              "type": "object"
+            },
+            "properties": {
+              "additionalProperties": {
+                "$ref": "#/$defs/schema"
+              },
+              "default": {},
+              "type": "object"
+            },
+            "propertyNames": {
+              "$ref": "#/$defs/schema"
+            }
+          }
+        }
+      ],
+      "description": "The Schema Object allows the definition of input and output data types. These types can be objects, but also primitives and arrays.",
+      "examples": [
+        {
+          "format": "email",
+          "type": "string"
+        },
+        {
+          "properties": {
+            "address": {
+              "$ref": "#/components/schemas/Address"
+            },
+            "age": {
+              "format": "int32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "schemaArray": {
+      "items": {
+        "$ref": "#/$defs/json-schema-draft-07-schema"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "simpleTypes": {
+      "enum": [
+        "array",
+        "boolean",
+        "integer",
+        "null",
+        "number",
+        "object",
+        "string"
+      ]
+    },
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    },
+    "stringArray": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false,
+  "description": "Describes a parameter included in a channel name.",
+  "examples": [
+    {
+      "user/{userId}/signup": {
+        "parameters": {
+          "userId": {
+            "description": "Id of the user.",
+            "location": "$message.payload#/user/id",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "subscribe": {
+          "message": {
+            "$ref": "#/components/messages/userSignedUp"
+          }
+        }
+      }
+    }
+  ],
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "description": {
+      "description": "A brief description of the parameter. This could contain examples of use. GitHub Flavored Markdown is allowed.",
+      "type": "string"
+    },
+    "location": {
+      "description": "A runtime expression that specifies the location of the parameter value",
+      "pattern": "^\\$message\\.(header|payload)#(\\/(([^\\/~])|(~[01]))*)*",
+      "type": "string"
+    },
+    "schema": {
+      "$ref": "#/$defs/schema"
+    }
+  }
+}

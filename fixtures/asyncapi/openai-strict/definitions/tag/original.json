@@ -1,0 +1,70 @@
+{
+  "$defs": {
+    "externalDocs": {
+      "additionalProperties": false,
+      "description": "Allows referencing an external resource for extended documentation.",
+      "examples": [
+        {
+          "description": "Find more info here",
+          "url": "https://example.com"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description of the target documentation.",
+          "type": "string"
+        },
+        "url": {
+          "description": "The URL for the target documentation. This MUST be in the form of an absolute URL.",
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "type": "object"
+    },
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "additionalProperties": false,
+  "description": "Allows adding meta data to a single tag.",
+  "examples": [
+    {
+      "description": "User-related messages",
+      "name": "user"
+    }
+  ],
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "description": {
+      "description": "A short description for the tag.",
+      "type": "string"
+    },
+    "externalDocs": {
+      "$ref": "#/$defs/externalDocs",
+      "description": "Additional external documentation for this tag."
+    },
+    "name": {
+      "description": "The name of the tag.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "type": "object"
+}

@@ -10,6 +10,16 @@
       "path": "#/else/properties/explode"
     },
     {
+      "type": "nullable_optional",
+      "path": "#/then/properties/explode",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/else/properties/explode",
+      "originalRequired": false
+    },
+    {
       "type": "root_object_wrapper",
       "path": "#",
       "wrapperKey": "result"
@@ -24,6 +34,7 @@
       "path": "#",
       "constraint": "if",
       "value": {
+        "additionalProperties": false,
         "properties": {
           "style": {
             "const": "form"
@@ -31,33 +42,58 @@
         },
         "required": [
           "style"
-        ]
+        ],
+        "type": "object"
       }
     },
     {
       "path": "#",
       "constraint": "then",
       "value": {
+        "additionalProperties": false,
         "properties": {
           "explode": {
-            "default": true,
-            "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-            "type": "string"
+            "anyOf": [
+              {
+                "default": true,
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
-        }
+        },
+        "required": [
+          "explode"
+        ],
+        "type": "object"
       }
     },
     {
       "path": "#",
       "constraint": "else",
       "value": {
+        "additionalProperties": false,
         "properties": {
           "explode": {
-            "default": false,
-            "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-            "type": "string"
+            "anyOf": [
+              {
+                "default": false,
+                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
-        }
+        },
+        "required": [
+          "explode"
+        ],
+        "type": "object"
       }
     }
   ]

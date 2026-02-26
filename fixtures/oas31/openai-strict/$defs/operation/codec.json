@@ -237,7 +237,7 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/externalDocs/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/externalDocs/anyOf/0"
     },
     {
       "type": "json_string_parse",
@@ -249,15 +249,11 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/responses/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/responses/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/servers/anyOf/0/items/patternProperties/^x-"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^x-"
+      "path": "#/properties/servers/anyOf/0/items"
     }
   ],
   "droppedConstraints": [

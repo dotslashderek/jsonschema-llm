@@ -9,7 +9,8 @@
             "type": "string"
           },
           "value": {
-            "$ref": "#/$defs/path-item-or-reference"
+            "description": "MUST be a valid JSON value serialized as a string. This represents a path-item-or-reference reference that could not be resolved. Do NOT output plain text — the value must parse with JSON.parse().",
+            "type": "string"
           }
         },
         "required": [

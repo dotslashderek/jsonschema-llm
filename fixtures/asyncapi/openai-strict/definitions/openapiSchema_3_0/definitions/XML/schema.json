@@ -1,11 +1,5 @@
 {
   "additionalProperties": false,
-  "patternProperties": {
-    "^x-": {
-      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-      "type": "string"
-    }
-  },
   "properties": {
     "attribute": {
       "anyOf": [

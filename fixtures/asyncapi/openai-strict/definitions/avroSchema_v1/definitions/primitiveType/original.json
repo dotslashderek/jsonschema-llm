@@ -1,0 +1,15 @@
+{
+  "description": "Basic type primitives.",
+  "enum": [
+    "null",
+    "boolean",
+    "int",
+    "long",
+    "float",
+    "double",
+    "bytes",
+    "string"
+  ],
+  "title": "Primitive Type",
+  "type": "string"
+}

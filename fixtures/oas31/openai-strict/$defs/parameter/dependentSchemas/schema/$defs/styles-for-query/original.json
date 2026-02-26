@@ -1,0 +1,29 @@
+{
+  "if": {
+    "properties": {
+      "in": {
+        "const": "query"
+      }
+    },
+    "required": [
+      "in"
+    ]
+  },
+  "then": {
+    "properties": {
+      "allowReserved": {
+        "default": false,
+        "type": "boolean"
+      },
+      "style": {
+        "default": "form",
+        "enum": [
+          "form",
+          "spaceDelimited",
+          "pipeDelimited",
+          "deepObject"
+        ]
+      }
+    }
+  }
+}

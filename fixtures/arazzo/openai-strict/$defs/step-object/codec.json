@@ -68,11 +68,15 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/onFailure/anyOf/0/items/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/result/properties/onFailure/anyOf/0/items/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/onSuccess/anyOf/0/items/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/result/properties/onSuccess/anyOf/0/items/anyOf/0"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/properties/outputs/anyOf/0"
     },
     {
       "type": "json_string_parse",
@@ -80,15 +84,11 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/requestBody/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/result/properties/requestBody/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/successCriteria/anyOf/0/items/patternProperties/^x-"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/patternProperties/^x-"
+      "path": "#/properties/result/properties/successCriteria/anyOf/0/items"
     }
   ],
   "droppedConstraints": [

@@ -5,10 +5,6 @@
       "type": "nullable_optional",
       "path": "#/properties/type",
       "originalRequired": false
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^x-"
     }
   ],
   "droppedConstraints": [

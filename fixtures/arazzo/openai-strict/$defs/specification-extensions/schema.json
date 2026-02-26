@@ -2,14 +2,8 @@
   "additionalProperties": false,
   "properties": {
     "result": {
-      "$comment": "https://spec.openapis.org/arazzo/v1.0#specification-extensions",
-      "description": "While the Arazzo Specification tries to accommodate most use cases, additional data can be added to extend the specification at certain points",
-      "patternProperties": {
-        "^x-": {
-          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-          "type": "string"
-        }
-      }
+      "description": "MUST be a valid JSON value serialized as a string. Structure: any. includes properties matching pattern(s) [^x-]. Do NOT output plain text — the value must parse with JSON.parse().",
+      "type": "string"
     }
   },
   "required": [

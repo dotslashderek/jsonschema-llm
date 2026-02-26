@@ -1,0 +1,168 @@
+{
+  "$defs": {
+    "SecurityRequirement": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "uniqueItems": true
+      },
+      "description": "Lists of the required security schemes that can be used to execute an operation",
+      "examples": [
+        {
+          "petstore_auth": [
+            "write:pets",
+            "read:pets"
+          ]
+        }
+      ],
+      "type": "object"
+    },
+    "bindingsObject": {
+      "additionalProperties": true,
+      "description": "Map describing protocol-specific definitions for a server.",
+      "properties": {
+        "amqp": {},
+        "amqp1": {},
+        "anypointmq": {},
+        "googlepubsub": {},
+        "http": {},
+        "ibmmq": {},
+        "jms": {},
+        "kafka": {},
+        "mqtt": {},
+        "mqtt5": {},
+        "nats": {},
+        "pulsar": {},
+        "redis": {},
+        "sns": {},
+        "solace": {},
+        "sqs": {},
+        "stomp": {},
+        "ws": {}
+      },
+      "type": "object"
+    },
+    "externalDocs": {
+      "additionalProperties": false,
+      "description": "Allows referencing an external resource for extended documentation.",
+      "examples": [
+        {
+          "description": "Find more info here",
+          "url": "https://example.com"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description of the target documentation.",
+          "type": "string"
+        },
+        "url": {
+          "description": "The URL for the target documentation. This MUST be in the form of an absolute URL.",
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "type": "object"
+    },
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    },
+    "tag": {
+      "additionalProperties": false,
+      "description": "Allows adding meta data to a single tag.",
+      "examples": [
+        {
+          "description": "User-related messages",
+          "name": "user"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for the tag.",
+          "type": "string"
+        },
+        "externalDocs": {
+          "$ref": "#/$defs/externalDocs",
+          "description": "Additional external documentation for this tag."
+        },
+        "name": {
+          "description": "The name of the tag.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Describes a trait that MAY be applied to an Operation Object.",
+  "examples": [
+    {
+      "bindings": {
+        "amqp": {
+          "ack": false
+        }
+      }
+    }
+  ],
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "bindings": {
+      "$ref": "#/$defs/bindingsObject"
+    },
+    "description": {
+      "description": "A verbose explanation of the operation.",
+      "type": "string"
+    },
+    "externalDocs": {
+      "$ref": "#/$defs/externalDocs"
+    },
+    "operationId": {
+      "description": "Unique string used to identify the operation. The id MUST be unique among all operations described in the API.",
+      "type": "string"
+    },
+    "security": {
+      "description": "A declaration of which security mechanisms are associated with this operation. ",
+      "items": {
+        "$ref": "#/$defs/SecurityRequirement"
+      },
+      "type": "array"
+    },
+    "summary": {
+      "description": "A short summary of what the operation is about.",
+      "type": "string"
+    },
+    "tags": {
+      "description": "A list of tags for logical grouping and categorization of operations.",
+      "items": {
+        "$ref": "#/$defs/tag"
+      },
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "type": "object"
+}

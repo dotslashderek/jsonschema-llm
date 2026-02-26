@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-02-22T17:16:08.950810+00:00",
+  "generatedAt": "2026-02-26T16:02:46.656622+00:00",
   "sourceSchema": "asyncapi-2.6-schema-local.json",
   "target": "openai-strict",
   "mode": "strict",
@@ -10,6 +10,7 @@
       "pointer": "#/definitions/APIKeyHTTPSecurityScheme",
       "schemaPath": "definitions/APIKeyHTTPSecurityScheme/schema.json",
       "codecPath": "definitions/APIKeyHTTPSecurityScheme/codec.json",
+      "originalPath": "definitions/APIKeyHTTPSecurityScheme/original.json",
       "dependencyCount": 1
     },
     {
@@ -17,6 +18,7 @@
       "pointer": "#/definitions/BearerHTTPSecurityScheme",
       "schemaPath": "definitions/BearerHTTPSecurityScheme/schema.json",
       "codecPath": "definitions/BearerHTTPSecurityScheme/codec.json",
+      "originalPath": "definitions/BearerHTTPSecurityScheme/original.json",
       "dependencyCount": 1
     },
     {
@@ -24,6 +26,7 @@
       "pointer": "#/definitions/HTTPSecurityScheme",
       "schemaPath": "definitions/HTTPSecurityScheme/schema.json",
       "codecPath": "definitions/HTTPSecurityScheme/codec.json",
+      "originalPath": "definitions/HTTPSecurityScheme/original.json",
       "dependencyCount": 4
     },
     {
@@ -31,6 +34,7 @@
       "pointer": "#/definitions/NonBearerHTTPSecurityScheme",
       "schemaPath": "definitions/NonBearerHTTPSecurityScheme/schema.json",
       "codecPath": "definitions/NonBearerHTTPSecurityScheme/codec.json",
+      "originalPath": "definitions/NonBearerHTTPSecurityScheme/original.json",
       "dependencyCount": 1
     },
     {
@@ -38,6 +42,7 @@
       "pointer": "#/definitions/Reference",
       "schemaPath": "definitions/Reference/schema.json",
       "codecPath": "definitions/Reference/codec.json",
+      "originalPath": "definitions/Reference/original.json",
       "dependencyCount": 1
     },
     {
@@ -45,6 +50,7 @@
       "pointer": "#/definitions/ReferenceObject",
       "schemaPath": "definitions/ReferenceObject/schema.json",
       "codecPath": "definitions/ReferenceObject/codec.json",
+      "originalPath": "definitions/ReferenceObject/original.json",
       "dependencyCount": 0
     },
     {
@@ -52,6 +58,7 @@
       "pointer": "#/definitions/SaslGssapiSecurityScheme",
       "schemaPath": "definitions/SaslGssapiSecurityScheme/schema.json",
       "codecPath": "definitions/SaslGssapiSecurityScheme/codec.json",
+      "originalPath": "definitions/SaslGssapiSecurityScheme/original.json",
       "dependencyCount": 1
     },
     {
@@ -59,6 +66,7 @@
       "pointer": "#/definitions/SaslPlainSecurityScheme",
       "schemaPath": "definitions/SaslPlainSecurityScheme/schema.json",
       "codecPath": "definitions/SaslPlainSecurityScheme/codec.json",
+      "originalPath": "definitions/SaslPlainSecurityScheme/original.json",
       "dependencyCount": 1
     },
     {
@@ -66,6 +74,7 @@
       "pointer": "#/definitions/SaslScramSecurityScheme",
       "schemaPath": "definitions/SaslScramSecurityScheme/schema.json",
       "codecPath": "definitions/SaslScramSecurityScheme/codec.json",
+      "originalPath": "definitions/SaslScramSecurityScheme/original.json",
       "dependencyCount": 1
     },
     {
@@ -73,6 +82,7 @@
       "pointer": "#/definitions/SaslSecurityScheme",
       "schemaPath": "definitions/SaslSecurityScheme/schema.json",
       "codecPath": "definitions/SaslSecurityScheme/codec.json",
+      "originalPath": "definitions/SaslSecurityScheme/original.json",
       "dependencyCount": 4
     },
     {
@@ -80,6 +90,7 @@
       "pointer": "#/definitions/SecurityRequirement",
       "schemaPath": "definitions/SecurityRequirement/schema.json",
       "codecPath": "definitions/SecurityRequirement/codec.json",
+      "originalPath": "definitions/SecurityRequirement/original.json",
       "dependencyCount": 0
     },
     {
@@ -87,6 +98,7 @@
       "pointer": "#/definitions/SecurityScheme",
       "schemaPath": "definitions/SecurityScheme/schema.json",
       "codecPath": "definitions/SecurityScheme/codec.json",
+      "originalPath": "definitions/SecurityScheme/original.json",
       "dependencyCount": 18
     },
     {
@@ -94,6 +106,7 @@
       "pointer": "#/definitions/X509",
       "schemaPath": "definitions/X509/schema.json",
       "codecPath": "definitions/X509/codec.json",
+      "originalPath": "definitions/X509/original.json",
       "dependencyCount": 1
     },
     {
@@ -101,6 +114,7 @@
       "pointer": "#/definitions/apiKey",
       "schemaPath": "definitions/apiKey/schema.json",
       "codecPath": "definitions/apiKey/codec.json",
+      "originalPath": "definitions/apiKey/original.json",
       "dependencyCount": 1
     },
     {
@@ -108,6 +122,7 @@
       "pointer": "#/definitions/asymmetricEncryption",
       "schemaPath": "definitions/asymmetricEncryption/schema.json",
       "codecPath": "definitions/asymmetricEncryption/codec.json",
+      "originalPath": "definitions/asymmetricEncryption/original.json",
       "dependencyCount": 1
     },
     {
@@ -115,6 +130,7 @@
       "pointer": "#/definitions/avroSchema_v1",
       "schemaPath": "definitions/avroSchema_v1/schema.json",
       "codecPath": "definitions/avroSchema_v1/codec.json",
+      "originalPath": "definitions/avroSchema_v1/original.json",
       "dependencyCount": 14
     },
     {
@@ -122,6 +138,7 @@
       "pointer": "#/definitions/avroSchema_v1/definitions/avroEnum",
       "schemaPath": "definitions/avroSchema_v1/definitions/avroEnum/schema.json",
       "codecPath": "definitions/avroSchema_v1/definitions/avroEnum/codec.json",
+      "originalPath": "definitions/avroSchema_v1/definitions/avroEnum/original.json",
       "dependencyCount": 2
     },
     {
@@ -129,6 +146,7 @@
       "pointer": "#/definitions/avroSchema_v1/definitions/avroFixed",
       "schemaPath": "definitions/avroSchema_v1/definitions/avroFixed/schema.json",
       "codecPath": "definitions/avroSchema_v1/definitions/avroFixed/codec.json",
+      "originalPath": "definitions/avroSchema_v1/definitions/avroFixed/original.json",
       "dependencyCount": 2
     },
     {
@@ -136,6 +154,7 @@
       "pointer": "#/definitions/avroSchema_v1/definitions/customTypeReference",
       "schemaPath": "definitions/avroSchema_v1/definitions/customTypeReference/schema.json",
       "codecPath": "definitions/avroSchema_v1/definitions/customTypeReference/codec.json",
+      "originalPath": "definitions/avroSchema_v1/definitions/customTypeReference/original.json",
       "dependencyCount": 1
     },
     {
@@ -143,6 +162,7 @@
       "pointer": "#/definitions/avroSchema_v1/definitions/name",
       "schemaPath": "definitions/avroSchema_v1/definitions/name/schema.json",
       "codecPath": "definitions/avroSchema_v1/definitions/name/codec.json",
+      "originalPath": "definitions/avroSchema_v1/definitions/name/original.json",
       "dependencyCount": 0
     },
     {
@@ -150,6 +170,7 @@
       "pointer": "#/definitions/avroSchema_v1/definitions/namespace",
       "schemaPath": "definitions/avroSchema_v1/definitions/namespace/schema.json",
       "codecPath": "definitions/avroSchema_v1/definitions/namespace/codec.json",
+      "originalPath": "definitions/avroSchema_v1/definitions/namespace/original.json",
       "dependencyCount": 0
     },
     {
@@ -157,6 +178,7 @@
       "pointer": "#/definitions/avroSchema_v1/definitions/primitiveType",
       "schemaPath": "definitions/avroSchema_v1/definitions/primitiveType/schema.json",
       "codecPath": "definitions/avroSchema_v1/definitions/primitiveType/codec.json",
+      "originalPath": "definitions/avroSchema_v1/definitions/primitiveType/original.json",
       "dependencyCount": 0
     },
     {
@@ -164,6 +186,7 @@
       "pointer": "#/definitions/avroSchema_v1/definitions/primitiveTypeWithMetadata",
       "schemaPath": "definitions/avroSchema_v1/definitions/primitiveTypeWithMetadata/schema.json",
       "codecPath": "definitions/avroSchema_v1/definitions/primitiveTypeWithMetadata/codec.json",
+      "originalPath": "definitions/avroSchema_v1/definitions/primitiveTypeWithMetadata/original.json",
       "dependencyCount": 1
     },
     {
@@ -171,6 +194,7 @@
       "pointer": "#/definitions/bindingsObject",
       "schemaPath": "definitions/bindingsObject/schema.json",
       "codecPath": "definitions/bindingsObject/codec.json",
+      "originalPath": "definitions/bindingsObject/original.json",
       "dependencyCount": 0
     },
     {
@@ -178,6 +202,7 @@
       "pointer": "#/definitions/channelItem",
       "schemaPath": "definitions/channelItem/schema.json",
       "codecPath": "definitions/channelItem/codec.json",
+      "originalPath": "definitions/channelItem/original.json",
       "dependencyCount": 41
     },
     {
@@ -185,6 +210,7 @@
       "pointer": "#/definitions/channels",
       "schemaPath": "definitions/channels/schema.json",
       "codecPath": "definitions/channels/codec.json",
+      "originalPath": "definitions/channels/original.json",
       "dependencyCount": 42
     },
     {
@@ -192,6 +218,7 @@
       "pointer": "#/definitions/components",
       "schemaPath": "definitions/components/schema.json",
       "codecPath": "definitions/components/codec.json",
+      "originalPath": "definitions/components/original.json",
       "dependencyCount": 67
     },
     {
@@ -199,6 +226,7 @@
       "pointer": "#/definitions/contact",
       "schemaPath": "definitions/contact/schema.json",
       "codecPath": "definitions/contact/codec.json",
+      "originalPath": "definitions/contact/original.json",
       "dependencyCount": 1
     },
     {
@@ -206,6 +234,7 @@
       "pointer": "#/definitions/correlationId",
       "schemaPath": "definitions/correlationId/schema.json",
       "codecPath": "definitions/correlationId/codec.json",
+      "originalPath": "definitions/correlationId/original.json",
       "dependencyCount": 1
     },
     {
@@ -213,6 +242,7 @@
       "pointer": "#/definitions/externalDocs",
       "schemaPath": "definitions/externalDocs/schema.json",
       "codecPath": "definitions/externalDocs/codec.json",
+      "originalPath": "definitions/externalDocs/original.json",
       "dependencyCount": 1
     },
     {
@@ -220,6 +250,7 @@
       "pointer": "#/definitions/info",
       "schemaPath": "definitions/info/schema.json",
       "codecPath": "definitions/info/codec.json",
+      "originalPath": "definitions/info/original.json",
       "dependencyCount": 3
     },
     {
@@ -227,6 +258,7 @@
       "pointer": "#/definitions/json-schema-draft-07-schema/definitions/nonNegativeInteger",
       "schemaPath": "definitions/json-schema-draft-07-schema/definitions/nonNegativeInteger/schema.json",
       "codecPath": "definitions/json-schema-draft-07-schema/definitions/nonNegativeInteger/codec.json",
+      "originalPath": "definitions/json-schema-draft-07-schema/definitions/nonNegativeInteger/original.json",
       "dependencyCount": 0
     },
     {
@@ -234,6 +266,7 @@
       "pointer": "#/definitions/json-schema-draft-07-schema/definitions/nonNegativeIntegerDefault0",
       "schemaPath": "definitions/json-schema-draft-07-schema/definitions/nonNegativeIntegerDefault0/schema.json",
       "codecPath": "definitions/json-schema-draft-07-schema/definitions/nonNegativeIntegerDefault0/codec.json",
+      "originalPath": "definitions/json-schema-draft-07-schema/definitions/nonNegativeIntegerDefault0/original.json",
       "dependencyCount": 1
     },
     {
@@ -241,6 +274,7 @@
       "pointer": "#/definitions/json-schema-draft-07-schema/definitions/schemaArray",
       "schemaPath": "definitions/json-schema-draft-07-schema/definitions/schemaArray/schema.json",
       "codecPath": "definitions/json-schema-draft-07-schema/definitions/schemaArray/codec.json",
+      "originalPath": "definitions/json-schema-draft-07-schema/definitions/schemaArray/original.json",
       "dependencyCount": 5
     },
     {
@@ -248,6 +282,7 @@
       "pointer": "#/definitions/json-schema-draft-07-schema/definitions/simpleTypes",
       "schemaPath": "definitions/json-schema-draft-07-schema/definitions/simpleTypes/schema.json",
       "codecPath": "definitions/json-schema-draft-07-schema/definitions/simpleTypes/codec.json",
+      "originalPath": "definitions/json-schema-draft-07-schema/definitions/simpleTypes/original.json",
       "dependencyCount": 0
     },
     {
@@ -255,6 +290,7 @@
       "pointer": "#/definitions/json-schema-draft-07-schema/definitions/stringArray",
       "schemaPath": "definitions/json-schema-draft-07-schema/definitions/stringArray/schema.json",
       "codecPath": "definitions/json-schema-draft-07-schema/definitions/stringArray/codec.json",
+      "originalPath": "definitions/json-schema-draft-07-schema/definitions/stringArray/original.json",
       "dependencyCount": 0
     },
     {
@@ -262,6 +298,7 @@
       "pointer": "#/definitions/json-schema-draft-07-schema/properties/definitions/additionalProperties",
       "schemaPath": "definitions/json-schema-draft-07-schema/properties/definitions/additionalProperties/schema.json",
       "codecPath": "definitions/json-schema-draft-07-schema/properties/definitions/additionalProperties/codec.json",
+      "originalPath": "definitions/json-schema-draft-07-schema/properties/definitions/additionalProperties/original.json",
       "dependencyCount": 6
     },
     {
@@ -269,6 +306,7 @@
       "pointer": "#/definitions/json-schema-draft-07-schema/properties/definitions/default",
       "schemaPath": "definitions/json-schema-draft-07-schema/properties/definitions/default/schema.json",
       "codecPath": "definitions/json-schema-draft-07-schema/properties/definitions/default/codec.json",
+      "originalPath": "definitions/json-schema-draft-07-schema/properties/definitions/default/original.json",
       "dependencyCount": 0
     },
     {
@@ -276,6 +314,7 @@
       "pointer": "#/definitions/json-schema-draft-07-schema/properties/definitions/type",
       "schemaPath": "definitions/json-schema-draft-07-schema/properties/definitions/type/schema.json",
       "codecPath": "definitions/json-schema-draft-07-schema/properties/definitions/type/codec.json",
+      "originalPath": "definitions/json-schema-draft-07-schema/properties/definitions/type/original.json",
       "dependencyCount": 0
     },
     {
@@ -283,6 +322,7 @@
       "pointer": "#/definitions/license",
       "schemaPath": "definitions/license/schema.json",
       "codecPath": "definitions/license/codec.json",
+      "originalPath": "definitions/license/original.json",
       "dependencyCount": 1
     },
     {
@@ -290,6 +330,7 @@
       "pointer": "#/definitions/messageTrait",
       "schemaPath": "definitions/messageTrait/schema.json",
       "codecPath": "definitions/messageTrait/codec.json",
+      "originalPath": "definitions/messageTrait/original.json",
       "dependencyCount": 14
     },
     {
@@ -297,6 +338,7 @@
       "pointer": "#/definitions/messages",
       "schemaPath": "definitions/messages/schema.json",
       "codecPath": "definitions/messages/codec.json",
+      "originalPath": "definitions/messages/original.json",
       "dependencyCount": 36
     },
     {
@@ -304,6 +346,7 @@
       "pointer": "#/definitions/oauth2Flow",
       "schemaPath": "definitions/oauth2Flow/schema.json",
       "codecPath": "definitions/oauth2Flow/codec.json",
+      "originalPath": "definitions/oauth2Flow/original.json",
       "dependencyCount": 2
     },
     {
@@ -311,6 +354,7 @@
       "pointer": "#/definitions/oauth2Flows",
       "schemaPath": "definitions/oauth2Flows/schema.json",
       "codecPath": "definitions/oauth2Flows/codec.json",
+      "originalPath": "definitions/oauth2Flows/original.json",
       "dependencyCount": 3
     },
     {
@@ -318,6 +362,7 @@
       "pointer": "#/definitions/oauth2Scopes",
       "schemaPath": "definitions/oauth2Scopes/schema.json",
       "codecPath": "definitions/oauth2Scopes/codec.json",
+      "originalPath": "definitions/oauth2Scopes/original.json",
       "dependencyCount": 0
     },
     {
@@ -325,6 +370,7 @@
       "pointer": "#/definitions/openIdConnect",
       "schemaPath": "definitions/openIdConnect/schema.json",
       "codecPath": "definitions/openIdConnect/codec.json",
+      "originalPath": "definitions/openIdConnect/original.json",
       "dependencyCount": 1
     },
     {
@@ -332,6 +378,7 @@
       "pointer": "#/definitions/openapiSchema_3_0/definitions/Discriminator",
       "schemaPath": "definitions/openapiSchema_3_0/definitions/Discriminator/schema.json",
       "codecPath": "definitions/openapiSchema_3_0/definitions/Discriminator/codec.json",
+      "originalPath": "definitions/openapiSchema_3_0/definitions/Discriminator/original.json",
       "dependencyCount": 0
     },
     {
@@ -339,6 +386,7 @@
       "pointer": "#/definitions/openapiSchema_3_0/definitions/ExternalDocumentation",
       "schemaPath": "definitions/openapiSchema_3_0/definitions/ExternalDocumentation/schema.json",
       "codecPath": "definitions/openapiSchema_3_0/definitions/ExternalDocumentation/codec.json",
+      "originalPath": "definitions/openapiSchema_3_0/definitions/ExternalDocumentation/original.json",
       "dependencyCount": 0
     },
     {
@@ -346,6 +394,7 @@
       "pointer": "#/definitions/openapiSchema_3_0/definitions/Reference",
       "schemaPath": "definitions/openapiSchema_3_0/definitions/Reference/schema.json",
       "codecPath": "definitions/openapiSchema_3_0/definitions/Reference/codec.json",
+      "originalPath": "definitions/openapiSchema_3_0/definitions/Reference/original.json",
       "dependencyCount": 0
     },
     {
@@ -353,6 +402,7 @@
       "pointer": "#/definitions/openapiSchema_3_0/definitions/XML",
       "schemaPath": "definitions/openapiSchema_3_0/definitions/XML/schema.json",
       "codecPath": "definitions/openapiSchema_3_0/definitions/XML/codec.json",
+      "originalPath": "definitions/openapiSchema_3_0/definitions/XML/original.json",
       "dependencyCount": 0
     },
     {
@@ -360,6 +410,7 @@
       "pointer": "#/definitions/operation",
       "schemaPath": "definitions/operation/schema.json",
       "codecPath": "definitions/operation/codec.json",
+      "originalPath": "definitions/operation/original.json",
       "dependencyCount": 38
     },
     {
@@ -367,6 +418,7 @@
       "pointer": "#/definitions/operationTrait",
       "schemaPath": "definitions/operationTrait/schema.json",
       "codecPath": "definitions/operationTrait/codec.json",
+      "originalPath": "definitions/operationTrait/original.json",
       "dependencyCount": 5
     },
     {
@@ -374,6 +426,7 @@
       "pointer": "#/definitions/parameter",
       "schemaPath": "definitions/parameter/schema.json",
       "codecPath": "definitions/parameter/codec.json",
+      "originalPath": "definitions/parameter/original.json",
       "dependencyCount": 9
     },
     {
@@ -381,6 +434,7 @@
       "pointer": "#/definitions/parameters",
       "schemaPath": "definitions/parameters/schema.json",
       "codecPath": "definitions/parameters/codec.json",
+      "originalPath": "definitions/parameters/original.json",
       "dependencyCount": 12
     },
     {
@@ -388,6 +442,7 @@
       "pointer": "#/definitions/schemas",
       "schemaPath": "definitions/schemas/schema.json",
       "codecPath": "definitions/schemas/codec.json",
+      "originalPath": "definitions/schemas/original.json",
       "dependencyCount": 9
     },
     {
@@ -395,6 +450,7 @@
       "pointer": "#/definitions/server",
       "schemaPath": "definitions/server/schema.json",
       "codecPath": "definitions/server/codec.json",
+      "originalPath": "definitions/server/original.json",
       "dependencyCount": 9
     },
     {
@@ -402,6 +458,7 @@
       "pointer": "#/definitions/serverVariable",
       "schemaPath": "definitions/serverVariable/schema.json",
       "codecPath": "definitions/serverVariable/codec.json",
+      "originalPath": "definitions/serverVariable/original.json",
       "dependencyCount": 1
     },
     {
@@ -409,6 +466,7 @@
       "pointer": "#/definitions/serverVariables",
       "schemaPath": "definitions/serverVariables/schema.json",
       "codecPath": "definitions/serverVariables/codec.json",
+      "originalPath": "definitions/serverVariables/original.json",
       "dependencyCount": 4
     },
     {
@@ -416,6 +474,7 @@
       "pointer": "#/definitions/servers",
       "schemaPath": "definitions/servers/schema.json",
       "codecPath": "definitions/servers/codec.json",
+      "originalPath": "definitions/servers/original.json",
       "dependencyCount": 10
     },
     {
@@ -423,6 +482,7 @@
       "pointer": "#/definitions/specificationExtension",
       "schemaPath": "definitions/specificationExtension/schema.json",
       "codecPath": "definitions/specificationExtension/codec.json",
+      "originalPath": "definitions/specificationExtension/original.json",
       "dependencyCount": 0
     },
     {
@@ -430,6 +490,7 @@
       "pointer": "#/definitions/symmetricEncryption",
       "schemaPath": "definitions/symmetricEncryption/schema.json",
       "codecPath": "definitions/symmetricEncryption/codec.json",
+      "originalPath": "definitions/symmetricEncryption/original.json",
       "dependencyCount": 1
     },
     {
@@ -437,6 +498,7 @@
       "pointer": "#/definitions/tag",
       "schemaPath": "definitions/tag/schema.json",
       "codecPath": "definitions/tag/codec.json",
+      "originalPath": "definitions/tag/original.json",
       "dependencyCount": 2
     },
     {
@@ -444,6 +506,7 @@
       "pointer": "#/definitions/userPassword",
       "schemaPath": "definitions/userPassword/schema.json",
       "codecPath": "definitions/userPassword/codec.json",
+      "originalPath": "definitions/userPassword/original.json",
       "dependencyCount": 1
     }
   ]

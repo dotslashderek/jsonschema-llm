@@ -1,0 +1,37 @@
+{
+  "$defs": {
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "additionalProperties": false,
+  "description": "An object that specifies an identifier at design time that can used for message tracing and correlation.",
+  "examples": [
+    {
+      "description": "Default Correlation ID",
+      "location": "$message.header#/correlationId"
+    }
+  ],
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "description": {
+      "description": "A optional description of the correlation ID. GitHub Flavored Markdown is allowed.",
+      "type": "string"
+    },
+    "location": {
+      "description": "A runtime expression that specifies the location of the correlation ID",
+      "pattern": "^\\$message\\.(header|payload)#(\\/(([^\\/~])|(~[01]))*)*",
+      "type": "string"
+    }
+  },
+  "required": [
+    "location"
+  ],
+  "type": "object"
+}

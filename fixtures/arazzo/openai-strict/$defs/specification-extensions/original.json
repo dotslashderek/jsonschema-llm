@@ -1,0 +1,7 @@
+{
+  "$comment": "https://spec.openapis.org/arazzo/v1.0#specification-extensions",
+  "description": "While the Arazzo Specification tries to accommodate most use cases, additional data can be added to extend the specification at certain points",
+  "patternProperties": {
+    "^x-": true
+  }
+}

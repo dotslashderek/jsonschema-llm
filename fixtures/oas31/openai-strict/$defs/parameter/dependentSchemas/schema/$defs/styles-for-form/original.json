@@ -1,0 +1,26 @@
+{
+  "else": {
+    "properties": {
+      "explode": {
+        "default": false
+      }
+    }
+  },
+  "if": {
+    "properties": {
+      "style": {
+        "const": "form"
+      }
+    },
+    "required": [
+      "style"
+    ]
+  },
+  "then": {
+    "properties": {
+      "explode": {
+        "default": true
+      }
+    }
+  }
+}

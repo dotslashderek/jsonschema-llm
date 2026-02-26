@@ -1,0 +1,125 @@
+{
+  "$defs": {
+    "contact": {
+      "additionalProperties": false,
+      "description": "Contact information for the exposed API.",
+      "examples": [
+        {
+          "email": "support@example.com",
+          "name": "API Support",
+          "url": "https://www.example.com/support"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "email": {
+          "description": "The email address of the contact person/organization.",
+          "format": "email",
+          "type": "string"
+        },
+        "name": {
+          "description": "The identifying name of the contact person/organization.",
+          "type": "string"
+        },
+        "url": {
+          "description": "The URL pointing to the contact information.",
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "license": {
+      "additionalProperties": false,
+      "description": "License information for the exposed API.",
+      "examples": [
+        {
+          "name": "Apache 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "name": {
+          "description": "The name of the license type. It's encouraged to use an OSI compatible license.",
+          "type": "string"
+        },
+        "url": {
+          "description": "The URL pointing to the license.",
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "additionalProperties": false,
+  "description": "The object provides metadata about the API. The metadata can be used by the clients if needed.",
+  "examples": [
+    {
+      "contact": {
+        "email": "support@example.com",
+        "name": "API Support",
+        "url": "https://www.example.com/support"
+      },
+      "description": "This is a sample server.",
+      "license": {
+        "name": "Apache 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+      },
+      "termsOfService": "https://asyncapi.org/terms/",
+      "title": "AsyncAPI Sample App"
+    }
+  ],
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "contact": {
+      "$ref": "#/$defs/contact"
+    },
+    "description": {
+      "description": "A longer description of the API. Should be different from the title. CommonMark is allowed.",
+      "type": "string"
+    },
+    "license": {
+      "$ref": "#/$defs/license"
+    },
+    "termsOfService": {
+      "description": "A URL to the Terms of Service for the API. MUST be in the format of a URL.",
+      "format": "uri",
+      "type": "string"
+    },
+    "title": {
+      "description": "A unique and precise title of the API.",
+      "type": "string"
+    },
+    "version": {
+      "description": "A semantic version number of the API.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "version",
+    "title"
+  ],
+  "type": "object"
+}

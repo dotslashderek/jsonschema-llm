@@ -2,6 +2,10 @@
   "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     {
+      "type": "json_string_parse",
+      "path": "#"
+    },
+    {
       "type": "root_object_wrapper",
       "path": "#",
       "wrapperKey": "result"

@@ -1,16 +1,6 @@
 {
   "additionalProperties": false,
   "description": "Allows configuration of the supported OAuth Flows.",
-  "patternProperties": {
-    "^x-[\\w\\d\\.\\x2d_]+$": {
-      "additionalItems": true,
-      "additionalProperties": {
-        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-        "type": "string"
-      },
-      "description": "Any property starting with x- is valid."
-    }
-  },
   "properties": {
     "description": {
       "anyOf": [
@@ -31,16 +21,6 @@
             {
               "additionalProperties": false,
               "description": "Configuration for the OAuth Authorization Code flow.\nConfiguration details for a supported OAuth Flow",
-              "patternProperties": {
-                "^x-[\\w\\d\\.\\x2d_]+$": {
-                  "additionalItems": true,
-                  "additionalProperties": {
-                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                    "type": "string"
-                  },
-                  "description": "Any property starting with x- is valid."
-                }
-              },
               "properties": {
                 "authorizationUrl": {
                   "description": "The authorization URL to be used for this flow. This MUST be in the form of an absolute URL. Constraints: format: uri.",
@@ -100,16 +80,6 @@
             {
               "additionalProperties": false,
               "description": "Configuration for the OAuth Client Credentials flow.\nConfiguration details for a supported OAuth Flow",
-              "patternProperties": {
-                "^x-[\\w\\d\\.\\x2d_]+$": {
-                  "additionalItems": true,
-                  "additionalProperties": {
-                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                    "type": "string"
-                  },
-                  "description": "Any property starting with x- is valid."
-                }
-              },
               "properties": {
                 "authorizationUrl": {
                   "anyOf": [
@@ -176,16 +146,6 @@
             {
               "additionalProperties": false,
               "description": "Configuration for the OAuth Implicit flow.\nConfiguration details for a supported OAuth Flow",
-              "patternProperties": {
-                "^x-[\\w\\d\\.\\x2d_]+$": {
-                  "additionalItems": true,
-                  "additionalProperties": {
-                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                    "type": "string"
-                  },
-                  "description": "Any property starting with x- is valid."
-                }
-              },
               "properties": {
                 "authorizationUrl": {
                   "description": "The authorization URL to be used for this flow. This MUST be in the form of an absolute URL. Constraints: format: uri.",
@@ -252,16 +212,6 @@
             {
               "additionalProperties": false,
               "description": "Configuration for the OAuth Resource Owner Protected Credentials flow.\nConfiguration details for a supported OAuth Flow",
-              "patternProperties": {
-                "^x-[\\w\\d\\.\\x2d_]+$": {
-                  "additionalItems": true,
-                  "additionalProperties": {
-                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                    "type": "string"
-                  },
-                  "description": "Any property starting with x- is valid."
-                }
-              },
               "properties": {
                 "authorizationUrl": {
                   "anyOf": [

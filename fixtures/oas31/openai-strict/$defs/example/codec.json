@@ -24,10 +24,6 @@
     {
       "type": "json_string_parse",
       "path": "#/properties/value/anyOf/0"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^x-"
     }
   ],
   "droppedConstraints": [

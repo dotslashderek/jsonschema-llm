@@ -2,12 +2,6 @@
   "$comment": "https://spec.openapis.org/arazzo/v1.0#source-description-object",
   "additionalProperties": false,
   "description": "Describes a source description (such as an OpenAPI description) that will be referenced by one or more workflows described within an Arazzo description",
-  "patternProperties": {
-    "^x-": {
-      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-      "type": "string"
-    }
-  },
   "properties": {
     "name": {
       "description": "A unique name for the source description",

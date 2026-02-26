@@ -1,16 +1,6 @@
 {
   "additionalProperties": false,
   "description": "Describes a trait that MAY be applied to an Operation Object.",
-  "patternProperties": {
-    "^x-[\\w\\d\\.\\x2d_]+$": {
-      "additionalItems": true,
-      "additionalProperties": {
-        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-        "type": "string"
-      },
-      "description": "Any property starting with x- is valid."
-    }
-  },
   "properties": {
     "bindings": {
       "anyOf": [
@@ -260,16 +250,6 @@
         {
           "additionalProperties": false,
           "description": "Allows referencing an external resource for extended documentation.",
-          "patternProperties": {
-            "^x-[\\w\\d\\.\\x2d_]+$": {
-              "additionalItems": true,
-              "additionalProperties": {
-                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                "type": "string"
-              },
-              "description": "Any property starting with x- is valid."
-            }
-          },
           "properties": {
             "description": {
               "anyOf": [
@@ -362,16 +342,6 @@
           "items": {
             "additionalProperties": false,
             "description": "Allows adding meta data to a single tag.",
-            "patternProperties": {
-              "^x-[\\w\\d\\.\\x2d_]+$": {
-                "additionalItems": true,
-                "additionalProperties": {
-                  "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                  "type": "string"
-                },
-                "description": "Any property starting with x- is valid."
-              }
-            },
             "properties": {
               "description": {
                 "anyOf": [
@@ -389,16 +359,6 @@
                   {
                     "additionalProperties": false,
                     "description": "Additional external documentation for this tag.",
-                    "patternProperties": {
-                      "^x-[\\w\\d\\.\\x2d_]+$": {
-                        "additionalItems": true,
-                        "additionalProperties": {
-                          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                          "type": "string"
-                        },
-                        "description": "Any property starting with x- is valid."
-                      }
-                    },
                     "properties": {
                       "description": {
                         "anyOf": [

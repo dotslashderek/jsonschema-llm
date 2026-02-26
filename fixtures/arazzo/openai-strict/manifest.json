@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-02-22T17:16:07.166727+00:00",
+  "generatedAt": "2026-02-26T16:02:46.275138+00:00",
   "sourceSchema": "arazzo-schema.json",
   "target": "openai-strict",
   "mode": "strict",
@@ -10,6 +10,7 @@
       "pointer": "#/$defs/components-object",
       "schemaPath": "$defs/components-object/schema.json",
       "codecPath": "$defs/components-object/codec.json",
+      "originalPath": "$defs/components-object/original.json",
       "dependencyCount": 9
     },
     {
@@ -17,6 +18,7 @@
       "pointer": "#/$defs/criterion-expression-type-object",
       "schemaPath": "$defs/criterion-expression-type-object/schema.json",
       "codecPath": "$defs/criterion-expression-type-object/codec.json",
+      "originalPath": "$defs/criterion-expression-type-object/original.json",
       "dependencyCount": 1
     },
     {
@@ -24,6 +26,7 @@
       "pointer": "#/$defs/criterion-object",
       "schemaPath": "$defs/criterion-object/schema.json",
       "codecPath": "$defs/criterion-object/codec.json",
+      "originalPath": "$defs/criterion-object/original.json",
       "dependencyCount": 2
     },
     {
@@ -31,6 +34,7 @@
       "pointer": "#/$defs/failure-action-object",
       "schemaPath": "$defs/failure-action-object/schema.json",
       "codecPath": "$defs/failure-action-object/codec.json",
+      "originalPath": "$defs/failure-action-object/original.json",
       "dependencyCount": 5
     },
     {
@@ -38,6 +42,7 @@
       "pointer": "#/$defs/info",
       "schemaPath": "$defs/info/schema.json",
       "codecPath": "$defs/info/codec.json",
+      "originalPath": "$defs/info/original.json",
       "dependencyCount": 1
     },
     {
@@ -45,6 +50,7 @@
       "pointer": "#/$defs/parameter-object",
       "schemaPath": "$defs/parameter-object/schema.json",
       "codecPath": "$defs/parameter-object/codec.json",
+      "originalPath": "$defs/parameter-object/original.json",
       "dependencyCount": 1
     },
     {
@@ -52,6 +58,7 @@
       "pointer": "#/$defs/payload-replacement-object",
       "schemaPath": "$defs/payload-replacement-object/schema.json",
       "codecPath": "$defs/payload-replacement-object/codec.json",
+      "originalPath": "$defs/payload-replacement-object/original.json",
       "dependencyCount": 1
     },
     {
@@ -59,6 +66,7 @@
       "pointer": "#/$defs/request-body-object",
       "schemaPath": "$defs/request-body-object/schema.json",
       "codecPath": "$defs/request-body-object/codec.json",
+      "originalPath": "$defs/request-body-object/original.json",
       "dependencyCount": 2
     },
     {
@@ -66,6 +74,7 @@
       "pointer": "#/$defs/reusable-object",
       "schemaPath": "$defs/reusable-object/schema.json",
       "codecPath": "$defs/reusable-object/codec.json",
+      "originalPath": "$defs/reusable-object/original.json",
       "dependencyCount": 0
     },
     {
@@ -73,6 +82,7 @@
       "pointer": "#/$defs/schema",
       "schemaPath": "$defs/schema/schema.json",
       "codecPath": "$defs/schema/codec.json",
+      "originalPath": "$defs/schema/original.json",
       "dependencyCount": 0
     },
     {
@@ -80,6 +90,7 @@
       "pointer": "#/$defs/source-description-object",
       "schemaPath": "$defs/source-description-object/schema.json",
       "codecPath": "$defs/source-description-object/codec.json",
+      "originalPath": "$defs/source-description-object/original.json",
       "dependencyCount": 1
     },
     {
@@ -87,6 +98,7 @@
       "pointer": "#/$defs/specification-extensions",
       "schemaPath": "$defs/specification-extensions/schema.json",
       "codecPath": "$defs/specification-extensions/codec.json",
+      "originalPath": "$defs/specification-extensions/original.json",
       "dependencyCount": 0
     },
     {
@@ -94,6 +106,7 @@
       "pointer": "#/$defs/step-object",
       "schemaPath": "$defs/step-object/schema.json",
       "codecPath": "$defs/step-object/codec.json",
+      "originalPath": "$defs/step-object/original.json",
       "dependencyCount": 11
     },
     {
@@ -101,6 +114,7 @@
       "pointer": "#/$defs/success-action-object",
       "schemaPath": "$defs/success-action-object/schema.json",
       "codecPath": "$defs/success-action-object/codec.json",
+      "originalPath": "$defs/success-action-object/original.json",
       "dependencyCount": 5
     },
     {
@@ -108,6 +122,7 @@
       "pointer": "#/$defs/workflow-object",
       "schemaPath": "$defs/workflow-object/schema.json",
       "codecPath": "$defs/workflow-object/codec.json",
+      "originalPath": "$defs/workflow-object/original.json",
       "dependencyCount": 13
     }
   ]

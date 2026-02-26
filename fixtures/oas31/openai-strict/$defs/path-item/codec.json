@@ -188,19 +188,19 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/delete/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/delete/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/get/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/get/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/head/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/head/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/options/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/options/anyOf/0"
     },
     {
       "type": "json_string_parse",
@@ -208,27 +208,23 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/patch/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/patch/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/post/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/post/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/put/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/put/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/servers/anyOf/0/items/patternProperties/^x-"
+      "path": "#/properties/servers/anyOf/0/items"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/trace/anyOf/0/patternProperties/^x-"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^x-"
+      "path": "#/properties/trace/anyOf/0"
     }
   ],
   "droppedConstraints": [

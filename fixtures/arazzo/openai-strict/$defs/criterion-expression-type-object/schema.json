@@ -2,12 +2,6 @@
   "$comment": "https://spec.openapis.org/arazzo/v1.0#criterion-expression-type-object",
   "additionalProperties": false,
   "description": "An object used to describe the type and version of an expression used within a Criterion Object",
-  "patternProperties": {
-    "^x-": {
-      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-      "type": "string"
-    }
-  },
   "properties": {
     "type": {
       "description": "The type of condition to be applied",

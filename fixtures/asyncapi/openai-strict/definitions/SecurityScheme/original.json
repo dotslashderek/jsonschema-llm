@@ -1,0 +1,639 @@
+{
+  "$defs": {
+    "APIKeyHTTPSecurityScheme": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "in": "header",
+          "name": "api_key",
+          "type": "httpApiKey"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "in": {
+          "description": "The location of the API key. ",
+          "enum": [
+            "header",
+            "query",
+            "cookie"
+          ],
+          "type": "string"
+        },
+        "name": {
+          "description": "The name of the header, query or cookie parameter to be used.",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme. ",
+          "enum": [
+            "httpApiKey"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "in"
+      ],
+      "type": "object"
+    },
+    "BearerHTTPSecurityScheme": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "bearerFormat": {
+          "description": "A hint to the client to identify how the bearer token is formatted.",
+          "type": "string"
+        },
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "scheme": {
+          "description": "The name of the HTTP Authorization scheme to be used in the Authorization header as defined in RFC7235.",
+          "enum": [
+            "bearer"
+          ],
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme. ",
+          "enum": [
+            "http"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "scheme"
+      ],
+      "type": "object"
+    },
+    "HTTPSecurityScheme": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/NonBearerHTTPSecurityScheme"
+        },
+        {
+          "$ref": "#/$defs/BearerHTTPSecurityScheme"
+        },
+        {
+          "$ref": "#/$defs/APIKeyHTTPSecurityScheme"
+        }
+      ]
+    },
+    "NonBearerHTTPSecurityScheme": {
+      "additionalProperties": false,
+      "not": {
+        "properties": {
+          "scheme": {
+            "description": "A short description for security scheme.",
+            "enum": [
+              "bearer"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "scheme": {
+          "description": "The name of the HTTP Authorization scheme to be used in the Authorization header as defined in RFC7235.",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme. ",
+          "enum": [
+            "http"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "scheme",
+        "type"
+      ],
+      "type": "object"
+    },
+    "SaslGssapiSecurityScheme": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "type": "scramSha512"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme.",
+          "enum": [
+            "gssapi"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "SaslPlainSecurityScheme": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "type": "scramSha512"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme. Valid values",
+          "enum": [
+            "plain"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "SaslScramSecurityScheme": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "type": "scramSha512"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme.",
+          "enum": [
+            "scramSha256",
+            "scramSha512"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "SaslSecurityScheme": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SaslPlainSecurityScheme"
+        },
+        {
+          "$ref": "#/$defs/SaslScramSecurityScheme"
+        },
+        {
+          "$ref": "#/$defs/SaslGssapiSecurityScheme"
+        }
+      ]
+    },
+    "X509": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "type": "X509"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme.",
+          "enum": [
+            "X509"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "apiKey": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "in": "user",
+          "type": "apiKey"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "in": {
+          "description": "The location of the API key. ",
+          "enum": [
+            "user",
+            "password"
+          ],
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme.",
+          "enum": [
+            "apiKey"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "in"
+      ],
+      "type": "object"
+    },
+    "asymmetricEncryption": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme.",
+          "enum": [
+            "asymmetricEncryption"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "oauth2Flow": {
+      "additionalProperties": false,
+      "description": "Configuration details for a supported OAuth Flow",
+      "examples": [
+        {
+          "flows": {
+            "authorizationCode": {
+              "authorizationUrl": "https://example.com/api/oauth/dialog",
+              "scopes": {
+                "read:pets": "read your pets",
+                "write:pets": "modify pets in your account"
+              },
+              "tokenUrl": "https://example.com/api/oauth/token"
+            },
+            "implicit": {
+              "authorizationUrl": "https://example.com/api/oauth/dialog",
+              "scopes": {
+                "read:pets": "read your pets",
+                "write:pets": "modify pets in your account"
+              }
+            }
+          },
+          "type": "oauth2"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "authorizationUrl": {
+          "description": "The authorization URL to be used for this flow. This MUST be in the form of an absolute URL.",
+          "format": "uri",
+          "type": "string"
+        },
+        "refreshUrl": {
+          "description": "The URL to be used for obtaining refresh tokens. This MUST be in the form of an absolute URL.",
+          "format": "uri",
+          "type": "string"
+        },
+        "scopes": {
+          "$ref": "#/$defs/oauth2Scopes",
+          "description": "The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it."
+        },
+        "tokenUrl": {
+          "description": "The token URL to be used for this flow. This MUST be in the form of an absolute URL.",
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "oauth2Flows": {
+      "description": "Allows configuration of the supported OAuth Flows.",
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "flows": {
+          "additionalProperties": false,
+          "properties": {
+            "authorizationCode": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/oauth2Flow"
+                },
+                {
+                  "required": [
+                    "authorizationUrl",
+                    "tokenUrl",
+                    "scopes"
+                  ]
+                }
+              ],
+              "description": "Configuration for the OAuth Authorization Code flow."
+            },
+            "clientCredentials": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/oauth2Flow"
+                },
+                {
+                  "required": [
+                    "tokenUrl",
+                    "scopes"
+                  ]
+                },
+                {
+                  "not": {
+                    "required": [
+                      "authorizationUrl"
+                    ]
+                  }
+                }
+              ],
+              "description": "Configuration for the OAuth Client Credentials flow."
+            },
+            "implicit": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/oauth2Flow"
+                },
+                {
+                  "required": [
+                    "authorizationUrl",
+                    "scopes"
+                  ]
+                },
+                {
+                  "not": {
+                    "required": [
+                      "tokenUrl"
+                    ]
+                  }
+                }
+              ],
+              "description": "Configuration for the OAuth Implicit flow."
+            },
+            "password": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/oauth2Flow"
+                },
+                {
+                  "required": [
+                    "tokenUrl",
+                    "scopes"
+                  ]
+                },
+                {
+                  "not": {
+                    "required": [
+                      "authorizationUrl"
+                    ]
+                  }
+                }
+              ],
+              "description": "Configuration for the OAuth Resource Owner Protected Credentials flow."
+            }
+          },
+          "type": "object"
+        },
+        "type": {
+          "description": "A short description for security scheme.",
+          "enum": [
+            "oauth2"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "flows"
+      ],
+      "type": "object"
+    },
+    "oauth2Scopes": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "openIdConnect": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "openIdConnectUrl": {
+          "format": "uri",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "openIdConnect"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "openIdConnectUrl"
+      ],
+      "type": "object"
+    },
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    },
+    "symmetricEncryption": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "type": "symmetricEncryption"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme.",
+          "enum": [
+            "symmetricEncryption"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "userPassword": {
+      "additionalProperties": false,
+      "examples": [
+        {
+          "type": "userPassword"
+        }
+      ],
+      "patternProperties": {
+        "^x-[\\w\\d\\.\\x2d_]+$": {
+          "$ref": "#/$defs/specificationExtension"
+        }
+      },
+      "properties": {
+        "description": {
+          "description": "A short description for security scheme.",
+          "type": "string"
+        },
+        "type": {
+          "description": "The type of the security scheme. ",
+          "enum": [
+            "userPassword"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    }
+  },
+  "description": "Defines a security scheme that can be used by the operations.",
+  "examples": [
+    {
+      "type": "userPassword"
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/userPassword"
+    },
+    {
+      "$ref": "#/$defs/apiKey"
+    },
+    {
+      "$ref": "#/$defs/X509"
+    },
+    {
+      "$ref": "#/$defs/symmetricEncryption"
+    },
+    {
+      "$ref": "#/$defs/asymmetricEncryption"
+    },
+    {
+      "$ref": "#/$defs/HTTPSecurityScheme"
+    },
+    {
+      "$ref": "#/$defs/oauth2Flows"
+    },
+    {
+      "$ref": "#/$defs/openIdConnect"
+    },
+    {
+      "$ref": "#/$defs/SaslSecurityScheme"
+    }
+  ]
+}

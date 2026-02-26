@@ -2,6 +2,16 @@
   "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     {
+      "type": "nullable_optional",
+      "path": "#/then/properties/allowReserved",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/then/properties/style",
+      "originalRequired": false
+    },
+    {
       "type": "root_object_wrapper",
       "path": "#",
       "wrapperKey": "result"
@@ -16,6 +26,7 @@
       "path": "#",
       "constraint": "if",
       "value": {
+        "additionalProperties": false,
         "properties": {
           "in": {
             "const": "query"
@@ -23,28 +34,49 @@
         },
         "required": [
           "in"
-        ]
+        ],
+        "type": "object"
       }
     },
     {
       "path": "#",
       "constraint": "then",
       "value": {
+        "additionalProperties": false,
         "properties": {
           "allowReserved": {
-            "default": false,
-            "type": "boolean"
+            "anyOf": [
+              {
+                "default": false,
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "style": {
-            "default": "form",
-            "enum": [
-              "form",
-              "spaceDelimited",
-              "pipeDelimited",
-              "deepObject"
+            "anyOf": [
+              {
+                "default": "form",
+                "enum": [
+                  "form",
+                  "spaceDelimited",
+                  "pipeDelimited",
+                  "deepObject"
+                ]
+              },
+              {
+                "type": "null"
+              }
             ]
           }
-        }
+        },
+        "required": [
+          "allowReserved",
+          "style"
+        ],
+        "type": "object"
       }
     }
   ]

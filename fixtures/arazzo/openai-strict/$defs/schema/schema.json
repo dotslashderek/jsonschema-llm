@@ -2,7 +2,8 @@
   "additionalProperties": false,
   "properties": {
     "result": {
-      "$ref": "https://json-schema.org/draft/2020-12/schema"
+      "description": "MUST be a valid JSON value serialized as a string. This represents a schema reference that could not be resolved. Do NOT output plain text — the value must parse with JSON.parse().",
+      "type": "string"
     }
   },
   "required": [

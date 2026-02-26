@@ -1,0 +1,40 @@
+{
+  "$defs": {
+    "specificationExtension": {
+      "additionalItems": true,
+      "additionalProperties": true,
+      "description": "Any property starting with x- is valid."
+    }
+  },
+  "additionalProperties": false,
+  "description": "Contact information for the exposed API.",
+  "examples": [
+    {
+      "email": "support@example.com",
+      "name": "API Support",
+      "url": "https://www.example.com/support"
+    }
+  ],
+  "patternProperties": {
+    "^x-[\\w\\d\\.\\x2d_]+$": {
+      "$ref": "#/$defs/specificationExtension"
+    }
+  },
+  "properties": {
+    "email": {
+      "description": "The email address of the contact person/organization.",
+      "format": "email",
+      "type": "string"
+    },
+    "name": {
+      "description": "The identifying name of the contact person/organization.",
+      "type": "string"
+    },
+    "url": {
+      "description": "The URL pointing to the contact information.",
+      "format": "uri",
+      "type": "string"
+    }
+  },
+  "type": "object"
+}

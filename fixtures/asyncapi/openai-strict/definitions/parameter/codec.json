@@ -6,28 +6,19 @@
       "path": "#/properties/schema"
     },
     {
-      "type": "root_object_wrapper",
-      "path": "#",
-      "wrapperKey": "result"
-    },
-    {
       "type": "nullable_optional",
-      "path": "#/properties/result/properties/description",
+      "path": "#/properties/description",
       "originalRequired": false
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/result/properties/location",
+      "path": "#/properties/location",
       "originalRequired": false
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/result/properties/schema",
+      "path": "#/properties/schema",
       "originalRequired": false
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
     }
   ],
   "droppedConstraints": []

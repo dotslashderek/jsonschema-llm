@@ -2,6 +2,10 @@
   "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     {
+      "type": "json_string_parse",
+      "path": "#/properties/inputs"
+    },
+    {
       "type": "nullable_optional",
       "path": "#/properties/dependsOn",
       "originalRequired": false
@@ -58,23 +62,23 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/failureActions/anyOf/0/items/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/failureActions/anyOf/0/items/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/parameters/anyOf/0/items/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/outputs/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/steps/items/patternProperties/^x-"
+      "path": "#/properties/parameters/anyOf/0/items/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/successActions/anyOf/0/items/anyOf/0/patternProperties/^x-"
+      "path": "#/properties/steps/items"
     },
     {
       "type": "json_string_parse",
-      "path": "#/patternProperties/^x-"
+      "path": "#/properties/successActions/anyOf/0/items/anyOf/0"
     }
   ],
   "droppedConstraints": [

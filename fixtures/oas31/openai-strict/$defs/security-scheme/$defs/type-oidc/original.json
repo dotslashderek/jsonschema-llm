@@ -1,0 +1,23 @@
+{
+  "if": {
+    "properties": {
+      "type": {
+        "const": "openIdConnect"
+      }
+    },
+    "required": [
+      "type"
+    ]
+  },
+  "then": {
+    "properties": {
+      "openIdConnectUrl": {
+        "format": "uri",
+        "type": "string"
+      }
+    },
+    "required": [
+      "openIdConnectUrl"
+    ]
+  }
+}

@@ -1,64 +1,46 @@
 {
   "additionalProperties": false,
+  "description": "Describes a parameter included in a channel name.",
   "properties": {
-    "result": {
-      "additionalProperties": false,
-      "description": "Describes a parameter included in a channel name.",
-      "patternProperties": {
-        "^x-[\\w\\d\\.\\x2d_]+$": {
-          "additionalItems": true,
-          "additionalProperties": {
-            "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-            "type": "string"
-          },
-          "description": "Any property starting with x- is valid."
-        }
-      },
-      "properties": {
-        "description": {
-          "anyOf": [
-            {
-              "description": "A brief description of the parameter. This could contain examples of use. GitHub Flavored Markdown is allowed.",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ]
+    "description": {
+      "anyOf": [
+        {
+          "description": "A brief description of the parameter. This could contain examples of use. GitHub Flavored Markdown is allowed.",
+          "type": "string"
         },
-        "location": {
-          "anyOf": [
-            {
-              "description": "A runtime expression that specifies the location of the parameter value",
-              "pattern": "^\\$message\\.(header|payload)#(\\/(([^\\/~])|(~[01]))*)*",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "schema": {
-          "anyOf": [
-            {
-              "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ]
+        {
+          "type": "null"
         }
-      },
-      "required": [
-        "description",
-        "location",
-        "schema"
+      ]
+    },
+    "location": {
+      "anyOf": [
+        {
+          "description": "A runtime expression that specifies the location of the parameter value",
+          "pattern": "^\\$message\\.(header|payload)#(\\/(([^\\/~])|(~[01]))*)*",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schema": {
+      "anyOf": [
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
       ]
     }
   },
   "required": [
-    "result"
+    "description",
+    "location",
+    "schema"
   ],
   "type": "object"
 }

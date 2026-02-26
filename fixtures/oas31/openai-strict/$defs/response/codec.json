@@ -77,17 +77,27 @@
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value/then/properties/$ref",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/example",
       "originalRequired": false
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value/then/properties/description",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples",
       "originalRequired": false
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value/then/properties/summary",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value/then/properties/$ref",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value/then/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value/then/properties/summary",
       "originalRequired": false
     },
     {
@@ -122,11 +132,11 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/example"
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/example/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value"
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value"
     },
     {
       "type": "json_string_parse",
@@ -135,15 +145,11 @@
     {
       "type": "json_string_parse",
       "path": "#/properties/links/anyOf/0/items/properties/value"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^x-"
     }
   ],
   "droppedConstraints": [
     {
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value",
       "constraint": "if",
       "value": {
         "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
@@ -151,7 +157,7 @@
       }
     },
     {
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value",
       "constraint": "then",
       "value": {
         "$comment": "https://spec.openapis.org/oas/v3.1.0#reference-object",
@@ -198,7 +204,7 @@
       }
     },
     {
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value",
       "constraint": "else",
       "value": {
         "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",

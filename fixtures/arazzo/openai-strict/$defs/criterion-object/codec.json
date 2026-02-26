@@ -18,11 +18,7 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/patternProperties/^x-"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/1/patternProperties/^x-"
+      "path": "#/properties/result/anyOf/1"
     }
   ],
   "droppedConstraints": [

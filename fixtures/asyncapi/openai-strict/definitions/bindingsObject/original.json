@@ -1,0 +1,25 @@
+{
+  "additionalProperties": true,
+  "description": "Map describing protocol-specific definitions for a server.",
+  "properties": {
+    "amqp": {},
+    "amqp1": {},
+    "anypointmq": {},
+    "googlepubsub": {},
+    "http": {},
+    "ibmmq": {},
+    "jms": {},
+    "kafka": {},
+    "mqtt": {},
+    "mqtt5": {},
+    "nats": {},
+    "pulsar": {},
+    "redis": {},
+    "sns": {},
+    "solace": {},
+    "sqs": {},
+    "stomp": {},
+    "ws": {}
+  },
+  "type": "object"
+}

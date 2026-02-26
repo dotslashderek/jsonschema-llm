@@ -1,0 +1,76 @@
+{
+  "$comment": "https://spec.openapis.org/arazzo/v1.0#criterion-expression-type-object",
+  "$defs": {
+    "specification-extensions": {
+      "$comment": "https://spec.openapis.org/arazzo/v1.0#specification-extensions",
+      "description": "While the Arazzo Specification tries to accommodate most use cases, additional data can be added to extend the specification at certain points",
+      "patternProperties": {
+        "^x-": true
+      }
+    }
+  },
+  "$ref": "#/$defs/specification-extensions",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "jsonpath"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "version": {
+            "const": "draft-goessner-dispatch-jsonpath-00"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "xpath"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "version": {
+            "enum": [
+              "xpath-10",
+              "xpath-20",
+              "xpath-30"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "description": "An object used to describe the type and version of an expression used within a Criterion Object",
+  "properties": {
+    "type": {
+      "description": "The type of condition to be applied",
+      "enum": [
+        "jsonpath",
+        "xpath"
+      ]
+    },
+    "version": {
+      "description": "A short hand string representing the version of the expression type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "version"
+  ],
+  "type": "object"
+}

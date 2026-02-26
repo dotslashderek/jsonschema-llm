@@ -40,18 +40,6 @@
       "type": "nullable_optional",
       "path": "#/properties/license/anyOf/0/properties/url",
       "originalRequired": false
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/contact/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/license/anyOf/0/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/patternProperties/^x-[\\w\\d\\.\\x2d_]+$/additionalProperties"
     }
   ],
   "droppedConstraints": [

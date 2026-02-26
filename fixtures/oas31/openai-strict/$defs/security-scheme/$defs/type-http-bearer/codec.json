@@ -2,6 +2,11 @@
   "$schema": "https://json-schema-llm.dev/codec/v1",
   "transforms": [
     {
+      "type": "nullable_optional",
+      "path": "#/then/properties/bearerFormat",
+      "originalRequired": false
+    },
+    {
       "type": "root_object_wrapper",
       "path": "#",
       "wrapperKey": "result"
@@ -16,6 +21,7 @@
       "path": "#",
       "constraint": "if",
       "value": {
+        "additionalProperties": false,
         "properties": {
           "scheme": {
             "pattern": "^[Bb][Ee][Aa][Rr][Ee][Rr]$",
@@ -26,20 +32,33 @@
           }
         },
         "required": [
-          "type",
-          "scheme"
-        ]
+          "scheme",
+          "type"
+        ],
+        "type": "object"
       }
     },
     {
       "path": "#",
       "constraint": "then",
       "value": {
+        "additionalProperties": false,
         "properties": {
           "bearerFormat": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
-        }
+        },
+        "required": [
+          "bearerFormat"
+        ],
+        "type": "object"
       }
     }
   ]

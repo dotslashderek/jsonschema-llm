@@ -79,17 +79,37 @@
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value/then/properties/$ref",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/example",
       "originalRequired": false
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value/then/properties/description",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples",
       "originalRequired": false
     },
     {
       "type": "nullable_optional",
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value/then/properties/summary",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value/then/properties/$ref",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value/then/properties/description",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value/then/properties/summary",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/dependentSchemas/schema/then/properties/explode",
+      "originalRequired": false
+    },
+    {
+      "type": "nullable_optional",
+      "path": "#/dependentSchemas/schema/else/properties/explode",
       "originalRequired": false
     },
     {
@@ -99,15 +119,11 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/content/anyOf/0/items/properties/value/properties/example"
+      "path": "#/properties/result/properties/content/anyOf/0/items/properties/value/properties/example/anyOf/0"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value"
-    },
-    {
-      "type": "json_string_parse",
-      "path": "#/properties/result/patternProperties/^x-"
+      "path": "#/properties/result/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value"
     }
   ],
   "droppedConstraints": [
@@ -143,15 +159,28 @@
       "value": {
         "schema": {
           "else": {
+            "additionalProperties": false,
             "properties": {
               "explode": {
-                "default": false,
-                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                "type": "string"
+                "anyOf": [
+                  {
+                    "default": false,
+                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
-            }
+            },
+            "required": [
+              "explode"
+            ],
+            "type": "object"
           },
           "if": {
+            "additionalProperties": false,
             "properties": {
               "style": {
                 "const": "form"
@@ -159,22 +188,35 @@
             },
             "required": [
               "style"
-            ]
+            ],
+            "type": "object"
           },
           "then": {
+            "additionalProperties": false,
             "properties": {
               "explode": {
-                "default": true,
-                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                "type": "string"
+                "anyOf": [
+                  {
+                    "default": true,
+                    "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
-            }
+            },
+            "required": [
+              "explode"
+            ],
+            "type": "object"
           }
         }
       }
     },
     {
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value",
       "constraint": "if",
       "value": {
         "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
@@ -182,7 +224,7 @@
       }
     },
     {
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value",
       "constraint": "then",
       "value": {
         "$comment": "https://spec.openapis.org/oas/v3.1.0#reference-object",
@@ -229,7 +271,7 @@
       }
     },
     {
-      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/items/properties/value",
+      "path": "#/properties/content/anyOf/0/items/properties/value/properties/examples/anyOf/0/items/properties/value",
       "constraint": "else",
       "value": {
         "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",

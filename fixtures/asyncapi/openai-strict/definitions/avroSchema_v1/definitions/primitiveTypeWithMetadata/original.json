@@ -1,0 +1,30 @@
+{
+  "$defs": {
+    "primitiveType": {
+      "description": "Basic type primitives.",
+      "enum": [
+        "null",
+        "boolean",
+        "int",
+        "long",
+        "float",
+        "double",
+        "bytes",
+        "string"
+      ],
+      "title": "Primitive Type",
+      "type": "string"
+    }
+  },
+  "description": "A primitive type with metadata attached.",
+  "properties": {
+    "type": {
+      "$ref": "#/$defs/primitiveType"
+    }
+  },
+  "required": [
+    "type"
+  ],
+  "title": "Primitive Type With Metadata",
+  "type": "object"
+}

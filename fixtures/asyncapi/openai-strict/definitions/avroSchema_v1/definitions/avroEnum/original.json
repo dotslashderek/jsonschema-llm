@@ -1,0 +1,47 @@
+{
+  "$defs": {
+    "name": {
+      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+      "type": "string"
+    },
+    "namespace": {
+      "pattern": "^([A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*)*$",
+      "type": "string"
+    }
+  },
+  "description": "An enumeration",
+  "properties": {
+    "aliases": {
+      "items": {
+        "$ref": "#/$defs/name"
+      },
+      "type": "array"
+    },
+    "doc": {
+      "type": "string"
+    },
+    "name": {
+      "$ref": "#/$defs/name"
+    },
+    "namespace": {
+      "$ref": "#/$defs/namespace"
+    },
+    "symbols": {
+      "items": {
+        "$ref": "#/$defs/name"
+      },
+      "type": "array"
+    },
+    "type": {
+      "const": "enum",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "name",
+    "symbols"
+  ],
+  "title": "Enum",
+  "type": "object"
+}

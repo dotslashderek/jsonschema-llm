@@ -2,12 +2,6 @@
   "$comment": "https://spec.openapis.org/arazzo/v1.0#payload-replacement-object",
   "additionalProperties": false,
   "description": "Describes a location within a payload (e.g., a request body) and a value to set within the location",
-  "patternProperties": {
-    "^x-": {
-      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-      "type": "string"
-    }
-  },
   "properties": {
     "target": {
       "description": "A JSON Pointer or XPath Expression which MUST be resolved against the request body",

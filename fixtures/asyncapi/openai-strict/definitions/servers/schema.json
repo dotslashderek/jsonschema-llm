@@ -27,16 +27,6 @@
               {
                 "additionalProperties": false,
                 "description": "An object representing a message broker, a server or any other kind of computer program capable of sending and/or receiving data",
-                "patternProperties": {
-                  "^x-[\\w\\d\\.\\x2d_]+$": {
-                    "additionalItems": true,
-                    "additionalProperties": {
-                      "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                      "type": "string"
-                    },
-                    "description": "Any property starting with x- is valid."
-                  }
-                },
                 "properties": {
                   "bindings": {
                     "anyOf": [
@@ -338,16 +328,6 @@
                         "items": {
                           "additionalProperties": false,
                           "description": "Allows adding meta data to a single tag.",
-                          "patternProperties": {
-                            "^x-[\\w\\d\\.\\x2d_]+$": {
-                              "additionalItems": true,
-                              "additionalProperties": {
-                                "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                                "type": "string"
-                              },
-                              "description": "Any property starting with x- is valid."
-                            }
-                          },
                           "properties": {
                             "description": {
                               "anyOf": [
@@ -365,16 +345,6 @@
                                 {
                                   "additionalProperties": false,
                                   "description": "Additional external documentation for this tag.",
-                                  "patternProperties": {
-                                    "^x-[\\w\\d\\.\\x2d_]+$": {
-                                      "additionalItems": true,
-                                      "additionalProperties": {
-                                        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                                        "type": "string"
-                                      },
-                                      "description": "Any property starting with x- is valid."
-                                    }
-                                  },
                                   "properties": {
                                     "description": {
                                       "anyOf": [
@@ -454,16 +424,6 @@
                                 {
                                   "additionalProperties": false,
                                   "description": "An object representing a Server Variable for server URL template substitution.",
-                                  "patternProperties": {
-                                    "^x-[\\w\\d\\.\\x2d_]+$": {
-                                      "additionalItems": true,
-                                      "additionalProperties": {
-                                        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
-                                        "type": "string"
-                                      },
-                                      "description": "Any property starting with x- is valid."
-                                    }
-                                  },
                                   "properties": {
                                     "default": {
                                       "anyOf": [
