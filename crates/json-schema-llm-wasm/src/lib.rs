@@ -279,7 +279,9 @@ export type ProviderCompatError =
   | { type: "root_type_incompatible"; actual_type: string; target: Target; hint: string }
   | { type: "depth_budget_exceeded"; actual_depth: number; max_depth: number; target: Target; hint: string }
   | { type: "mixed_enum_types"; path: string; types_found: string[]; target: Target; hint: string }
-  | { type: "unconstrained_schema"; path: string; schema_kind: string; target: Target; hint: string };
+  | { type: "unconstrained_schema"; path: string; schema_kind: string; target: Target; hint: string }
+  | { type: "pattern_properties_stripped"; path: string; target: Target; hint: string }
+  | { type: "pattern_properties_stringified"; path: string; target: Target; hint: string };
 
 export interface ConvertResult {
   apiVersion: string;

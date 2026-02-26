@@ -407,7 +407,11 @@ impl CompatVisitor<'_> {
                     });
                     return; // Don't recurse into children (they're gone)
                 } else {
-                    // Branch 3: root → strip only (already wrapped by check_root_type)
+                    // Branch 3: explicitly typed root object (e.g. type: "object" at root)
+                    // that was NOT wrapped by check_root_type. Untyped roots get wrapped,
+                    // placing the inner schema at #/properties/result (path != "#"),
+                    // where Branch 2 handles it. This branch only fires for roots that
+                    // already had type: "object" and thus bypassed wrapping.
                     let obj = schema.as_object_mut().unwrap();
                     obj.remove("patternProperties");
                     self.errors
