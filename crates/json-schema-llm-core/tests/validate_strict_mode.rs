@@ -44,11 +44,28 @@ fn test_clean_schema_passes() {
 }
 
 #[test]
-fn test_missing_type() {
+fn test_root_not_object() {
     let schema = json!({
+        "type": "string"
+    });
+    let v = validate_strict_mode(&schema);
+    assert_has_violation(&v, &StrictModeRule::RootNotObject);
+}
+
+#[test]
+fn test_missing_type() {
+    // A sub-schema without type inside a valid root
+    let schema = json!({
+        "type": "object",
         "properties": {
-            "name": { "type": "string" }
+            "data": {
+                "properties": {
+                    "name": { "type": "string" }
+                },
+                "additionalProperties": false
+            }
         },
+        "required": ["data"],
         "additionalProperties": false
     });
     let v = validate_strict_mode(&schema);
@@ -60,11 +77,34 @@ fn test_missing_additional_properties() {
     let schema = json!({
         "type": "object",
         "properties": {
-            "name": { "type": "string" }
-        }
+            "nested": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" }
+                }
+            }
+        },
+        "required": ["nested"],
+        "additionalProperties": false
     });
     let v = validate_strict_mode(&schema);
     assert_has_violation(&v, &StrictModeRule::MissingAdditionalProperties);
+}
+
+#[test]
+fn test_missing_items() {
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "tags": {
+                "type": "array"
+            }
+        },
+        "required": ["tags"],
+        "additionalProperties": false
+    });
+    let v = validate_strict_mode(&schema);
+    assert_has_violation(&v, &StrictModeRule::MissingItems);
 }
 
 #[test]
@@ -82,7 +122,11 @@ fn test_banned_pattern_properties() {
 #[test]
 fn test_banned_schema_ref() {
     let schema = json!({
-        "$ref": "#/$defs/Foo"
+        "type": "object",
+        "properties": {
+            "nested": { "$ref": "#/$defs/Foo" }
+        },
+        "additionalProperties": false
     });
     let v = validate_strict_mode(&schema);
     assert_has_violation(&v, &StrictModeRule::BannedSchemaRef);
@@ -103,7 +147,11 @@ fn test_banned_anchor() {
 #[test]
 fn test_banned_dynamic_ref() {
     let schema = json!({
-        "$dynamicRef": "#foo"
+        "type": "object",
+        "properties": {
+            "x": { "$dynamicRef": "#foo" }
+        },
+        "additionalProperties": false
     });
     let v = validate_strict_mode(&schema);
     assert_has_violation(&v, &StrictModeRule::BannedDynamicRef);
@@ -164,9 +212,16 @@ fn test_banned_unevaluated_properties() {
 #[test]
 fn test_banned_unevaluated_items() {
     let schema = json!({
-        "type": "array",
-        "items": { "type": "string" },
-        "unevaluatedItems": false
+        "type": "object",
+        "properties": {
+            "data": {
+                "type": "array",
+                "items": { "type": "string" },
+                "unevaluatedItems": false
+            }
+        },
+        "required": ["data"],
+        "additionalProperties": false
     });
     let v = validate_strict_mode(&schema);
     assert_has_violation(&v, &StrictModeRule::BannedUnevaluatedItems);
@@ -175,9 +230,16 @@ fn test_banned_unevaluated_items() {
 #[test]
 fn test_banned_contains() {
     let schema = json!({
-        "type": "array",
-        "items": { "type": "string" },
-        "contains": { "type": "string", "const": "required" }
+        "type": "object",
+        "properties": {
+            "data": {
+                "type": "array",
+                "items": { "type": "string" },
+                "contains": { "type": "string", "const": "required" }
+            }
+        },
+        "required": ["data"],
+        "additionalProperties": false
     });
     let v = validate_strict_mode(&schema);
     assert_has_violation(&v, &StrictModeRule::BannedContains);
@@ -213,7 +275,7 @@ fn test_banned_not() {
 
 #[test]
 fn test_depth_exceeded() {
-    // Build a schema with 12 levels of nesting (exceeds 10)
+    // Build a schema with 12 levels of nesting (exceeds limit 10)
     let mut schema = json!({ "type": "string" });
     for _ in 0..12 {
         schema = json!({
@@ -228,9 +290,25 @@ fn test_depth_exceeded() {
 }
 
 #[test]
+fn test_depth_exactly_at_limit() {
+    // Build a schema at exactly depth 10 — should be flagged (>= 10)
+    let mut schema = json!({ "type": "string" });
+    for _ in 0..10 {
+        schema = json!({
+            "type": "object",
+            "properties": { "nested": schema },
+            "required": ["nested"],
+            "additionalProperties": false
+        });
+    }
+    let v = validate_strict_mode(&schema);
+    assert_has_violation(&v, &StrictModeRule::DepthExceeded);
+}
+
+#[test]
 fn test_ref_as_property_name_not_flagged() {
-    // $ref as a property NAME inside properties is legitimate
-    // (e.g., AsyncAPI's ReferenceObject)
+    // $ref as a property NAME is legitimate — the walker visits the
+    // property's value (a schema), not the property name itself.
     let schema = json!({
         "type": "object",
         "properties": {
@@ -240,24 +318,58 @@ fn test_ref_as_property_name_not_flagged() {
         "additionalProperties": false
     });
     let v = validate_strict_mode(&schema);
-    assert_no_violations(&v);
+    // Should have no BannedSchemaRef (the "$ref" key is a prop name, not a schema keyword)
+    assert!(
+        !v.iter()
+            .any(|viol| viol.rule_id == StrictModeRule::BannedSchemaRef),
+        "$ref as property name should not be flagged, but got: {:?}",
+        v
+    );
 }
 
 #[test]
 fn test_combinator_wrappers_exempt_from_type() {
-    // Bare anyOf/oneOf without `type` should NOT be flagged for MissingType
+    // Bare anyOf without `type` should NOT be flagged for MissingType
     let schema = json!({
-        "anyOf": [
-            { "type": "string" },
-            { "type": "null" }
-        ]
+        "type": "object",
+        "properties": {
+            "value": {
+                "anyOf": [
+                    { "type": "string" },
+                    { "type": "null" }
+                ]
+            }
+        },
+        "required": ["value"],
+        "additionalProperties": false
     });
     let v = validate_strict_mode(&schema);
-    // Should NOT have a MissingType violation for the root
     assert!(
         !v.iter()
-            .any(|v| v.rule_id == StrictModeRule::MissingType && v.path == "#"),
+            .any(|viol| viol.rule_id == StrictModeRule::MissingType),
         "Bare anyOf wrapper should be exempt from MissingType, but got: {:?}",
+        v
+    );
+}
+
+#[test]
+fn test_enum_exempt_from_missing_type() {
+    // Schemas with enum but no explicit type should not trigger MissingType
+    let schema = json!({
+        "type": "object",
+        "properties": {
+            "status": {
+                "enum": ["active", "inactive"]
+            }
+        },
+        "required": ["status"],
+        "additionalProperties": false
+    });
+    let v = validate_strict_mode(&schema);
+    assert!(
+        !v.iter()
+            .any(|viol| viol.rule_id == StrictModeRule::MissingType),
+        "Enum schema should be exempt from MissingType, but got: {:?}",
         v
     );
 }

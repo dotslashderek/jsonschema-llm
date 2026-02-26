@@ -25,8 +25,10 @@ use crate::schema_walker::{ARRAY_KEYWORDS, MAP_KEYWORDS, SINGLE_KEYWORDS};
 /// Machine-readable identifier for each strict-mode rule.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StrictModeRule {
+    RootNotObject,
     MissingType,
     MissingAdditionalProperties,
+    MissingItems,
     BannedPatternProperties,
     BannedSchemaRef,
     BannedAnchor,
@@ -107,7 +109,24 @@ const DATA_SHAPE_KEYWORDS: &[&str] = &[
 /// This is a **read-only auditor** — it never mutates the input schema.
 pub fn validate_strict_mode(schema: &Value) -> Vec<StrictModeViolation> {
     let mut violations = Vec::new();
-    walk(schema, "#", 0, "", &mut violations);
+
+    // ── Root-level checks ────────────────────────────────────────
+    // OpenAI strict mode requires the root to be type: "object".
+    if let Some(obj) = schema.as_object() {
+        let root_type = obj.get("type").and_then(|v| v.as_str());
+        if root_type != Some("object") {
+            violations.push(StrictModeViolation {
+                path: "#".to_string(),
+                rule_id: StrictModeRule::RootNotObject,
+                message: format!(
+                    "Root schema must be type 'object', found '{}'",
+                    root_type.unwrap_or("none")
+                ),
+            });
+        }
+    }
+
+    walk(schema, "#", 0, &mut violations);
     violations
 }
 
@@ -120,14 +139,11 @@ pub fn validate_strict_mode(schema: &Value) -> Vec<StrictModeViolation> {
 /// - `value`: the current schema node
 /// - `path`: JSON Pointer to this node
 /// - `semantic_depth`: data-shape nesting depth (NOT incremented by combinators)
-/// - `parent_key`: the JSON key under which this node was found (used to
-///   distinguish `$ref` as a property name vs schema-level `$ref`)
 /// - `violations`: accumulator for found violations
 fn walk(
     value: &Value,
     path: &str,
     semantic_depth: usize,
-    parent_key: &str,
     violations: &mut Vec<StrictModeViolation>,
 ) {
     let obj = match value.as_object() {
@@ -136,12 +152,13 @@ fn walk(
     };
 
     // ── Depth check ──────────────────────────────────────────────
-    if semantic_depth > MAX_SEMANTIC_DEPTH {
+    // Use >= to match p9_provider_compat.rs behavior (depth 10 IS the limit).
+    if semantic_depth >= MAX_SEMANTIC_DEPTH && path != "#" {
         violations.push(StrictModeViolation {
             path: path.to_string(),
             rule_id: StrictModeRule::DepthExceeded,
             message: format!(
-                "Semantic depth {} exceeds maximum {} at '{}'",
+                "Semantic depth {} reaches limit {} at '{}'",
                 semantic_depth, MAX_SEMANTIC_DEPTH, path
             ),
         });
@@ -161,9 +178,9 @@ fn walk(
     }
 
     // ── Schema-level $ref ────────────────────────────────────────
-    // Only flag `$ref` when it appears as a schema keyword, not when
-    // it appears as a property name inside a `properties` map.
-    if obj.contains_key("$ref") && parent_key != "properties" {
+    // Flag `$ref` unconditionally — the walker only visits schema
+    // nodes (not property names), so `$ref` here is always a schema keyword.
+    if obj.contains_key("$ref") {
         violations.push(StrictModeViolation {
             path: path.to_string(),
             rule_id: StrictModeRule::BannedSchemaRef,
@@ -180,27 +197,18 @@ fn walk(
         && (obj.contains_key("anyOf") || obj.contains_key("oneOf") || obj.contains_key("allOf"));
     let has_implicit_type = obj.contains_key("enum") || obj.contains_key("const");
 
-    if !has_type && !is_combinator_wrapper && !has_implicit_type {
-        // Only flag if this looks like a schema node (has schema-like keywords)
-        let has_schema_keywords = obj.contains_key("properties")
-            || obj.contains_key("items")
-            || obj.contains_key("additionalProperties")
-            || obj.contains_key("enum")
-            || obj.contains_key("const")
-            || obj.contains_key("description")
-            || obj.contains_key("$ref");
-
-        if has_schema_keywords {
-            violations.push(StrictModeViolation {
-                path: path.to_string(),
-                rule_id: StrictModeRule::MissingType,
-                message: format!("Schema node at '{}' is missing 'type'", path),
-            });
-        }
+    if !has_type && !is_combinator_wrapper && !has_implicit_type && !obj.is_empty() {
+        violations.push(StrictModeViolation {
+            path: path.to_string(),
+            rule_id: StrictModeRule::MissingType,
+            message: format!("Schema node at '{}' is missing 'type'", path),
+        });
     }
 
     // ── MissingAdditionalProperties ──────────────────────────────
-    if obj.get("type").and_then(|v| v.as_str()) == Some("object") {
+    let is_object_type = obj.get("type").and_then(|v| v.as_str()) == Some("object");
+
+    if is_object_type {
         let has_ap = obj.get("additionalProperties") == Some(&Value::Bool(false));
         if !has_ap {
             violations.push(StrictModeViolation {
@@ -212,6 +220,18 @@ fn walk(
                 ),
             });
         }
+    }
+
+    // ── MissingItems ─────────────────────────────────────────────
+    // OpenAI strict mode requires `items` on array-typed schemas.
+    let is_array_type = obj.get("type").and_then(|v| v.as_str()) == Some("array");
+
+    if is_array_type && !obj.contains_key("items") && !obj.contains_key("prefixItems") {
+        violations.push(StrictModeViolation {
+            path: path.to_string(),
+            rule_id: StrictModeRule::MissingItems,
+            message: format!("Array at '{}' is missing 'items' keyword", path),
+        });
     }
 
     // ── Recurse into children ────────────────────────────────────
@@ -228,7 +248,7 @@ fn walk(
             };
             for (key, child) in map {
                 let child_path = build_path(path, &[keyword, key]);
-                walk(child, &child_path, next_depth, keyword, violations);
+                walk(child, &child_path, next_depth, violations);
             }
         }
     }
@@ -244,7 +264,7 @@ fn walk(
                     semantic_depth
                 };
                 let child_path = build_path(path, &[keyword]);
-                walk(child, &child_path, next_depth, keyword, violations);
+                walk(child, &child_path, next_depth, violations);
             }
         }
     }
@@ -260,7 +280,7 @@ fn walk(
             };
             for (i, child) in arr.iter().enumerate() {
                 let child_path = build_path(path, &[keyword, &i.to_string()]);
-                walk(child, &child_path, next_depth, keyword, violations);
+                walk(child, &child_path, next_depth, violations);
             }
         }
     }
@@ -270,12 +290,12 @@ fn walk(
         match items {
             Value::Object(_) => {
                 let child_path = build_path(path, &["items"]);
-                walk(items, &child_path, semantic_depth + 1, "items", violations);
+                walk(items, &child_path, semantic_depth + 1, violations);
             }
             Value::Array(arr) => {
                 for (i, child) in arr.iter().enumerate() {
                     let child_path = build_path(path, &["items", &i.to_string()]);
-                    walk(child, &child_path, semantic_depth + 1, "items", violations);
+                    walk(child, &child_path, semantic_depth + 1, violations);
                 }
             }
             _ => {}
