@@ -93,6 +93,13 @@ pub enum ProviderCompatError {
         target: Target,
         hint: String,
     },
+    /// #254: type array converted to anyOf branches (not supported in strict mode)
+    TypeArrayConverted {
+        path: String,
+        types: Vec<String>,
+        target: Target,
+        hint: String,
+    },
 }
 
 impl fmt::Display for ProviderCompatError {
@@ -165,6 +172,16 @@ impl fmt::Display for ProviderCompatError {
                 f,
                 "bare-required anyOf branch stripped at '{}'. {}",
                 path, hint
+            ),
+            ProviderCompatError::TypeArrayConverted {
+                path,
+                types,
+                target: _,
+                hint,
+            } => write!(
+                f,
+                "type array {:?} converted to anyOf at '{}'. {}",
+                types, path, hint
             ),
         }
     }

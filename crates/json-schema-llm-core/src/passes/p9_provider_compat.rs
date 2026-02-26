@@ -441,6 +441,102 @@ impl CompatVisitor<'_> {
             }
         }
 
+        // ── #254 Type array → anyOf conversion ───────────────────
+        // OpenAI strict mode does not support type arrays like
+        // `type: ["string", "null"]`. Convert to equivalent anyOf branches.
+        // Each type becomes a branch; non-type keywords stay on the parent.
+        {
+            let needs_conversion = schema.get("type").and_then(|v| v.as_array()).is_some();
+
+            if needs_conversion {
+                let type_arr: Vec<String> = schema
+                    .get("type")
+                    .and_then(|v| v.as_array())
+                    .unwrap()
+                    .iter()
+                    .filter_map(|t| t.as_str().map(String::from))
+                    .collect();
+
+                if type_arr.len() > 1 {
+                    let obj = schema.as_object_mut().unwrap();
+                    obj.remove("type");
+
+                    // Build anyOf branches — each type gets its own branch
+                    // with relevant constraints from the parent.
+                    // Bare object (no properties) and bare array (no items)
+                    // would violate strict mode, so we opaque-stringify them.
+                    let has_properties = obj
+                        .get("properties")
+                        .and_then(Value::as_object)
+                        .is_some_and(|p| !p.is_empty());
+                    let has_items = obj.get("items").is_some() || obj.get("prefixItems").is_some();
+
+                    let branches: Vec<Value> = type_arr
+                        .iter()
+                        .map(|t| {
+                            let mut branch = json!({"type": t});
+                            // For object branches, carry over properties-related keywords
+                            if t == "object" {
+                                if has_properties {
+                                    for kw in &["properties", "required", "additionalProperties"]
+                                    {
+                                        if let Some(val) = obj.get(*kw) {
+                                            branch[*kw] = val.clone();
+                                        }
+                                    }
+                                } else {
+                                    // Bare object → opaque string
+                                    return json!({
+                                        "type": "string",
+                                        "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse()."
+                                    });
+                                }
+                            }
+                            // For array branches, carry over items-related keywords
+                            if t == "array" {
+                                if has_items {
+                                    for kw in &["items", "prefixItems", "minItems", "maxItems"] {
+                                        if let Some(val) = obj.get(*kw) {
+                                            branch[*kw] = val.clone();
+                                        }
+                                    }
+                                } else {
+                                    // Bare array → opaque string
+                                    return json!({
+                                        "type": "string",
+                                        "description": "MUST be a valid JSON array serialized as a string, e.g. \"[1, 2, 3]\". Do NOT output plain text — the value must parse with JSON.parse()."
+                                    });
+                                }
+                            }
+                            branch
+                        })
+                        .collect();
+
+                    // Remove keywords that were moved into branches
+                    for kw in &[
+                        "properties",
+                        "required",
+                        "additionalProperties",
+                        "items",
+                        "prefixItems",
+                        "minItems",
+                        "maxItems",
+                    ] {
+                        obj.remove(*kw);
+                    }
+
+                    obj.insert("anyOf".to_string(), Value::Array(branches));
+
+                    self.errors.push(ProviderCompatError::TypeArrayConverted {
+                        path: path.to_string(),
+                        types: type_arr,
+                        target: self.target,
+                        hint: "Type array converted to anyOf branches.".to_string(),
+                    });
+                }
+            }
+        }
+
         // ── Recurse into children ──────────────────────────────────
         // Data-shape keywords increment semantic_depth.
         // Non-data-shape keywords (combinators, conditionals, defs) do not.

@@ -8,15 +8,29 @@
       "type": "string"
     },
     "value": {
-      "description": "Sets a value of the referenced parameter",
-      "type": [
-        "string",
-        "boolean",
-        "object",
-        "array",
-        "number",
-        "null"
-      ]
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "description": "MUST be a valid JSON array serialized as a string, e.g. \"[1, 2, 3]\". Do NOT output plain text — the value must parse with JSON.parse().",
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Sets a value of the referenced parameter"
     }
   },
   "required": [
