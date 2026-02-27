@@ -291,28 +291,8 @@
                       {
                         "description": "A declaration of which security mechanisms can be used with this server. The list of values includes alternative security requirement objects that can be used. ",
                         "items": {
-                          "description": "Lists of the required security schemes that can be used to execute an operation",
-                          "items": {
-                            "additionalProperties": false,
-                            "properties": {
-                              "key": {
-                                "type": "string"
-                              },
-                              "value": {
-                                "description": "Constraints: items must be unique.",
-                                "items": {
-                                  "type": "string"
-                                },
-                                "type": "array"
-                              }
-                            },
-                            "required": [
-                              "key",
-                              "value"
-                            ],
-                            "type": "object"
-                          },
-                          "type": "array"
+                          "description": "MUST be a valid JSON value serialized as a string. Structure: [{key: string, value: [string]}]. Do NOT output plain text — the value must parse with JSON.parse().",
+                          "type": "string"
                         },
                         "type": "array"
                       },
@@ -326,64 +306,8 @@
                       {
                         "description": "A list of tags for logical grouping and categorization of servers. Constraints: items must be unique.",
                         "items": {
-                          "additionalProperties": false,
-                          "description": "Allows adding meta data to a single tag.",
-                          "properties": {
-                            "description": {
-                              "anyOf": [
-                                {
-                                  "description": "A short description for the tag.",
-                                  "type": "string"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "externalDocs": {
-                              "anyOf": [
-                                {
-                                  "additionalProperties": false,
-                                  "description": "Additional external documentation for this tag.",
-                                  "properties": {
-                                    "description": {
-                                      "anyOf": [
-                                        {
-                                          "description": "A short description of the target documentation.",
-                                          "type": "string"
-                                        },
-                                        {
-                                          "type": "null"
-                                        }
-                                      ]
-                                    },
-                                    "url": {
-                                      "description": "The URL for the target documentation. This MUST be in the form of an absolute URL. Constraints: format: uri.",
-                                      "type": "string"
-                                    }
-                                  },
-                                  "required": [
-                                    "description",
-                                    "url"
-                                  ],
-                                  "type": "object"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "name": {
-                              "description": "The name of the tag.",
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "description",
-                            "externalDocs",
-                            "name"
-                          ],
-                          "type": "object"
+                          "description": "MUST be a valid JSON value serialized as a string. Structure: {description: any, externalDocs: any, name: string}. includes properties matching pattern(s) [^x-[\\w\\d\\.\\x2d_]+$]. Do NOT output plain text — the value must parse with JSON.parse().",
+                          "type": "string"
                         },
                         "type": "array"
                       },
@@ -401,97 +325,8 @@
                       {
                         "description": "A map between a variable name and its value. The value is used for substitution in the server's URL template.",
                         "items": {
-                          "additionalProperties": false,
-                          "properties": {
-                            "key": {
-                              "type": "string"
-                            },
-                            "value": {
-                              "anyOf": [
-                                {
-                                  "additionalProperties": false,
-                                  "properties": {
-                                    "$ref": {
-                                      "description": "A simple object to allow referencing other components in the specification, internally and externally. Constraints: format: uri-reference.",
-                                      "type": "string"
-                                    }
-                                  },
-                                  "required": [
-                                    "$ref"
-                                  ],
-                                  "type": "object"
-                                },
-                                {
-                                  "additionalProperties": false,
-                                  "description": "An object representing a Server Variable for server URL template substitution.",
-                                  "properties": {
-                                    "default": {
-                                      "anyOf": [
-                                        {
-                                          "description": "The default value to use for substitution, and to send, if an alternate value is not supplied.",
-                                          "type": "string"
-                                        },
-                                        {
-                                          "type": "null"
-                                        }
-                                      ]
-                                    },
-                                    "description": {
-                                      "anyOf": [
-                                        {
-                                          "description": "An optional description for the server variable. ",
-                                          "type": "string"
-                                        },
-                                        {
-                                          "type": "null"
-                                        }
-                                      ]
-                                    },
-                                    "enum": {
-                                      "anyOf": [
-                                        {
-                                          "description": "An enumeration of string values to be used if the substitution options are from a limited set. Constraints: items must be unique.",
-                                          "items": {
-                                            "type": "string"
-                                          },
-                                          "type": "array"
-                                        },
-                                        {
-                                          "type": "null"
-                                        }
-                                      ]
-                                    },
-                                    "examples": {
-                                      "anyOf": [
-                                        {
-                                          "description": "An array of examples of the server variable.",
-                                          "items": {
-                                            "type": "string"
-                                          },
-                                          "type": "array"
-                                        },
-                                        {
-                                          "type": "null"
-                                        }
-                                      ]
-                                    }
-                                  },
-                                  "required": [
-                                    "default",
-                                    "description",
-                                    "enum",
-                                    "examples"
-                                  ],
-                                  "type": "object"
-                                }
-                              ]
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "value"
-                          ],
-                          "type": "object"
+                          "description": "MUST be a valid JSON value serialized as a string. Structure: {key: string, value: any}. Do NOT output plain text — the value must parse with JSON.parse().",
+                          "type": "string"
                         },
                         "type": "array"
                       },

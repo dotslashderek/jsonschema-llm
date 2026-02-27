@@ -2537,91 +2537,127 @@
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/aliases"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/aliases"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/aliases"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/order"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/4/properties/symbols"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/aliases"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/5/properties/items"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/aliases"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/6/properties/values"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/7/properties/aliases"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/8/items"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/aliases"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/order"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/type"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/5/properties/items/anyOf/3/properties/fields/items"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/6/properties/values/anyOf/3/properties/fields/items"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/5/properties/items/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/aliases"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/order"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items/properties/type"
     },
     {
       "type": "json_string_parse",
-      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default/anyOf/0"
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/5/properties/items/anyOf/3/properties/fields/items"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/6/properties/values/anyOf/3/properties/fields/items"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/6/properties/values/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/aliases"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/default"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/order"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items/properties/type"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/5/properties/items/anyOf/3/properties/fields/items"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/6/properties/values/anyOf/3/properties/fields/items"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/0/anyOf/0/anyOf/8/items/anyOf/0/anyOf/8/items/anyOf/0/anyOf/3/properties/fields/items"
     }
   ],
   "droppedConstraints": [

@@ -608,6 +608,22 @@
       "type": "root_object_wrapper",
       "path": "#",
       "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/properties/examples/anyOf/0/items"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/properties/headers/anyOf/0/properties/type"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/properties/tags/anyOf/0/items"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/items/properties/value/anyOf/1/anyOf/1/properties/traits/anyOf/0/items"
     }
   ],
   "droppedConstraints": [

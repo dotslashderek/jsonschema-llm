@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-02-26T20:11:02.715698+00:00",
+  "generatedAt": "2026-01-01T00:00:00Z",
   "sourceSchema": "oas31-schema.json",
   "target": "openai-strict",
   "mode": "strict",

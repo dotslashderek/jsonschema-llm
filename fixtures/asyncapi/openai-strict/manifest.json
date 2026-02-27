@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-02-26T16:02:46.656622+00:00",
+  "generatedAt": "2026-01-01T00:00:00Z",
   "sourceSchema": "asyncapi-2.6-schema-local.json",
   "target": "openai-strict",
   "mode": "strict",

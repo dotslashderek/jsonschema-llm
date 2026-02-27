@@ -322,20 +322,8 @@
                         "scopes": {
                           "description": "The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it.",
                           "items": {
-                            "additionalProperties": false,
-                            "properties": {
-                              "key": {
-                                "type": "string"
-                              },
-                              "value": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "key",
-                              "value"
-                            ],
-                            "type": "object"
+                            "description": "MUST be a valid JSON value serialized as a string. Structure: {key: string, value: string}. Do NOT output plain text — the value must parse with JSON.parse().",
+                            "type": "string"
                           },
                           "type": "array"
                         },
@@ -388,20 +376,8 @@
                         "scopes": {
                           "description": "The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it.",
                           "items": {
-                            "additionalProperties": false,
-                            "properties": {
-                              "key": {
-                                "type": "string"
-                              },
-                              "value": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "key",
-                              "value"
-                            ],
-                            "type": "object"
+                            "description": "MUST be a valid JSON value serialized as a string. Structure: {key: string, value: string}. Do NOT output plain text — the value must parse with JSON.parse().",
+                            "type": "string"
                           },
                           "type": "array"
                         },
@@ -447,20 +423,8 @@
                         "scopes": {
                           "description": "The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it.",
                           "items": {
-                            "additionalProperties": false,
-                            "properties": {
-                              "key": {
-                                "type": "string"
-                              },
-                              "value": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "key",
-                              "value"
-                            ],
-                            "type": "object"
+                            "description": "MUST be a valid JSON value serialized as a string. Structure: {key: string, value: string}. Do NOT output plain text — the value must parse with JSON.parse().",
+                            "type": "string"
                           },
                           "type": "array"
                         },
@@ -520,20 +484,8 @@
                         "scopes": {
                           "description": "The available scopes for the OAuth2 security scheme. A map between the scope name and a short description for it.",
                           "items": {
-                            "additionalProperties": false,
-                            "properties": {
-                              "key": {
-                                "type": "string"
-                              },
-                              "value": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "key",
-                              "value"
-                            ],
-                            "type": "object"
+                            "description": "MUST be a valid JSON value serialized as a string. Structure: {key: string, value: string}. Do NOT output plain text — the value must parse with JSON.parse().",
+                            "type": "string"
                           },
                           "type": "array"
                         },

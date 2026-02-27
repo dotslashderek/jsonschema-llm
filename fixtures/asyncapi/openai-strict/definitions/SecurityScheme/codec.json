@@ -155,6 +155,22 @@
       "type": "root_object_wrapper",
       "path": "#",
       "wrapperKey": "result"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/6/properties/flows/properties/authorizationCode/anyOf/0/properties/scopes/items"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/6/properties/flows/properties/clientCredentials/anyOf/0/properties/scopes/items"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/6/properties/flows/properties/implicit/anyOf/0/properties/scopes/items"
+    },
+    {
+      "type": "json_string_parse",
+      "path": "#/properties/result/anyOf/6/properties/flows/properties/password/anyOf/0/properties/scopes/items"
     }
   ],
   "droppedConstraints": [

@@ -677,9 +677,15 @@ fn handle_output_dir(
         .map(|n| n.to_string_lossy().to_string())
         .unwrap_or_else(|| "unknown".to_string());
 
+    let generated_at = if std::env::var("JSON_SCHEMA_LLM_DETERMINISTIC").is_ok() {
+        "2026-01-01T00:00:00Z".to_string()
+    } else {
+        Utc::now().to_rfc3339()
+    };
+
     let manifest = Manifest {
         version: "1".to_string(),
-        generated_at: Utc::now().to_rfc3339(),
+        generated_at,
         source_schema: source_name,
         target: target_str,
         mode: mode_str,
