@@ -260,7 +260,7 @@ impl CompatVisitor<'_> {
         // Must run BEFORE depth budget check — primitive leaves at the
         // depth limit return early and would skip this otherwise.
         if let Some(obj) = schema.as_object_mut() {
-            for keyword in &["$anchor", "$dynamicAnchor", "$dynamicRef"] {
+            for keyword in &["$anchor", "$dynamicAnchor", "$dynamicRef", "$id", "$schema"] {
                 if obj.remove(*keyword).is_some() {
                     self.errors.push(ProviderCompatError::RefKeywordStripped {
                         path: path.to_string(),
@@ -464,12 +464,20 @@ impl CompatVisitor<'_> {
                 } else {
                     // Branch 3: root schema → always strip
                     let obj = schema.as_object_mut().unwrap();
+                    let is_meaningful = has_meaningful_pattern_properties(obj);
                     obj.remove("patternProperties");
+
+                    let hint = if is_meaningful {
+                        format!("Dropped meaningful patterns [{}] from root schema. Strict mode requires root to be a rigid object, so these constraints are lost.", hint_keys)
+                    } else {
+                        format!("Dropped trivial patterns [{}] from root schema.", hint_keys)
+                    };
+
                     self.errors
                         .push(ProviderCompatError::PatternPropertiesStripped {
                             path: path.to_string(),
                             target: self.target,
-                            hint: format!("Dropped patterns [{}] from root schema.", hint_keys),
+                            hint,
                         });
                 }
             }
