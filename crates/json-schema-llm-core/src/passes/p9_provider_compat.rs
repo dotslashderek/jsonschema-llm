@@ -253,6 +253,25 @@ impl CompatVisitor<'_> {
             None => return,
         };
 
+        // ── #246 Strip reference-mechanism keywords ───────────────
+        // $anchor, $dynamicAnchor, $dynamicRef are resolution-mechanism
+        // keywords with no semantic value after pipeline flattening.
+        // OpenAI strict mode does not support them.
+        // Must run BEFORE depth budget check — primitive leaves at the
+        // depth limit return early and would skip this otherwise.
+        if let Some(obj) = schema.as_object_mut() {
+            for keyword in &["$anchor", "$dynamicAnchor", "$dynamicRef"] {
+                if obj.remove(*keyword).is_some() {
+                    self.errors.push(ProviderCompatError::RefKeywordStripped {
+                        path: path.to_string(),
+                        keyword: keyword.to_string(),
+                        target: self.target,
+                        hint: format!("{} stripped (not supported in strict mode).", keyword),
+                    });
+                }
+            }
+        }
+
         // ── #95 Depth budget (diagnostic, uses semantic_depth) ─────
         if semantic_depth > self.max_depth_observed {
             self.max_depth_observed = semantic_depth;
@@ -387,8 +406,10 @@ impl CompatVisitor<'_> {
                                 hint_keys
                             ),
                         });
-                } else if path != "#" {
-                    // Branch 2: untyped OR typed-but-sterile (nested) → opaque-stringify
+                } else if path != "#" && has_meaningful_pattern_properties(obj) {
+                    // Branch 2: meaningful patternProperties → opaque-stringify
+                    // Meaningful patterns (typed constraints, `false`, etc.) carry
+                    // structural intent that can't be silently dropped.
                     let desc = build_opaque_description(schema);
                     self.errors.push(ProviderCompatError::PatternPropertiesStringified {
                         path: path.to_string(),
@@ -406,12 +427,42 @@ impl CompatVisitor<'_> {
                         path: path.to_string(),
                     });
                     return; // Don't recurse into children (they're gone)
+                } else if path != "#" {
+                    // Branch 2b: only trivial patternProperties (e.g. "^x-": true)
+                    // → strip. These are extension mechanisms (OAS/Arazzo spec-ext)
+                    // with no structural value for the LLM.
+                    let obj = schema.as_object_mut().unwrap();
+                    obj.remove("patternProperties");
+                    self.errors
+                        .push(ProviderCompatError::PatternPropertiesStripped {
+                            path: path.to_string(),
+                            target: self.target,
+                            hint: format!("Dropped trivial patterns [{}] from schema.", hint_keys),
+                        });
+
+                    // After stripping, the remaining schema may be annotation-only
+                    // ({$comment, description}) with no structural content. Re-check
+                    // and opaque-stringify if unconstrained.
+                    if is_unconstrained(schema.as_object().unwrap()) {
+                        self.errors.push(ProviderCompatError::UnconstrainedSchema {
+                            path: path.to_string(),
+                            schema_kind: "annotation-only (after patternProperties strip)"
+                                .to_string(),
+                            target: self.target,
+                            hint: "Unconstrained schema replaced with opaque string after strip."
+                                .into(),
+                        });
+                        *schema = json!({
+                            "type": "string",
+                            "description": "MUST be a valid JSON object serialized as a string, e.g. \"{\\\"key\\\": \\\"value\\\"}\". Do NOT output plain text — the value must parse with JSON.parse()."
+                        });
+                        self.transforms.push(Transform::JsonStringParse {
+                            path: path.to_string(),
+                        });
+                        return;
+                    }
                 } else {
-                    // Branch 3: explicitly typed root object (e.g. type: "object" at root)
-                    // that was NOT wrapped by check_root_type. Untyped roots get wrapped,
-                    // placing the inner schema at #/properties/result (path != "#"),
-                    // where Branch 2 handles it. This branch only fires for roots that
-                    // already had type: "object" and thus bypassed wrapping.
+                    // Branch 3: root schema → always strip
                     let obj = schema.as_object_mut().unwrap();
                     obj.remove("patternProperties");
                     self.errors
@@ -424,22 +475,7 @@ impl CompatVisitor<'_> {
             }
         }
 
-        // ── #246 Strip reference-mechanism keywords ───────────────
-        // $anchor, $dynamicAnchor, $dynamicRef are resolution-mechanism
-        // keywords with no semantic value after pipeline flattening.
-        // OpenAI strict mode does not support them.
-        if let Some(obj) = schema.as_object_mut() {
-            for keyword in &["$anchor", "$dynamicAnchor", "$dynamicRef"] {
-                if obj.remove(*keyword).is_some() {
-                    self.errors.push(ProviderCompatError::RefKeywordStripped {
-                        path: path.to_string(),
-                        keyword: keyword.to_string(),
-                        target: self.target,
-                        hint: format!("{} stripped (not supported in strict mode).", keyword),
-                    });
-                }
-            }
-        }
+        // ($anchor stripping moved above depth budget check)
 
         // ── #254 Type array → anyOf conversion ───────────────────
         // OpenAI strict mode does not support type arrays like
@@ -818,6 +854,39 @@ impl CompatVisitor<'_> {
             }
         }
     }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// patternProperties classification
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Returns true if `patternProperties` contains entries with meaningful
+/// schema constraints (not just `true` or `{}`).
+///
+/// Truth table:
+///   `true`                    → trivial (unconstrained)
+///   `{}`                      → trivial (unconstrained)
+///   `false`                   → meaningful (forbids all)
+///   `{ "type": "string" }`    → meaningful (typed constraint)
+///   `{ "description": "x" }`  → meaningful (metadata-only but intentional)
+///
+/// Rule: ALL entries must be trivial for the function to return false.
+///       If ANY entry is meaningful, returns true → opaque-stringify.
+fn has_meaningful_pattern_properties(obj: &serde_json::Map<String, Value>) -> bool {
+    obj.get("patternProperties")
+        .and_then(Value::as_object)
+        .map(|pp| {
+            pp.values().any(|v| {
+                if v.as_bool() == Some(true) {
+                    return false;
+                }
+                if v.as_object().is_some_and(|o| o.is_empty()) {
+                    return false;
+                }
+                true
+            })
+        })
+        .unwrap_or(false)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1903,10 +1972,10 @@ mod tests {
     }
 
     #[test]
-    fn pattern_properties_typed_sterile_stringified() {
-        // Typed object with patternProperties but NO properties →
-        // opaque-stringify (stripping would leave useless {}).
-        // Wrap in a parent so it's not root.
+    fn pattern_properties_typed_sterile_trivial_stripped() {
+        // #255: Typed object with TRIVIAL patternProperties but NO properties →
+        // strip (not opaque-stringify), because trivial patterns like {}
+        // are extension mechanisms with no structural value.
         let schema = json!({
             "type": "object",
             "properties": {
@@ -1923,18 +1992,149 @@ mod tests {
         });
         let r = check_provider_compat(schema, &opts());
 
+        // Inner "ext" should retain type: "object" (stripped, not stringified)
+        assert_eq!(
+            r.pass.schema["properties"]["ext"]["type"], "object",
+            "typed sterile with trivial patterns should be stripped, not opaque-stringified"
+        );
+        // patternProperties should be gone
+        assert!(
+            r.pass.schema["properties"]["ext"]
+                .get("patternProperties")
+                .is_none(),
+            "patternProperties should be removed"
+        );
+        // Should emit PatternPropertiesStripped, NOT Stringified
+        assert!(
+            r.errors
+                .iter()
+                .any(|e| matches!(e, ProviderCompatError::PatternPropertiesStripped { .. })),
+            "should emit PatternPropertiesStripped for trivial patterns"
+        );
+        // Should NOT emit JsonStringParse transform
+        assert!(
+            !r.pass.transforms.iter().any(|t| matches!(
+                t,
+                Transform::JsonStringParse { path } if path.contains("ext")
+            )),
+            "should NOT emit JsonStringParse transform for trivial strip"
+        );
+    }
+
+    #[test]
+    fn pattern_properties_typed_sterile_meaningful_stringified() {
+        // #255: Typed object with MEANINGFUL patternProperties but NO properties →
+        // opaque-stringify (meaningful constraints can't just be dropped).
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "ext": {
+                    "type": "object",
+                    "patternProperties": {
+                        "^x-": { "type": "string" }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "required": ["ext"]
+        });
+        let r = check_provider_compat(schema, &opts());
+
         // Inner "ext" should be opaque-stringified
         assert_eq!(
             r.pass.schema["properties"]["ext"]["type"], "string",
-            "sterile typed object should be opaque-stringified"
+            "typed sterile with meaningful patterns should be opaque-stringified"
         );
-        // Should have a JsonStringParse transform for the ext path
         assert!(
             r.pass.transforms.iter().any(|t| matches!(
                 t,
                 Transform::JsonStringParse { path } if path.contains("ext")
             )),
-            "should emit JsonStringParse transform for sterile object"
+            "should emit JsonStringParse transform for meaningful patterns"
+        );
+    }
+
+    #[test]
+    fn pattern_properties_mixed_trivial_meaningful_stringified() {
+        // #255: Mixed patterns — any meaningful entry => opaque-stringify.
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "ext": {
+                    "type": "object",
+                    "patternProperties": {
+                        "^x-": true,
+                        "^y-": { "type": "string" }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "required": ["ext"]
+        });
+        let r = check_provider_compat(schema, &opts());
+
+        assert_eq!(
+            r.pass.schema["properties"]["ext"]["type"], "string",
+            "mixed patterns (any meaningful) should be opaque-stringified"
+        );
+    }
+
+    #[test]
+    fn pattern_properties_false_value_meaningful() {
+        // #255: patternProperties: { "^x-": false } — false forbids all,
+        // which is a meaningful constraint → opaque-stringify.
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "ext": {
+                    "type": "object",
+                    "patternProperties": {
+                        "^x-": false
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "required": ["ext"]
+        });
+        let r = check_provider_compat(schema, &opts());
+
+        assert_eq!(
+            r.pass.schema["properties"]["ext"]["type"], "string",
+            "false pattern value (forbids all) should be opaque-stringified"
+        );
+    }
+
+    #[test]
+    fn pattern_properties_trivial_true_stripped() {
+        // #255: patternProperties: { "^x-": true } — boolean true is trivial → strip.
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "ext": {
+                    "type": "object",
+                    "patternProperties": {
+                        "^x-": true
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false,
+            "required": ["ext"]
+        });
+        let r = check_provider_compat(schema, &opts());
+
+        assert_eq!(
+            r.pass.schema["properties"]["ext"]["type"], "object",
+            "true pattern value should be stripped, not opaque-stringified"
+        );
+        assert!(
+            r.pass.schema["properties"]["ext"]
+                .get("patternProperties")
+                .is_none(),
+            "patternProperties should be removed"
         );
     }
 
@@ -1971,8 +2171,50 @@ mod tests {
     }
 
     #[test]
+    fn pattern_properties_untyped_trivial_stripped() {
+        // #255: Untyped schema with only trivial `{ "^x-": true }` (the exact
+        // specification-extensions mixin pattern). After stripping trivial
+        // patternProperties, the schema is annotation-only ({$comment, description})
+        // which is unconstrained → gets opaque-stringified.
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "ext": {
+                    "patternProperties": {
+                        "^x-": true
+                    },
+                    "description": "Extension point",
+                    "$comment": "spec-ext"
+                }
+            },
+            "additionalProperties": false,
+            "required": ["ext"]
+        });
+        let r = check_provider_compat(schema, &opts());
+
+        // After stripping trivial patternProperties, the remaining schema is
+        // annotation-only → should be opaque-stringified (type: "string").
+        assert_eq!(
+            r.pass.schema["properties"]["ext"]
+                .get("type")
+                .and_then(Value::as_str),
+            Some("string"),
+            "annotation-only schema after strip should be opaque-stringified"
+        );
+        // patternProperties gone
+        assert!(
+            r.pass.schema["properties"]["ext"]
+                .get("patternProperties")
+                .is_none(),
+            "patternProperties should be removed"
+        );
+    }
+
+    #[test]
     fn pattern_properties_nested_in_anyof() {
-        // patternProperties inside anyOf variant → opaque-stringify.
+        // #255: Trivial patternProperties inside anyOf variant → stripped.
+        // {} is trivial, so p9 strips it. After stripping, the remaining
+        // schema is annotation-only → opaque-stringified.
         let schema = json!({
             "type": "object",
             "properties": {
@@ -1993,18 +2235,22 @@ mod tests {
         });
         let r = check_provider_compat(schema, &opts());
 
-        // The anyOf[0] (patternProperties variant) should be opaque-stringified
+        // The anyOf[0] should have patternProperties stripped, then
+        // opaque-stringified because the remaining schema is annotation-only.
         let anyof = r.pass.schema["properties"]["field"]["anyOf"]
             .as_array()
             .expect("anyOf should exist");
         let pp_variant = &anyof[0];
+        // Should BE type: string (opaque-stringified)
         assert_eq!(
-            pp_variant["type"], "string",
-            "patternProperties variant in anyOf should be opaque-stringified"
+            pp_variant.get("type").and_then(Value::as_str),
+            Some("string"),
+            "annotation-only schema after strip should be opaque-stringified"
         );
+        // patternProperties should be gone
         assert!(
             pp_variant.get("patternProperties").is_none(),
-            "patternProperties should not remain after stringification"
+            "patternProperties should be removed"
         );
     }
 

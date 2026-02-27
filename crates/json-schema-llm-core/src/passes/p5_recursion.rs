@@ -118,11 +118,52 @@ impl crate::schema_walker::SchemaFolder for RecursionFolder<'_> {
             // Inline: look up the definition and fold it.
             if let Some(def) = lookup_def(&ref_str, self.defs) {
                 *self.ref_counts.entry(ref_str.clone()).or_insert(0) += 1;
-                let result = crate::schema_walker::fold(def, self, path, depth)?;
+                let mut result = crate::schema_walker::fold(def, self, path, depth)?;
+
+                // Strip resolution-mechanism keywords from the inlined def.
+                // These ($anchor, $id, $schema, etc.) have no meaning after
+                // inlining and may leak through if p9 can't visit all nodes
+                // (e.g., nullable primitives at the depth limit).
+                strip_ref_meta_keywords(&mut result);
+
+                // Preserve structural siblings alongside the $ref.
+                // Defs like `parameter-object` have `$ref: spec-ext` + type/properties.
+                // Without merging, the siblings (type, properties, required…) are lost.
+                //
+                // Fold siblings BEFORE decrementing the ref count so that any
+                // $refs within siblings that reference this same definition
+                // are still counted against the recursion limit.
+                //
+                // Filter out JSON Schema identity/resolution keywords that
+                // have no meaning in LLM output schemas ($anchor, $id, etc.).
+                let siblings: serde_json::Map<String, Value> = obj
+                    .into_iter()
+                    .filter(|(k, _)| {
+                        !matches!(
+                            k.as_str(),
+                            "$ref"
+                                | "$anchor"
+                                | "$id"
+                                | "$schema"
+                                | "$dynamicRef"
+                                | "$dynamicAnchor"
+                        )
+                    })
+                    .collect();
+
+                let final_result = if siblings.is_empty() {
+                    result
+                } else {
+                    let folded_siblings =
+                        crate::schema_walker::fold(Value::Object(siblings), self, path, depth)?;
+                    merge_ref_with_siblings(result, folded_siblings)
+                };
+
                 if let Some(c) = self.ref_counts.get_mut(&ref_str) {
                     *c -= 1;
                 }
-                return Ok(crate::schema_walker::FoldAction::Replace(result));
+
+                return Ok(crate::schema_walker::FoldAction::Replace(final_result));
             }
 
             // Non-local ref — opaque-stringify for strict mode compliance.
@@ -216,6 +257,58 @@ fn infer_placeholder(schema: &Value) -> &'static str {
         Some("null") => "null",
         _ => "\\\"...\\\"", // default to string-like
     }
+}
+
+/// JSON Schema identity/resolution keywords that should be stripped after inlining.
+const REF_META_KEYWORDS: &[&str] = &["$anchor", "$id", "$schema", "$dynamicRef", "$dynamicAnchor"];
+
+/// Recursively strip resolution-mechanism keywords from a schema tree.
+///
+/// After p5 inlines a `$ref`, the resolved definition may contain `$anchor`,
+/// `$id`, etc. These have no meaning in the output and can leak through if
+/// downstream passes (p9) don't visit every node (e.g., nullable primitives
+/// at the depth limit are returned early).
+fn strip_ref_meta_keywords(schema: &mut Value) {
+    match schema {
+        Value::Object(obj) => {
+            for kw in REF_META_KEYWORDS {
+                obj.remove(*kw);
+            }
+            for v in obj.values_mut() {
+                strip_ref_meta_keywords(v);
+            }
+        }
+        Value::Array(arr) => {
+            for item in arr {
+                strip_ref_meta_keywords(item);
+            }
+        }
+        _ => {}
+    }
+}
+
+/// Merge a resolved `$ref` definition with its structural siblings.
+///
+/// Sibling annotations (description, title, etc.) override the def's values.
+/// Structural siblings are merged via last-wins (siblings take precedence),
+/// matching JSON Schema's `$ref`-with-siblings semantics from 2019-09+.
+fn merge_ref_with_siblings(resolved: Value, siblings: Value) -> Value {
+    let Value::Object(mut base) = resolved else {
+        return siblings; // Non-object def — siblings take over
+    };
+    let Value::Object(sibling_map) = siblings else {
+        return Value::Object(base);
+    };
+
+    // All sibling keywords override the base (both annotations AND structural).
+    // This matches the 2019-09 semantics where adjacent keywords supplement
+    // the referenced schema. Structural keywords like `type`, `properties`,
+    // `required` from the sibling site take precedence.
+    for (k, v) in sibling_map {
+        base.insert(k, v);
+    }
+
+    Value::Object(base)
 }
 
 /// Remove `$defs` from the root schema if present.
