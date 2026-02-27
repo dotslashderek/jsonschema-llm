@@ -300,11 +300,33 @@ fn merge_ref_with_siblings(resolved: Value, siblings: Value) -> Value {
         return Value::Object(base);
     };
 
-    // All sibling keywords override the base (both annotations AND structural).
-    // This matches the 2019-09 semantics where adjacent keywords supplement
-    // the referenced schema. Structural keywords like `type`, `properties`,
-    // `required` from the sibling site take precedence.
+    // Sibling keywords generally override the base (e.g. annotations).
+    // However, for structural object definition keywords (`properties`, `required`),
+    // we perform a deep merge to preserve the base structure rather than clobbering it.
     for (k, v) in sibling_map {
+        if k == "properties" {
+            if let (Some(Value::Object(base_props)), Value::Object(sib_props)) =
+                (base.get_mut("properties"), &v)
+            {
+                for (pk, pv) in sib_props {
+                    base_props.insert(pk.clone(), pv.clone());
+                }
+                continue;
+            }
+        } else if k == "required" {
+            if let (Some(Value::Array(base_req)), Value::Array(sib_req)) =
+                (base.get_mut("required"), &v)
+            {
+                for req in sib_req {
+                    if !base_req.contains(req) {
+                        base_req.push(req.clone());
+                    }
+                }
+                continue;
+            }
+        }
+
+        // Default: flat overwrite (last-wins for annotations, type, etc.)
         base.insert(k, v);
     }
 
