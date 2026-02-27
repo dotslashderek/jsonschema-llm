@@ -271,9 +271,12 @@ fn strip_ref_meta_keywords(schema: &mut Value) {
                 obj.remove(*keyword);
             }
             // Recurse into children, but skip literal values that might contain
-            // objects with these keys as actual customer data.
+            // objects with these keys as actual customer data, as well as vendor
+            // extensions which may carry arbitrary payloads.
             for (k, v) in obj {
-                if !["const", "enum", "examples", "default"].contains(&k.as_str()) {
+                if !["const", "enum", "examples", "default"].contains(&k.as_str())
+                    && !k.starts_with("x-")
+                {
                     strip_ref_meta_keywords(v);
                 }
             }
