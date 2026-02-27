@@ -259,10 +259,6 @@ fn infer_placeholder(schema: &Value) -> &'static str {
     }
 }
 
-/// JSON Schema identity/resolution keywords that should be stripped after inlining.
-const REF_META_KEYWORDS: &[&str] = &["$anchor", "$id", "$schema", "$dynamicRef", "$dynamicAnchor"];
-
-/// Recursively strip resolution-mechanism keywords from a schema tree.
 ///
 /// After p5 inlines a `$ref`, the resolved definition may contain `$anchor`,
 /// `$id`, etc. These have no meaning in the output and can leak through if
@@ -271,11 +267,15 @@ const REF_META_KEYWORDS: &[&str] = &["$anchor", "$id", "$schema", "$dynamicRef",
 fn strip_ref_meta_keywords(schema: &mut Value) {
     match schema {
         Value::Object(obj) => {
-            for kw in REF_META_KEYWORDS {
-                obj.remove(*kw);
+            for keyword in &["$anchor", "$dynamicAnchor", "$dynamicRef", "$id", "$schema"] {
+                obj.remove(*keyword);
             }
-            for v in obj.values_mut() {
-                strip_ref_meta_keywords(v);
+            // Recurse into children, but skip literal values that might contain
+            // objects with these keys as actual customer data.
+            for (k, v) in obj {
+                if !["const", "enum", "examples", "default"].contains(&k.as_str()) {
+                    strip_ref_meta_keywords(v);
+                }
             }
         }
         Value::Array(arr) => {
@@ -293,8 +293,15 @@ fn strip_ref_meta_keywords(schema: &mut Value) {
 /// Structural siblings are merged via last-wins (siblings take precedence),
 /// matching JSON Schema's `$ref`-with-siblings semantics from 2019-09+.
 fn merge_ref_with_siblings(resolved: Value, siblings: Value) -> Value {
-    let Value::Object(mut base) = resolved else {
-        return siblings; // Non-object def — siblings take over
+    let mut base = match resolved {
+        Value::Object(o) => o,
+        Value::Bool(true) => serde_json::Map::new(),
+        Value::Bool(false) => {
+            let mut m = serde_json::Map::new();
+            m.insert("not".to_string(), serde_json::json!({}));
+            m
+        }
+        _ => return siblings, // Invalid schema fallback
     };
     let Value::Object(sibling_map) = siblings else {
         return Value::Object(base);
