@@ -13,6 +13,20 @@ use crate::codec::Transform;
 use crate::schema_utils::build_path;
 
 // ---------------------------------------------------------------------------
+// Reference-mechanism keywords
+// ---------------------------------------------------------------------------
+
+/// JSON Schema identity and resolution keywords that must be stripped after
+/// `$ref` inlining. These keywords have no semantic value in the output
+/// schema and are rejected by providers like OpenAI strict mode.
+///
+/// Used by p5 (post-inline stripping, sibling filtering) and p9 (belt-and-
+/// suspenders pre-depth stripping). Keeping a single source of truth avoids
+/// the lists silently diverging.
+pub const REF_META_KEYWORDS: &[&str] =
+    &["$anchor", "$dynamicAnchor", "$dynamicRef", "$id", "$schema"];
+
+// ---------------------------------------------------------------------------
 // Type introspection
 // ---------------------------------------------------------------------------
 

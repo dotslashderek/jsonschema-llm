@@ -22,7 +22,7 @@ use crate::schema_utils::{build_opaque_description, build_path};
 use serde_json::{json, Value};
 
 use super::pass_result::PassResult;
-use super::pass_utils::{enforce_object_strict, extract_types};
+use super::pass_utils::{enforce_object_strict, extract_types, REF_META_KEYWORDS};
 
 /// OpenAI Strict Mode maximum nesting depth.
 ///
@@ -260,7 +260,7 @@ impl CompatVisitor<'_> {
         // Must run BEFORE depth budget check — primitive leaves at the
         // depth limit return early and would skip this otherwise.
         if let Some(obj) = schema.as_object_mut() {
-            for keyword in &["$anchor", "$dynamicAnchor", "$dynamicRef", "$id", "$schema"] {
+            for keyword in REF_META_KEYWORDS {
                 if obj.remove(*keyword).is_some() {
                     self.errors.push(ProviderCompatError::RefKeywordStripped {
                         path: path.to_string(),
@@ -881,15 +881,42 @@ impl CompatVisitor<'_> {
 /// Rule: ALL entries must be trivial for the function to return false.
 ///       If ANY entry is meaningful, returns true → opaque-stringify.
 fn has_meaningful_pattern_properties(obj: &serde_json::Map<String, Value>) -> bool {
+    // Keywords that are purely metadata / documentation and do not constrain
+    // the set of acceptable instances. Aligned with `is_unconstrained()`.
+    const METADATA_ONLY: &[&str] = &[
+        "title",
+        "description",
+        "$schema",
+        "$id",
+        "$anchor",
+        "$comment",
+        "examples",
+        "default",
+        "deprecated",
+        "readOnly",
+        "writeOnly",
+        "contentMediaType",
+        "contentEncoding",
+        "contentSchema",
+    ];
+
     obj.get("patternProperties")
         .and_then(Value::as_object)
         .map(|pp| {
             pp.values().any(|v| {
+                // `true` or `{}` → trivial (unconstrained)
                 if v.as_bool() == Some(true) {
                     return false;
                 }
-                if v.as_object().is_some_and(|o| o.is_empty()) {
-                    return false;
+                if let Some(o) = v.as_object() {
+                    // Empty object → trivial
+                    if o.is_empty() {
+                        return false;
+                    }
+                    // Metadata-only object → trivial (aligns with is_unconstrained)
+                    if o.keys().all(|k| METADATA_ONLY.contains(&k.as_str())) {
+                        return false;
+                    }
                 }
                 true
             })

@@ -25,6 +25,7 @@ use crate::config::{ConvertOptions, Target};
 use crate::error::ConvertError;
 
 use super::pass_result::PassResult;
+use super::pass_utils::REF_META_KEYWORDS;
 
 pub fn break_recursion(schema: Value, config: &ConvertOptions) -> Result<PassResult, ConvertError> {
     // Gemini gate: native recursion support
@@ -139,15 +140,7 @@ impl crate::schema_walker::SchemaFolder for RecursionFolder<'_> {
                 let siblings: serde_json::Map<String, Value> = obj
                     .into_iter()
                     .filter(|(k, _)| {
-                        !matches!(
-                            k.as_str(),
-                            "$ref"
-                                | "$anchor"
-                                | "$id"
-                                | "$schema"
-                                | "$dynamicRef"
-                                | "$dynamicAnchor"
-                        )
+                        k != "$ref" && k != "$defs" && !REF_META_KEYWORDS.contains(&k.as_str())
                     })
                     .collect();
 
@@ -267,7 +260,7 @@ fn infer_placeholder(schema: &Value) -> &'static str {
 fn strip_ref_meta_keywords(schema: &mut Value) {
     match schema {
         Value::Object(obj) => {
-            for keyword in &["$anchor", "$dynamicAnchor", "$dynamicRef", "$id", "$schema"] {
+            for keyword in REF_META_KEYWORDS {
                 obj.remove(*keyword);
             }
             // Recurse into children, but skip literal values that might contain
@@ -311,6 +304,10 @@ fn merge_ref_with_siblings(resolved: Value, siblings: Value) -> Value {
     };
 
     // Sibling keywords generally override the base (e.g. annotations).
+    // TODO(#255): Composition keywords (allOf, anyOf, oneOf) are currently
+    // flat-overwritten (last-wins). If both def and siblings contribute
+    // these, the def's variants are lost. This hasn't been observed in
+    // real-world fixtures yet, but should be addressed if it manifests.
     // However, for structural object definition keywords (`properties`, `required`),
     // we perform a deep merge to preserve the base structure rather than clobbering it.
     for (k, v) in sibling_map {
@@ -793,4 +790,146 @@ mod tests {
     // Test 10: Rehydration round-trip (RecursiveInflate)
     // -----------------------------------------------------------------------
     // This test lives in rehydrator.rs — see test_recursive_inflate_rehydration
+
+    // -----------------------------------------------------------------------
+    // strip_ref_meta_keywords unit tests
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_strip_meta_keywords_basic() {
+        let mut schema = json!({
+            "type": "object",
+            "$anchor": "foo",
+            "$id": "urn:x",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$dynamicRef": "#bar",
+            "$dynamicAnchor": "bar",
+            "properties": { "x": { "type": "string" } }
+        });
+        strip_ref_meta_keywords(&mut schema);
+        let obj = schema.as_object().unwrap();
+        assert!(obj.get("$anchor").is_none());
+        assert!(obj.get("$id").is_none());
+        assert!(obj.get("$schema").is_none());
+        assert!(obj.get("$dynamicRef").is_none());
+        assert!(obj.get("$dynamicAnchor").is_none());
+        // Structural keywords preserved
+        assert_eq!(obj.get("type").unwrap(), "object");
+        assert!(obj.get("properties").is_some());
+    }
+
+    #[test]
+    fn test_strip_meta_keywords_preserves_const() {
+        let mut schema = json!({
+            "const": { "$id": "should-remain", "$anchor": "keep" }
+        });
+        strip_ref_meta_keywords(&mut schema);
+        let c = schema.get("const").unwrap().as_object().unwrap();
+        assert!(c.get("$id").is_some(), "const payload should be untouched");
+        assert!(
+            c.get("$anchor").is_some(),
+            "const payload should be untouched"
+        );
+    }
+
+    #[test]
+    fn test_strip_meta_keywords_preserves_enum() {
+        let mut schema = json!({
+            "enum": [{ "$id": "keep-me" }]
+        });
+        strip_ref_meta_keywords(&mut schema);
+        let arr = schema.get("enum").unwrap().as_array().unwrap();
+        assert!(arr[0].as_object().unwrap().get("$id").is_some());
+    }
+
+    #[test]
+    fn test_strip_meta_keywords_preserves_vendor_extensions() {
+        let mut schema = json!({
+            "type": "string",
+            "x-metadata": { "$id": "vendor-value", "$anchor": "ext" }
+        });
+        strip_ref_meta_keywords(&mut schema);
+        let ext = schema.get("x-metadata").unwrap().as_object().unwrap();
+        assert!(
+            ext.get("$id").is_some(),
+            "vendor ext payload should be untouched"
+        );
+        assert!(
+            ext.get("$anchor").is_some(),
+            "vendor ext payload should be untouched"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // merge_ref_with_siblings unit tests
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_merge_siblings_deep_merge_properties() {
+        let resolved = json!({
+            "type": "object",
+            "properties": {
+                "base_prop": { "type": "string" }
+            },
+            "required": ["base_prop"]
+        });
+        let siblings = json!({
+            "properties": {
+                "sibling_prop": { "type": "integer" }
+            },
+            "required": ["sibling_prop"]
+        });
+        let merged = merge_ref_with_siblings(resolved, siblings);
+        let obj = merged.as_object().unwrap();
+        let props = obj.get("properties").unwrap().as_object().unwrap();
+        assert!(props.contains_key("base_prop"), "base property preserved");
+        assert!(props.contains_key("sibling_prop"), "sibling property added");
+        let req: Vec<&str> = obj
+            .get("required")
+            .unwrap()
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(Value::as_str)
+            .collect();
+        assert!(req.contains(&"base_prop"));
+        assert!(req.contains(&"sibling_prop"));
+    }
+
+    #[test]
+    fn test_merge_siblings_required_dedup() {
+        let resolved = json!({ "required": ["a", "b"] });
+        let siblings = json!({ "required": ["b", "c"] });
+        let merged = merge_ref_with_siblings(resolved, siblings);
+        let req: Vec<&str> = merged
+            .get("required")
+            .unwrap()
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(Value::as_str)
+            .collect();
+        assert_eq!(req.len(), 3, "should deduplicate 'b'");
+        assert!(req.contains(&"a"));
+        assert!(req.contains(&"b"));
+        assert!(req.contains(&"c"));
+    }
+
+    #[test]
+    fn test_merge_siblings_bool_true_resolved() {
+        let resolved = json!(true); // unconstrained schema
+        let siblings = json!({ "description": "overridden" });
+        let merged = merge_ref_with_siblings(resolved, siblings);
+        assert_eq!(merged.get("description").unwrap(), "overridden");
+    }
+
+    #[test]
+    fn test_merge_siblings_bool_false_resolved() {
+        let resolved = json!(false); // nothing-matches schema
+        let siblings = json!({ "description": "fallback" });
+        let merged = merge_ref_with_siblings(resolved, siblings);
+        // false → {"not": {}} + sibling description
+        assert!(merged.get("not").is_some(), "false should expand to not:{{}}");
+        assert_eq!(merged.get("description").unwrap(), "fallback");
+    }
 }
