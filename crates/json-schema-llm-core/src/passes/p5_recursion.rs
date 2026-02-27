@@ -929,7 +929,10 @@ mod tests {
         let siblings = json!({ "description": "fallback" });
         let merged = merge_ref_with_siblings(resolved, siblings);
         // false → {"not": {}} + sibling description
-        assert!(merged.get("not").is_some(), "false should expand to not:{{}}");
+        assert!(
+            merged.get("not").is_some(),
+            "false should expand to not:{{}}"
+        );
         assert_eq!(merged.get("description").unwrap(), "fallback");
     }
 }
