@@ -169,7 +169,27 @@ fn walk(
             || obj.contains_key("allOf")
             || obj.contains_key("prefixItems");
 
-        if !is_primitive || has_sub_structure {
+        // Nullable-primitive exemption (mirrors p9_provider_compat):
+        // anyOf: [{type: <primitive>}, {type: "null"}] doesn't add nesting.
+        let is_nullable_primitive = !is_primitive
+            && obj
+                .get("anyOf")
+                .and_then(|v| v.as_array())
+                .map(|variants| {
+                    variants.len() == 2
+                        && variants
+                            .iter()
+                            .any(|v| v.get("type").and_then(|t| t.as_str()) == Some("null"))
+                        && variants.iter().any(|v| {
+                            matches!(
+                                v.get("type").and_then(|t| t.as_str()),
+                                Some("string" | "integer" | "number" | "boolean")
+                            )
+                        })
+                })
+                .unwrap_or(false);
+
+        if (!is_primitive || has_sub_structure) && !is_nullable_primitive {
             violations.push(StrictModeViolation {
                 path: path.to_string(),
                 rule_id: StrictModeRule::DepthExceeded,
