@@ -16,8 +16,8 @@ java {
 }
 
 dependencies {
-    implementation("com.dylibso.chicory:runtime:0.0.12")
-    implementation("com.dylibso.chicory:wasi:0.0.12")
+    implementation("com.dylibso.chicory:runtime:1.6.1")
+    implementation("com.dylibso.chicory:wasi:1.6.1")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
 
     testImplementation(platform("org.junit:junit-bom:5.10.1"))

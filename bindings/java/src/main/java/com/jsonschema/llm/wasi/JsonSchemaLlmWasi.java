@@ -2,12 +2,13 @@ package com.jsonschema.llm.wasi;
 
 import com.dylibso.chicory.log.SystemLogger;
 import com.dylibso.chicory.runtime.ExportFunction;
-import com.dylibso.chicory.runtime.HostImports;
+import com.dylibso.chicory.runtime.ImportValues;
 import com.dylibso.chicory.runtime.Instance;
 import com.dylibso.chicory.runtime.Memory;
-import com.dylibso.chicory.runtime.Module;
+import com.dylibso.chicory.wasi.WasiOptions;
 import com.dylibso.chicory.wasi.WasiPreview1;
-import com.dylibso.chicory.wasm.types.Value;
+import com.dylibso.chicory.wasm.Parser;
+import com.dylibso.chicory.wasm.WasmModule;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -174,12 +175,11 @@ class JsonSchemaLlmWasi implements AutoCloseable {
 
     JsonNode callJsl(String funcName, String... jsonArgs) throws JslException {
         // Fresh WASI + instance per call (WASI modules are single-use)
-        try (WasiPreview1 wasi = new WasiPreview1(new SystemLogger())) {
-            HostImports hostImports = new HostImports(wasi.toHostFunctions());
-            Module module = Module.builder(wasmFile)
-                    .withHostImports(hostImports)
-                    .build();
-            Instance instance = module.instantiate();
+        try (WasiPreview1 wasi = WasiPreview1.builder().withOptions(WasiOptions.builder().build())
+                .withLogger(new SystemLogger()).build()) {
+            WasmModule wasmModule = Parser.parse(wasmFile);
+            ImportValues importValues = ImportValues.builder().addFunction(wasi.toHostFunctions()).build();
+            Instance instance = Instance.builder(wasmModule).withImportValues(importValues).build();
             Memory memory = instance.memory();
 
             ExportFunction jslAlloc = instance.export("jsl_alloc");
@@ -195,8 +195,8 @@ class JsonSchemaLlmWasi implements AutoCloseable {
                         throw new RuntimeException(
                                 "Incompatible WASM module: missing required 'jsl_abi_version' export");
                     }
-                    Value[] abiResult = abiFn.apply();
-                    int version = abiResult[0].asInt();
+                    long[] abiResult = abiFn.apply();
+                    int version = (int) abiResult[0];
                     if (version != EXPECTED_ABI_VERSION) {
                         throw new RuntimeException(
                                 "ABI version mismatch: binary=" + version + ", expected=" + EXPECTED_ABI_VERSION);
@@ -211,26 +211,27 @@ class JsonSchemaLlmWasi implements AutoCloseable {
 
             // Allocate and write arguments
             List<int[]> allocs = new ArrayList<>();
-            List<Value> flatArgs = new ArrayList<>();
+            List<Long> flatArgs = new ArrayList<>();
             int resultPtr = 0;
 
             try {
                 for (String arg : jsonArgs) {
                     byte[] bytes = arg.getBytes(StandardCharsets.UTF_8);
-                    Value[] allocResult = jslAlloc.apply(Value.i32(bytes.length));
-                    int ptr = allocResult[0].asInt();
+                    long[] allocResult = jslAlloc.apply(bytes.length);
+                    int ptr = (int) allocResult[0];
                     if (ptr == 0 && bytes.length > 0) {
                         throw new RuntimeException("jsl_alloc returned null for " + bytes.length + " bytes");
                     }
                     memory.write(ptr, bytes);
                     allocs.add(new int[] { ptr, bytes.length });
-                    flatArgs.add(Value.i32(ptr));
-                    flatArgs.add(Value.i32(bytes.length));
+                    flatArgs.add((long) ptr);
+                    flatArgs.add((long) bytes.length);
                 }
 
                 // Call function
-                Value[] result = func.apply(flatArgs.toArray(new Value[0]));
-                resultPtr = result[0].asInt();
+                long[] wasmArgs = flatArgs.stream().mapToLong(Long::longValue).toArray();
+                long[] result = func.apply(wasmArgs);
+                resultPtr = (int) result[0];
                 if (resultPtr == 0) {
                     throw new RuntimeException(funcName + " returned null result pointer");
                 }
@@ -265,10 +266,10 @@ class JsonSchemaLlmWasi implements AutoCloseable {
             } finally {
                 // Always free guest memory
                 if (resultPtr != 0) {
-                    jslResultFree.apply(Value.i32(resultPtr));
+                    jslResultFree.apply(resultPtr);
                 }
                 for (int[] alloc : allocs) {
-                    jslFree.apply(Value.i32(alloc[0]), Value.i32(alloc[1]));
+                    jslFree.apply(alloc[0], alloc[1]);
                 }
             }
         } catch (JslException e) {

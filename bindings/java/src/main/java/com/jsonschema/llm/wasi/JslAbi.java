@@ -3,7 +3,6 @@ package com.jsonschema.llm.wasi;
 import com.dylibso.chicory.runtime.ExportFunction;
 import com.dylibso.chicory.runtime.Instance;
 import com.dylibso.chicory.runtime.Memory;
-import com.dylibso.chicory.wasm.types.Value;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -47,8 +46,8 @@ final class JslAbi {
             throw new RuntimeException(
                     "Incompatible WASM module: missing required 'jsl_abi_version' export");
         }
-        Value[] abiResult = abiFn.apply();
-        int version = abiResult[0].asInt();
+        long[] abiResult = abiFn.apply();
+        int version = (int) abiResult[0];
         if (version != EXPECTED_ABI_VERSION) {
             throw new RuntimeException(
                     "ABI version mismatch: binary=" + version + ", expected=" + EXPECTED_ABI_VERSION);
@@ -78,26 +77,27 @@ final class JslAbi {
         ExportFunction func = instance.export(funcName);
 
         List<int[]> allocs = new ArrayList<>();
-        List<Value> flatArgs = new ArrayList<>();
+        List<Long> flatArgs = new ArrayList<>();
         int resultPtr = 0;
 
         try {
             for (String arg : jsonArgs) {
                 byte[] bytes = arg.getBytes(StandardCharsets.UTF_8);
-                Value[] allocResult = jslAlloc.apply(Value.i32(bytes.length));
-                int ptr = allocResult[0].asInt();
+                long[] allocResult = jslAlloc.apply(bytes.length);
+                int ptr = (int) allocResult[0];
                 if (ptr == 0 && bytes.length > 0) {
                     throw new RuntimeException("jsl_alloc returned null for " + bytes.length + " bytes");
                 }
                 memory.write(ptr, bytes);
                 allocs.add(new int[] { ptr, bytes.length });
-                flatArgs.add(Value.i32(ptr));
-                flatArgs.add(Value.i32(bytes.length));
+                flatArgs.add((long) ptr);
+                flatArgs.add((long) bytes.length);
             }
 
             // Call the export function
-            Value[] result = func.apply(flatArgs.toArray(new Value[0]));
-            resultPtr = result[0].asInt();
+            long[] wasmArgs = flatArgs.stream().mapToLong(Long::longValue).toArray();
+            long[] result = func.apply(wasmArgs);
+            resultPtr = (int) result[0];
             if (resultPtr == 0) {
                 throw new RuntimeException(funcName + " returned null result pointer");
             }
@@ -139,10 +139,10 @@ final class JslAbi {
             throw new RuntimeException("callExport failed: " + funcName, e);
         } finally {
             if (resultPtr != 0) {
-                jslResultFree.apply(Value.i32(resultPtr));
+                jslResultFree.apply(resultPtr);
             }
             for (int[] alloc : allocs) {
-                jslFree.apply(Value.i32(alloc[0]), Value.i32(alloc[1]));
+                jslFree.apply(alloc[0], alloc[1]);
             }
         }
     }
