@@ -16,10 +16,15 @@ import java.nio.file.Path;
  * High-level facade for jsonschema-llm WASM operations.
  *
  * <p>
- * Compiles the WASM {@link Module} once at construction time and creates
- * a fresh {@link Instance} for each operation call. Each Instance owns its
- * own linear memory, making the engine <strong>thread-safe</strong> for
- * concurrent {@code convert()} and {@code rehydrate()} calls.
+ * <strong>Threading contract (Chicory 1.6.x):</strong>
+ * <ul>
+ * <li>{@code cachedModule} (parsed WASM bytes) is immutable and safe to
+ * share.</li>
+ * <li>{@code WasiPreview1} is stateful (owns fd table, stdio, clocks) and must
+ * be created fresh per {@link Instance}.</li>
+ * <li>Each operation method builds its own WASI + ImportValues + Instance,
+ * making the engine <strong>thread-safe</strong> for concurrent calls.</li>
+ * </ul>
  *
  * <p>
  * Implements {@link AutoCloseable} to signal that the engine holds a
@@ -44,9 +49,8 @@ public class SchemaLlmEngine implements AutoCloseable {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    // Parsed WASM bytes — immutable, safe to share across threads.
     private final WasmModule cachedModule;
-    private final WasiPreview1 wasi;
-    private final ImportValues importValues;
     private volatile boolean closed = false;
     private volatile boolean abiVerified = false;
 
@@ -62,15 +66,30 @@ public class SchemaLlmEngine implements AutoCloseable {
             throw new IllegalArgumentException("WASM file not found: " + wasmPath);
         }
 
-        // Build Module once — this is the expensive step (~50-100ms).
-        this.wasi = WasiPreview1.builder()
+        // Parse once — this is the expensive step (~50-100ms).
+        // WasmModule is immutable parsed bytes; safe to cache and share.
+        this.cachedModule = Parser.parse(wasmFile);
+    }
+
+    /**
+     * Build a fresh WASM Instance with its own WASI state.
+     *
+     * <p>
+     * WasiPreview1 is stateful (fd table, stdio, clocks) so each Instance
+     * must get its own copy. The cachedModule (parsed bytes) is the only
+     * thing safe to share.
+     */
+    private Instance buildInstance() {
+        WasiPreview1 wasi = WasiPreview1.builder()
                 .withOptions(WasiOptions.builder().build())
                 .withLogger(new SystemLogger())
                 .build();
-        this.importValues = ImportValues.builder()
+        ImportValues importValues = ImportValues.builder()
                 .addFunction(wasi.toHostFunctions())
                 .build();
-        this.cachedModule = Parser.parse(wasmFile);
+        return Instance.builder(cachedModule)
+                .withImportValues(importValues)
+                .build();
     }
 
     /**
@@ -142,9 +161,7 @@ public class SchemaLlmEngine implements AutoCloseable {
             String schemaJson = MAPPER.writeValueAsString(schema);
             String optsJson = options != null ? options.toJson() : "{}";
 
-            Instance instance = Instance.builder(cachedModule)
-                    .withImportValues(importValues)
-                    .build();
+            Instance instance = buildInstance();
             verifyAbiOnce(instance);
             com.fasterxml.jackson.databind.JsonNode raw = JslAbi.callExport(instance, "jsl_convert", schemaJson,
                     optsJson);
@@ -177,9 +194,7 @@ public class SchemaLlmEngine implements AutoCloseable {
             String codecJson = MAPPER.writeValueAsString(codec);
             String schemaJson = MAPPER.writeValueAsString(schema);
 
-            Instance instance = Instance.builder(cachedModule)
-                    .withImportValues(importValues)
-                    .build();
+            Instance instance = buildInstance();
             verifyAbiOnce(instance);
             com.fasterxml.jackson.databind.JsonNode raw = JslAbi.callExport(instance, "jsl_rehydrate", dataJson,
                     codecJson, schemaJson);
@@ -204,9 +219,7 @@ public class SchemaLlmEngine implements AutoCloseable {
         try {
             String schemaJson = MAPPER.writeValueAsString(schema);
 
-            Instance instance = Instance.builder(cachedModule)
-                    .withImportValues(importValues)
-                    .build();
+            Instance instance = buildInstance();
             verifyAbiOnce(instance);
             return JslAbi.callExport(instance, "jsl_list_components", schemaJson);
         } catch (JslException e) {
@@ -233,9 +246,7 @@ public class SchemaLlmEngine implements AutoCloseable {
             String schemaJson = MAPPER.writeValueAsString(schema);
             String optsJson = options != null ? options : "{}";
 
-            Instance instance = Instance.builder(cachedModule)
-                    .withImportValues(importValues)
-                    .build();
+            Instance instance = buildInstance();
             verifyAbiOnce(instance);
             return JslAbi.callExport(instance, "jsl_extract_component", schemaJson, pointer, optsJson);
         } catch (JslException e) {
@@ -262,9 +273,7 @@ public class SchemaLlmEngine implements AutoCloseable {
             String convOptsJson = convertOptions != null ? convertOptions.toJson() : "{}";
             String extOptsJson = extractOptions != null ? extractOptions : "{}";
 
-            Instance instance = Instance.builder(cachedModule)
-                    .withImportValues(importValues)
-                    .build();
+            Instance instance = buildInstance();
             verifyAbiOnce(instance);
             return JslAbi.callExport(instance, "jsl_convert_all_components", schemaJson, convOptsJson,
                     extOptsJson);
@@ -285,11 +294,6 @@ public class SchemaLlmEngine implements AutoCloseable {
     @Override
     public void close() {
         closed = true;
-        try {
-            wasi.close();
-        } catch (Exception e) {
-            // Best-effort cleanup
-        }
     }
 
     private void ensureOpen() {
