@@ -278,7 +278,7 @@ jobs:
 
       - name: Run Java wrapper tests
         if: matrix.lang == 'java'
-        run: ./gradlew test
+        run: mvn test
         working-directory: bindings/java
 
       - name: Setup Ruby
@@ -359,7 +359,7 @@ jobs:
 
       - name: Build Java WASI bindings (local Maven)
         if: matrix.engine == 'java'
-        run: ./gradlew publishToMavenLocal -x test
+        run: mvn install -DskipTests
         working-directory: bindings/java
 
       - name: Run Java engine tests
