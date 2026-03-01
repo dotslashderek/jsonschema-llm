@@ -72,7 +72,7 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
     let pom_ctx = PomContext {
         group_id: config.package.clone(),
         artifact_id: config.artifact_name.clone(),
-        engine_version: env!("CARGO_PKG_VERSION").to_string(),
+        engine_version: "0.1.0-ALPHA".to_string(),
     };
     render_to_file(
         &tera,
@@ -135,6 +135,10 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
 
         component_contexts.push(ctx);
     }
+
+    // Deduplicate contexts by enum_name to avoid compilation errors on conflicting generated components
+    component_contexts.sort_by(|a, b| a.enum_name.cmp(&b.enum_name));
+    component_contexts.dedup_by(|a, b| a.enum_name == b.enum_name);
 
     // Generate the Generator facade class
     let gen_ctx = GeneratorContext {
