@@ -51,6 +51,10 @@ export async function generate(
     case Component.{{ component.enum_name }}:
       return {{ component.module_name }}.generate(prompt, engine);
 {% endfor %}
+    default: {
+      const _exhaustive: never = component;
+      throw new Error(`Unknown component: ${component}`);
+    }
   }
 }
 
@@ -74,5 +78,9 @@ export async function generateWithPatch(
     case Component.{{ component.enum_name }}:
       return {{ component.module_name }}.generateWithPatch(prompt, engine, ops);
 {% endfor %}
+    default: {
+      const _exhaustive: never = component;
+      throw new Error(`Unknown component: ${component}`);
+    }
   }
 }

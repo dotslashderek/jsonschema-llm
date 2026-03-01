@@ -420,6 +420,10 @@ mod tests {
             generator_py.contains("component: Component"),
             "generator.py generate() should accept Component parameter"
         );
+        assert!(
+            generator_py.contains("def generate_with_patch("),
+            "generator.py should contain generate_with_patch() dispatch function"
+        );
     }
 
     #[test]
