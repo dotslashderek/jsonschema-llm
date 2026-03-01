@@ -2,6 +2,10 @@ package {{ package_name }};
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.jsonschema.llm.engine.LlmRoundtripEngine;
+import com.jsonschema.llm.engine.LlmTransportException;
+import com.jsonschema.llm.engine.RoundtripResult;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -38,7 +42,7 @@ public class SchemaGenerator {
         private static final java.util.Map<String, Component> BY_NAME = new java.util.HashMap<>();
         static {
             for (Component c : values()) {
-                BY_NAME.put(c.value, c);
+                BY_NAME.put(c.value.toLowerCase(java.util.Locale.ROOT), c);
             }
         }
 
@@ -50,7 +54,7 @@ public class SchemaGenerator {
          * @throws IllegalArgumentException if no component matches
          */
         public static Component from(String name) {
-            Component c = BY_NAME.get(name);
+            Component c = BY_NAME.get(name.toLowerCase(java.util.Locale.ROOT));
             if (c != null) {
                 return c;
             }
