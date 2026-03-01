@@ -144,10 +144,19 @@ export class Engine {
     patchJson: string,
   ): Promise<Record<string, unknown>> {
     const schemaJson = JSON.stringify(schema);
-    const payload = (await this.callJsl("jsl_apply_patch", schemaJson, patchJson)) as {
-      schema: Record<string, unknown>;
-    };
-    return payload.schema;
+    const payload = await this.callJsl("jsl_apply_patch", schemaJson, patchJson);
+    if (
+      typeof payload !== "object" ||
+      payload === null ||
+      !("schema" in payload) ||
+      typeof (payload as Record<string, unknown>).schema !== "object"
+    ) {
+      throw new JslError(
+        "invalid_response",
+        `jsl_apply_patch returned unexpected payload shape: ${JSON.stringify(payload)}`,
+      );
+    }
+    return (payload as { schema: Record<string, unknown> }).schema;
   }
 
   async rehydrate(
