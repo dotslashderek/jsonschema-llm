@@ -426,6 +426,57 @@ mod tests {
             fs::read_to_string(output_dir.join("lib/my_petstore_sdk/generator.rb")).unwrap();
         assert!(generator_rb.contains("module MyPetstoreSdk"));
         assert!(generator_rb.contains("COMPONENTS"));
+
+        // Verify JsonPatchOp types (RFC 6902)
+        assert!(
+            component_rb.contains("JsonPatchOp"),
+            "pet.rb should contain JsonPatchOp module"
+        );
+        assert!(
+            component_rb.contains("Add = Struct"),
+            "pet.rb should contain Add struct"
+        );
+        assert!(
+            component_rb.contains("Replace = Struct"),
+            "pet.rb should contain Replace struct"
+        );
+        assert!(
+            component_rb.contains("Remove = Struct"),
+            "pet.rb should contain Remove struct"
+        );
+        assert!(
+            component_rb.contains("Move = Struct"),
+            "pet.rb should contain Move struct"
+        );
+        assert!(
+            component_rb.contains("Copy = Struct"),
+            "pet.rb should contain Copy struct"
+        );
+        assert!(
+            component_rb.contains("Test = Struct"),
+            "pet.rb should contain Test struct"
+        );
+
+        // Verify generate_with_patch method
+        assert!(
+            component_rb.contains("def self.generate_with_patch"),
+            "pet.rb should contain generate_with_patch method"
+        );
+        assert!(
+            component_rb.contains("generate_with_patch"),
+            "pet.rb should delegate to engine.generate_with_patch"
+        );
+
+        // Verify no third-party json-patch dependency
+        let gemspec = fs::read_to_string(output_dir.join("my-petstore-sdk.gemspec")).unwrap();
+        assert!(
+            !gemspec.contains("hana"),
+            "gemspec should NOT contain hana dependency"
+        );
+        assert!(
+            !gemspec.contains("json_patch"),
+            "gemspec should NOT contain json_patch dependency"
+        );
     }
 
     #[test]

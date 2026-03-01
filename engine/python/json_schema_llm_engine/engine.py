@@ -90,6 +90,42 @@ class LlmRoundtripEngine:
             prompt=prompt,
         )
 
+    def generate_with_patch(
+        self,
+        schema_json: str,
+        prompt: str,
+        patch_json: str,
+    ) -> RoundtripResult:
+        """Full roundtrip with RFC 6902 JSON Patch applied before conversion.
+
+        Applies the patch operations to the source schema via the WASM core,
+        then converts and runs the standard LLM roundtrip pipeline.
+
+        Args:
+            schema_json: The original JSON Schema as a string.
+            prompt: The user's natural language prompt.
+            patch_json: RFC 6902 JSON Patch operations as a JSON string.
+
+        Returns:
+            RoundtripResult with rehydrated data and validation status.
+        """
+        # Step 1: Apply patch to schema via WASM
+        patch_result = self._call_wasi("jsl_apply_patch", schema_json, patch_json)
+        patched_schema = patch_result.get("schema", {})
+        patched_schema_json = json.dumps(patched_schema)
+
+        # Step 2: Convert patched schema to LLM-compatible form
+        convert_result = self._call_wasi("jsl_convert", patched_schema_json, "{}")
+        llm_schema = convert_result.get("schema", {})
+        codec = convert_result.get("codec", {})
+
+        return self.generate_with_preconverted(
+            schema_json=patched_schema_json,
+            codec_json=json.dumps(codec),
+            llm_schema=llm_schema,
+            prompt=prompt,
+        )
+
     def generate_with_preconverted(
         self,
         schema_json: str,

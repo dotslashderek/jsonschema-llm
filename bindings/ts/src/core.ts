@@ -132,6 +132,24 @@ export class Engine {
     return payload as ConvertResult;
   }
 
+  /**
+   * Apply RFC 6902 JSON Patch operations to a JSON Schema via the WASM core.
+   *
+   * @param schema    - The JSON Schema to patch.
+   * @param patchJson - RFC 6902 patch operations as a JSON string.
+   * @returns The patched schema as a plain object.
+   */
+  async applyPatch(
+    schema: unknown,
+    patchJson: string,
+  ): Promise<Record<string, unknown>> {
+    const schemaJson = JSON.stringify(schema);
+    const payload = (await this.callJsl("jsl_apply_patch", schemaJson, patchJson)) as {
+      schema: Record<string, unknown>;
+    };
+    return payload.schema;
+  }
+
   async rehydrate(
     data: unknown,
     codec: unknown,

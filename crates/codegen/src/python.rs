@@ -329,6 +329,57 @@ mod tests {
             user_profile_py.contains("LlmRoundtripEngine"),
             "user_profile.py should type-hint LlmRoundtripEngine"
         );
+
+        // Verify JsonPatchOp types (RFC 6902)
+        assert!(
+            user_profile_py.contains("class Add"),
+            "user_profile.py should contain Add dataclass"
+        );
+        assert!(
+            user_profile_py.contains("class Replace"),
+            "user_profile.py should contain Replace dataclass"
+        );
+        assert!(
+            user_profile_py.contains("class Remove"),
+            "user_profile.py should contain Remove dataclass"
+        );
+        assert!(
+            user_profile_py.contains("class Move"),
+            "user_profile.py should contain Move dataclass"
+        );
+        assert!(
+            user_profile_py.contains("class Copy"),
+            "user_profile.py should contain Copy dataclass"
+        );
+        assert!(
+            user_profile_py.contains("class Test"),
+            "user_profile.py should contain Test dataclass"
+        );
+        assert!(
+            user_profile_py.contains("JsonPatchOp"),
+            "user_profile.py should contain JsonPatchOp type alias"
+        );
+
+        // Verify generate_with_patch function
+        assert!(
+            user_profile_py.contains("def generate_with_patch("),
+            "user_profile.py should contain generate_with_patch function"
+        );
+        assert!(
+            user_profile_py.contains("generate_with_patch"),
+            "user_profile.py should delegate to engine.generate_with_patch"
+        );
+
+        // Verify no third-party json-patch dependency
+        let pyproject = fs::read_to_string(output_dir.join("pyproject.toml")).unwrap();
+        assert!(
+            !pyproject.contains("jsonpatch"),
+            "pyproject.toml should NOT contain third-party jsonpatch dependency"
+        );
+        assert!(
+            !pyproject.contains("json-patch"),
+            "pyproject.toml should NOT contain third-party json-patch dependency"
+        );
     }
 
     #[test]

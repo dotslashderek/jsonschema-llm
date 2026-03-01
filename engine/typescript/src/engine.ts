@@ -109,6 +109,46 @@ export class LlmRoundtripEngine {
   }
 
   /**
+   * Full roundtrip with RFC 6902 JSON Patch applied before conversion.
+   *
+   * Applies the patch operations to the source schema via the WASM core,
+   * then converts and runs the standard LLM roundtrip pipeline.
+   *
+   * @param schemaJson - The original JSON Schema as a string.
+   * @param prompt     - The user's natural language prompt.
+   * @param patchJson  - RFC 6902 JSON Patch operations as a JSON string.
+   * @returns RoundtripResult with rehydrated data and validation status.
+   */
+  async generateWithPatch(
+    schemaJson: string,
+    prompt: string,
+    patchJson: string,
+  ): Promise<RoundtripResult> {
+    // Step 1: Apply patch to schema via WASM
+    const wasi = await this.getWasi();
+    const patchedSchema = await wasi.applyPatch(JSON.parse(schemaJson), patchJson);
+    const patchedSchemaJson = JSON.stringify(patchedSchema);
+
+    // Step 2: Convert patched schema to LLM-compatible form
+    let convertResult: ConvertResult;
+    try {
+      convertResult = await wasi.convert(patchedSchema);
+    } catch (e) {
+      throw new SchemaConversionError(`Schema conversion failed after patch: ${e}`);
+    }
+
+    const llmSchema = convertResult.schema;
+    const codec = convertResult.codec;
+
+    return this.generateWithPreconverted(
+      patchedSchemaJson,
+      JSON.stringify(codec),
+      llmSchema,
+      prompt,
+    );
+  }
+
+  /**
    * Roundtrip with pre-converted schema (skips the convert step).
    *
    * Use when you have pre-built schema/codec from gen-sdk.

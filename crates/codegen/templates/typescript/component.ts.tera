@@ -18,6 +18,58 @@ import type {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+// -----------------------------------------------------------------------
+// RFC 6902 JSON Patch types — zero third-party dependencies
+// -----------------------------------------------------------------------
+
+/** Add operation: insert or replace a value at the target path. */
+export interface AddOp {
+  readonly op: "add";
+  readonly path: string;
+  readonly value: unknown;
+}
+
+/** Remove operation: delete the value at the target path. */
+export interface RemoveOp {
+  readonly op: "remove";
+  readonly path: string;
+}
+
+/** Replace operation: replace the value at the target path. */
+export interface ReplaceOp {
+  readonly op: "replace";
+  readonly path: string;
+  readonly value: unknown;
+}
+
+/** Move operation: move a value from one path to another. */
+export interface MoveOp {
+  readonly op: "move";
+  readonly path: string;
+  readonly from: string;
+}
+
+/** Copy operation: copy a value from one path to another. */
+export interface CopyOp {
+  readonly op: "copy";
+  readonly path: string;
+  readonly from: string;
+}
+
+/** Test operation: verify a value at the target path matches. */
+export interface TestOp {
+  readonly op: "test";
+  readonly path: string;
+  readonly value: unknown;
+}
+
+/** An RFC 6902 JSON Patch operation. */
+export type JsonPatchOp = AddOp | RemoveOp | ReplaceOp | MoveOp | CopyOp | TestOp;
+
+// -----------------------------------------------------------------------
+// Schema accessors
+// -----------------------------------------------------------------------
+
 let _schemaCache: Record<string, unknown> | null = null;
 let _codecCache: Record<string, unknown> | null = null;
 let _originalCache: Record<string, unknown> | null = null;
@@ -61,6 +113,10 @@ export function original(): Record<string, unknown> {
   return _originalCache;
 }
 
+// -----------------------------------------------------------------------
+// Generate methods
+// -----------------------------------------------------------------------
+
 /**
  * Run a full LLM roundtrip for {{ component_name }} using pre-built schema artifacts.
  *
@@ -83,4 +139,29 @@ export async function generate(
     schema(),
     prompt,
   );
+}
+
+/**
+ * Run a full LLM roundtrip for {{ component_name }} with RFC 6902 JSON Patch
+ * operations applied to the source schema before conversion.
+ *
+ * Applies the patch to the original schema via the WASM engine, then converts
+ * at runtime — producing a fresh schema/codec pair for the patched structure.
+ *
+ * Use this to enrich, constrain, or restructure opaque fields (e.g., replacing
+ * `{"type": "object"}` with a typed structure) without modifying the upstream schema.
+ *
+ * @param prompt - The natural language prompt for the LLM.
+ * @param engine - An initialized {@link LlmRoundtripEngine} already configured
+ *                 with formatter, config, and transport.
+ * @param ops - RFC 6902 JSON Patch operations to apply to the source schema.
+ * @returns RoundtripResult with rehydrated data and validation info.
+ */
+export async function generateWithPatch(
+  prompt: string,
+  engine: LlmRoundtripEngine,
+  ops: JsonPatchOp[],
+): Promise<RoundtripResult> {
+  const patchJson = JSON.stringify(ops);
+  return engine.generateWithPatch(JSON.stringify(original()), prompt, patchJson);
 }

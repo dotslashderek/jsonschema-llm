@@ -334,6 +334,54 @@ mod tests {
             user_profile_ts.contains("LlmRoundtripEngine"),
             "userProfile.ts should import LlmRoundtripEngine from @json-schema-llm/engine"
         );
+
+        // Verify JsonPatchOp types (RFC 6902)
+        assert!(
+            user_profile_ts.contains("JsonPatchOp"),
+            "userProfile.ts should contain JsonPatchOp type"
+        );
+        assert!(
+            user_profile_ts.contains("AddOp"),
+            "userProfile.ts should contain AddOp type"
+        );
+        assert!(
+            user_profile_ts.contains("ReplaceOp"),
+            "userProfile.ts should contain ReplaceOp type"
+        );
+        assert!(
+            user_profile_ts.contains("RemoveOp"),
+            "userProfile.ts should contain RemoveOp type"
+        );
+        assert!(
+            user_profile_ts.contains("MoveOp"),
+            "userProfile.ts should contain MoveOp type"
+        );
+        assert!(
+            user_profile_ts.contains("CopyOp"),
+            "userProfile.ts should contain CopyOp type"
+        );
+        assert!(
+            user_profile_ts.contains("TestOp"),
+            "userProfile.ts should contain TestOp type"
+        );
+
+        // Verify generateWithPatch function
+        assert!(
+            user_profile_ts.contains("generateWithPatch"),
+            "userProfile.ts should contain generateWithPatch function"
+        );
+
+        // Verify no third-party json-patch dependency
+        let pkg: serde_json::Value = serde_json::from_str(
+            &fs::read_to_string(output_dir.path().join("package.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(pkg["name"], "@my-org/test-sdk");
+        let pkg_str = fs::read_to_string(output_dir.path().join("package.json")).unwrap();
+        assert!(
+            !pkg_str.contains("fast-json-patch"),
+            "package.json should NOT contain third-party fast-json-patch dependency"
+        );
     }
 
     #[test]

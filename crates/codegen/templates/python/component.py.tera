@@ -2,16 +2,95 @@
 
 from __future__ import annotations
 
+import dataclasses
 import functools
 import json
 from importlib.resources import files as importlib_files
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, List, Union
 
 if TYPE_CHECKING:
     from json_schema_llm_engine import (
         LlmRoundtripEngine,
         RoundtripResult,
     )
+
+
+# -----------------------------------------------------------------------
+# RFC 6902 JSON Patch types — zero third-party dependencies
+# -----------------------------------------------------------------------
+
+
+@dataclasses.dataclass(frozen=True)
+class Add:
+    """Add operation: insert or replace a value at the target path."""
+
+    path: str
+    value: Any
+
+    def to_dict(self) -> dict:
+        return {"op": "add", "path": self.path, "value": self.value}
+
+
+@dataclasses.dataclass(frozen=True)
+class Remove:
+    """Remove operation: delete the value at the target path."""
+
+    path: str
+
+    def to_dict(self) -> dict:
+        return {"op": "remove", "path": self.path}
+
+
+@dataclasses.dataclass(frozen=True)
+class Replace:
+    """Replace operation: replace the value at the target path."""
+
+    path: str
+    value: Any
+
+    def to_dict(self) -> dict:
+        return {"op": "replace", "path": self.path, "value": self.value}
+
+
+@dataclasses.dataclass(frozen=True)
+class Move:
+    """Move operation: move a value from one path to another."""
+
+    path: str
+    from_path: str
+
+    def to_dict(self) -> dict:
+        return {"op": "move", "path": self.path, "from": self.from_path}
+
+
+@dataclasses.dataclass(frozen=True)
+class Copy:
+    """Copy operation: copy a value from one path to another."""
+
+    path: str
+    from_path: str
+
+    def to_dict(self) -> dict:
+        return {"op": "copy", "path": self.path, "from": self.from_path}
+
+
+@dataclasses.dataclass(frozen=True)
+class Test:
+    """Test operation: verify a value at the target path matches."""
+
+    path: str
+    value: Any
+
+    def to_dict(self) -> dict:
+        return {"op": "test", "path": self.path, "value": self.value}
+
+
+JsonPatchOp = Union[Add, Remove, Replace, Move, Copy, Test]
+
+
+# -----------------------------------------------------------------------
+# Schema accessors
+# -----------------------------------------------------------------------
 
 
 @functools.lru_cache(maxsize=1)
@@ -30,6 +109,11 @@ def codec() -> Any:
 def original() -> Any:
     """Load the original (pre-conversion) sub-schema for {{ component_name }}."""
     return _load_resource("schemas/{{ original_path }}")
+
+
+# -----------------------------------------------------------------------
+# Generate methods
+# -----------------------------------------------------------------------
 
 
 def generate(prompt: str, engine: LlmRoundtripEngine) -> RoundtripResult:
@@ -53,6 +137,39 @@ def generate(prompt: str, engine: LlmRoundtripEngine) -> RoundtripResult:
         llm_schema=schema(),
         prompt=prompt,
     )
+
+
+def generate_with_patch(
+    prompt: str,
+    engine: LlmRoundtripEngine,
+    ops: List[JsonPatchOp],
+) -> RoundtripResult:
+    """Run a full LLM roundtrip for {{ component_name }} with RFC 6902 JSON Patch
+    operations applied to the source schema before conversion.
+
+    Applies the patch to the original schema via the WASM engine, then converts
+    at runtime — producing a fresh schema/codec pair for the patched structure.
+
+    Use this to enrich, constrain, or restructure opaque fields (e.g., replacing
+    ``{"type": "object"}`` with a typed structure) without modifying the upstream
+    schema.
+
+    Args:
+        prompt: The natural language prompt for the LLM.
+        engine: An initialized :class:`~json_schema_llm_engine.LlmRoundtripEngine`
+                already configured with formatter, config, and transport.
+        ops: RFC 6902 JSON Patch operations to apply to the source schema.
+
+    Returns:
+        :class:`~json_schema_llm_engine.RoundtripResult` with rehydrated data and validation info.
+    """
+    patch_json = json.dumps([op.to_dict() for op in ops])
+    return engine.generate_with_patch(json.dumps(original()), prompt, patch_json)
+
+
+# -----------------------------------------------------------------------
+# Internal
+# -----------------------------------------------------------------------
 
 
 def _load_resource(path: str) -> Any:
