@@ -124,17 +124,29 @@ export class LlmRoundtripEngine {
     prompt: string,
     patchJson: string,
   ): Promise<RoundtripResult> {
-    // Step 1: Apply patch to schema via WASM
+    // Step 1: Apply patch to schema via WASM, with consistent error wrapping
     const wasi = await this.getWasi();
-    const patchedSchema = await wasi.applyPatch(JSON.parse(schemaJson), patchJson);
-    const patchedSchemaJson = JSON.stringify(patchedSchema);
 
-    // Step 2: Convert patched schema to LLM-compatible form
+    let patchedSchema: Record<string, unknown>;
+    let patchedSchemaJson: string;
     let convertResult: ConvertResult;
+
     try {
+      const parsedSchema = JSON.parse(schemaJson);
+      patchedSchema = await wasi.applyPatch(parsedSchema, patchJson);
+      patchedSchemaJson = JSON.stringify(patchedSchema);
+      // Step 2: Convert patched schema to LLM-compatible form
       convertResult = await wasi.convert(patchedSchema);
     } catch (e) {
-      throw new SchemaConversionError(`Schema conversion failed after patch: ${e}`);
+      if (e instanceof SyntaxError) {
+        throw new SchemaConversionError(
+          `Schema JSON parsing failed before patch application: ${e.message}`,
+        );
+      }
+      const message = e instanceof Error ? e.message : String(e);
+      throw new SchemaConversionError(
+        `Schema patch or conversion failed: ${message}`,
+      );
     }
 
     const llmSchema = convertResult.schema;

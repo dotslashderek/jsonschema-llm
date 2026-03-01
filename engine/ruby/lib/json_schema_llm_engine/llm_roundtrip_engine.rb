@@ -107,12 +107,20 @@ module JsonSchemaLlmEngine
     # @raise [SchemaConversionError] if schema conversion fails
     def generate_with_patch(schema_json:, prompt:, patch_json:)
       # Step 1: Apply patch to schema via WASM
-      patch_result = call_wasi("jsl_apply_patch", schema_json, patch_json)
+      begin
+        patch_result = call_wasi("jsl_apply_patch", schema_json, patch_json)
+      rescue JslWasiError => e
+        raise SchemaConversionError, "Schema patch failed: #{e.message}"
+      end
       patched_schema = patch_result["schema"] || {}
       patched_schema_json = JSON.generate(patched_schema)
 
       # Step 2: Convert patched schema to LLM-compatible form
-      convert_result = call_wasi("jsl_convert", patched_schema_json, "{}")
+      begin
+        convert_result = call_wasi("jsl_convert", patched_schema_json, "{}")
+      rescue JslWasiError => e
+        raise SchemaConversionError, "Schema conversion failed after patch: #{e.message}"
+      end
       llm_schema = convert_result["schema"] || {}
       codec = convert_result["codec"] || {}
 
@@ -122,8 +130,6 @@ module JsonSchemaLlmEngine
         llm_schema: llm_schema,
         prompt: prompt
       )
-    rescue JslWasiError => e
-      raise SchemaConversionError, "Schema conversion failed: #{e.message}"
     end
 
     # Execute a roundtrip with a pre-converted schema (skips the convert step).
