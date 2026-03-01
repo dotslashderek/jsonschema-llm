@@ -241,5 +241,134 @@ class SchemaLlmEngineTest {
     assertThrows(JslException.class,
         () -> engine.rehydrate(data, "NOT_A_VALID_CODEC", schema));
   }
+  // ---------------------------------------------------------------
+  // Apply Patch — #276 diagnostic tests
+  // ---------------------------------------------------------------
+
+  @Test
+  void applyPatchReplaceWithJsonNode() throws Exception {
+    // Baseline: JsonNode → writeValueAsString → WASM should round-trip cleanly
+    JsonNode schema = MAPPER.readTree("""
+        {
+          "type": "object",
+          "properties": {
+            "configuration": {
+              "type": "object",
+              "description": "Endpoint configuration"
+            },
+            "name": { "type": "string" }
+          },
+          "required": ["name"]
+        }
+        """);
+
+    String patchJson = """
+        [
+          {
+            "op": "replace",
+            "path": "/properties/configuration",
+            "value": {
+              "type": "object",
+              "description": "Updated configuration",
+              "properties": {
+                "target": { "type": "string" },
+                "rate": { "type": "integer" }
+              },
+              "required": ["target"]
+            }
+          }
+        ]
+        """;
+
+    JsonNode result = engine.applyPatch(schema, patchJson);
+
+    assertNotNull(result, "patched schema should not be null");
+    assertEquals("string",
+        result.at("/properties/configuration/properties/target/type").asText(),
+        "replaced value should contain new properties");
+    assertEquals("string",
+        result.at("/properties/name/type").asText(),
+        "sibling property should be unaffected");
+  }
+
+  @Test
+  void applyPatchAddExistingPath() throws Exception {
+    // Per RFC 6902, "add" on an existing path replaces the value.
+    // Issue #276 says this fails through the WASM bridge.
+    JsonNode schema = MAPPER.readTree("""
+        {
+          "type": "object",
+          "properties": {
+            "config": { "type": "object", "description": "original" }
+          }
+        }
+        """);
+
+    String patchJson = """
+        [
+          {
+            "op": "add",
+            "path": "/properties/config",
+            "value": {
+              "type": "object",
+              "description": "replaced via add",
+              "properties": { "key": { "type": "string" } }
+            }
+          }
+        ]
+        """;
+
+    JsonNode result = engine.applyPatch(schema, patchJson);
+
+    assertNotNull(result);
+    assertEquals("replaced via add",
+        result.at("/properties/config/description").asText());
+  }
+
+  @Test
+  void applyPatchAddNewPath() throws Exception {
+    // Control test: add at non-existing path (should work per issue report)
+    JsonNode schema = MAPPER.readTree("""
+        {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" }
+          }
+        }
+        """);
+
+    String patchJson = """
+        [
+          {
+            "op": "add",
+            "path": "/properties/age",
+            "value": { "type": "integer", "minimum": 0 }
+          }
+        ]
+        """;
+
+    JsonNode result = engine.applyPatch(schema, patchJson);
+
+    assertNotNull(result);
+    assertEquals("integer",
+        result.at("/properties/age/type").asText());
+    assertEquals("string",
+        result.at("/properties/name/type").asText(),
+        "existing property should be preserved");
+  }
+
+  @Test
+  void applyPatchInvalidPath() {
+    // replace at a path that doesn't exist should throw JslException
+    JsonNode schema = MAPPER.createObjectNode().put("type", "object");
+
+    String patchJson = """
+        [{"op": "replace", "path": "/nonexistent", "value": "x"}]
+        """;
+
+    assertThrows(JslException.class,
+        () -> engine.applyPatch(schema, patchJson),
+        "replace at non-existing path should throw JslException");
+  }
 
 }

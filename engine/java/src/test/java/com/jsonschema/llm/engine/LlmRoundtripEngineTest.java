@@ -310,6 +310,106 @@ class LlmRoundtripEngineTest {
         }
 
         // ---------------------------------------------------------------
+        // 12. generateWithPatch — #276 diagnostic tests
+        // ---------------------------------------------------------------
+
+        @Test
+        void generateWithPatch_replaceExistingPath() throws Exception {
+                String schema = """
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "configuration": {
+                                      "type": "object",
+                                      "description": "Endpoint configuration"
+                                    },
+                                    "name": { "type": "string" }
+                                  },
+                                  "required": ["name"]
+                                }
+                                """;
+
+                String patch = """
+                                [
+                                  {
+                                    "op": "replace",
+                                    "path": "/properties/configuration",
+                                    "value": {
+                                      "type": "object",
+                                      "properties": {
+                                        "target": { "type": "string" },
+                                        "rate": { "type": "integer" }
+                                      },
+                                      "required": ["target"]
+                                    }
+                                  }
+                                ]
+                                """;
+
+                try (LlmRoundtripEngine e = engineWith(
+                                request -> openAiResponse(
+                                                "{\"name\": \"Ada\", \"configuration\": {\"target\": \"https://api.example.com\", \"rate\": 100}}"))) {
+
+                        RoundtripResult result = e.generateWithPatch(schema, "Generate a config", patch);
+
+                        assertThat(result).isNotNull();
+                        assertThat(result.data()).isNotNull();
+                        assertThat(result.data().get("name").asText()).isEqualTo("Ada");
+                }
+        }
+
+        @Test
+        void generateWithPatch_addNewProperty() throws Exception {
+                String schema = """
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": { "type": "string" }
+                                  },
+                                  "required": ["name"]
+                                }
+                                """;
+
+                String patch = """
+                                [
+                                  {
+                                    "op": "add",
+                                    "path": "/properties/age",
+                                    "value": { "type": "integer" }
+                                  }
+                                ]
+                                """;
+
+                try (LlmRoundtripEngine e = engineWith(
+                                request -> openAiResponse("{\"name\": \"Ada\", \"age\": 30}"))) {
+
+                        RoundtripResult result = e.generateWithPatch(schema, "Generate a person", patch);
+
+                        assertThat(result).isNotNull();
+                        assertThat(result.data()).isNotNull();
+                        assertThat(result.data().get("name").asText()).isEqualTo("Ada");
+                        assertThat(result.data().get("age").asInt()).isEqualTo(30);
+                }
+        }
+
+        @Test
+        void generateWithPatch_replaceInvalidPath_throwsEngineException() {
+                String schema = """
+                                {"type": "object"}
+                                """;
+
+                String patch = """
+                                [{"op": "replace", "path": "/nonexistent", "value": "x"}]
+                                """;
+
+                try (LlmRoundtripEngine e = engineWith(request -> openAiResponse("{}"))) {
+                        assertThatThrownBy(() -> e.generateWithPatch(schema, "Generate", patch))
+                                        .isInstanceOf(EngineException.class)
+                                        .hasMessageContaining("Failed to apply JSON Patch");
+                }
+        }
+
+        // ---------------------------------------------------------------
         // Helpers
         // ---------------------------------------------------------------
 

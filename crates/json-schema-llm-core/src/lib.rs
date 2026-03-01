@@ -891,4 +891,140 @@ mod tests {
         let err: serde_json::Value = serde_json::from_str(&result.unwrap_err()).unwrap();
         assert_eq!(err["code"], "patch_failed");
     }
+
+    // -----------------------------------------------------------------------
+    // apply_patch_json() — #276 diagnostic tests (WASM/Java bridge failure)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_apply_patch_json_replace_existing_nested_path() {
+        // Mirrors the exact scenario from Issue #276:
+        // Replace at /properties/configuration on a schema that has this path.
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "configuration": {
+                    "type": "object",
+                    "description": "Endpoint configuration"
+                },
+                "name": { "type": "string" }
+            },
+            "required": ["name"]
+        });
+        let patch = json!([
+            { "op": "replace", "path": "/properties/configuration", "value": {
+                "type": "object",
+                "description": "Updated configuration",
+                "properties": {
+                    "target": { "type": "string" },
+                    "rate": { "type": "integer" }
+                },
+                "required": ["target"]
+            }}
+        ]);
+        let result = apply_patch_json(
+            &serde_json::to_string(&schema).unwrap(),
+            &serde_json::to_string(&patch).unwrap(),
+        )
+        .expect("replace on existing nested path should succeed");
+        let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+        let patched = &parsed["schema"];
+        assert_eq!(
+            patched["properties"]["configuration"]["properties"]["target"]["type"], "string",
+            "replaced value should contain new properties"
+        );
+        assert_eq!(
+            patched["properties"]["configuration"]["required"][0],
+            "target"
+        );
+        // Original sibling property should be unaffected
+        assert_eq!(patched["properties"]["name"]["type"], "string");
+    }
+
+    #[test]
+    fn test_apply_patch_json_add_existing_path() {
+        // Per RFC 6902, "add" on an existing path replaces the value.
+        // Issue #276 says this also fails through the WASM bridge.
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "config": { "type": "object", "description": "original" }
+            }
+        });
+        let patch = json!([
+            { "op": "add", "path": "/properties/config", "value": {
+                "type": "object",
+                "description": "replaced via add",
+                "properties": { "key": { "type": "string" } }
+            }}
+        ]);
+        let result = apply_patch_json(
+            &serde_json::to_string(&schema).unwrap(),
+            &serde_json::to_string(&patch).unwrap(),
+        )
+        .expect("add on existing path should succeed (replaces per RFC 6902)");
+        let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+        let patched = &parsed["schema"];
+        assert_eq!(
+            patched["properties"]["config"]["description"],
+            "replaced via add"
+        );
+        assert_eq!(
+            patched["properties"]["config"]["properties"]["key"]["type"],
+            "string"
+        );
+    }
+
+    #[test]
+    fn test_apply_patch_json_replace_with_complex_value() {
+        // Test replace with a deeply nested, complex value to catch
+        // any serialization size/depth issues.
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "endpoint": {
+                    "type": "object",
+                    "properties": {
+                        "url": { "type": "string" }
+                    }
+                }
+            }
+        });
+        let complex_value = json!({
+            "type": "object",
+            "properties": {
+                "url": { "type": "string", "format": "uri" },
+                "headers": {
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                },
+                "timeout": { "type": "integer", "minimum": 0, "maximum": 30000 },
+                "retryPolicy": {
+                    "type": "object",
+                    "properties": {
+                        "maxRetries": { "type": "integer" },
+                        "backoff": { "type": "string", "enum": ["linear", "exponential"] }
+                    },
+                    "required": ["maxRetries"]
+                }
+            },
+            "required": ["url"]
+        });
+        let patch = json!([
+            { "op": "replace", "path": "/properties/endpoint", "value": complex_value }
+        ]);
+        let result = apply_patch_json(
+            &serde_json::to_string(&schema).unwrap(),
+            &serde_json::to_string(&patch).unwrap(),
+        )
+        .expect("replace with complex value should succeed");
+        let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+        let patched = &parsed["schema"];
+        assert_eq!(
+            patched["properties"]["endpoint"]["properties"]["retryPolicy"]["properties"]["backoff"]
+                ["enum"][0],
+            "linear",
+            "deeply nested replaced value should be preserved"
+        );
+    }
 }
