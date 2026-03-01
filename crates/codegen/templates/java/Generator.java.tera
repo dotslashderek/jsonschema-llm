@@ -54,6 +54,9 @@ public class SchemaGenerator {
          * @throws IllegalArgumentException if no component matches
          */
         public static Component from(String name) {
+            if (name == null) {
+                throw new IllegalArgumentException("Unknown component: null");
+            }
             Component c = BY_NAME.get(name.toLowerCase(java.util.Locale.ROOT));
             if (c != null) {
                 return c;
