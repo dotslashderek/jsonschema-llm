@@ -338,6 +338,52 @@ mod tests {
             user_profile_java.contains("generateWithPreconverted"),
             "UserProfile.java should delegate to generateWithPreconverted"
         );
+
+        // Verify JsonPatchOp sealed interface and record variants
+        assert!(
+            user_profile_java.contains("public sealed interface JsonPatchOp"),
+            "UserProfile.java should contain JsonPatchOp sealed interface"
+        );
+        assert!(
+            user_profile_java.contains("record Add("),
+            "UserProfile.java should contain Add record variant"
+        );
+        assert!(
+            user_profile_java.contains("record Replace("),
+            "UserProfile.java should contain Replace record variant"
+        );
+        assert!(
+            user_profile_java.contains("record Remove("),
+            "UserProfile.java should contain Remove record variant"
+        );
+        assert!(
+            user_profile_java.contains("record Move("),
+            "UserProfile.java should contain Move record variant"
+        );
+        assert!(
+            user_profile_java.contains("record Copy("),
+            "UserProfile.java should contain Copy record variant"
+        );
+        assert!(
+            user_profile_java.contains("record Test("),
+            "UserProfile.java should contain Test record variant"
+        );
+
+        // Verify generate() overload with List<JsonPatchOp>
+        assert!(
+            user_profile_java.contains("List<JsonPatchOp> ops"),
+            "UserProfile.java should contain generate() overload accepting List<JsonPatchOp>"
+        );
+        assert!(
+            user_profile_java.contains("generateWithPatch"),
+            "UserProfile.java should delegate to engine.generateWithPatch"
+        );
+
+        // Verify no third-party json-patch dependency in POM
+        assert!(
+            !pom_content.contains("<artifactId>json-patch</artifactId>"),
+            "pom.xml should NOT contain third-party json-patch dependency"
+        );
     }
 
     #[test]

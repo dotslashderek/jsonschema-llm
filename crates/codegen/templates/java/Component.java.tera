@@ -1,5 +1,8 @@
 package {{ package_name }};
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jsonschema.llm.engine.LlmRoundtripEngine;
@@ -8,6 +11,7 @@ import com.jsonschema.llm.engine.RoundtripResult;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 /**
  * Schema wrapper for the "{{ component_name }}" component.
@@ -20,6 +24,38 @@ public class {{ class_name }} {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private {{ class_name }}() {}
+
+    // -----------------------------------------------------------------------
+    // RFC 6902 JSON Patch types — zero third-party dependencies
+    // -----------------------------------------------------------------------
+
+    /**
+     * An RFC 6902 JSON Patch operation.
+     *
+     * <p>Serialize with Jackson to produce standard RFC 6902 JSON:
+     * {@code [{"op":"replace","path":"/foo","value":42}]}
+     */
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "op")
+    @JsonSubTypes({
+        @JsonSubTypes.Type(value = JsonPatchOp.Add.class, name = "add"),
+        @JsonSubTypes.Type(value = JsonPatchOp.Remove.class, name = "remove"),
+        @JsonSubTypes.Type(value = JsonPatchOp.Replace.class, name = "replace"),
+        @JsonSubTypes.Type(value = JsonPatchOp.Move.class, name = "move"),
+        @JsonSubTypes.Type(value = JsonPatchOp.Copy.class, name = "copy"),
+        @JsonSubTypes.Type(value = JsonPatchOp.Test.class, name = "test"),
+    })
+    public sealed interface JsonPatchOp {
+        record Add(@JsonProperty("path") String path, @JsonProperty("value") Object value) implements JsonPatchOp {}
+        record Remove(@JsonProperty("path") String path) implements JsonPatchOp {}
+        record Replace(@JsonProperty("path") String path, @JsonProperty("value") Object value) implements JsonPatchOp {}
+        record Move(@JsonProperty("path") String path, @JsonProperty("from") String from) implements JsonPatchOp {}
+        record Copy(@JsonProperty("path") String path, @JsonProperty("from") String from) implements JsonPatchOp {}
+        record Test(@JsonProperty("path") String path, @JsonProperty("value") Object value) implements JsonPatchOp {}
+    }
+
+    // -----------------------------------------------------------------------
+    // Schema accessors
+    // -----------------------------------------------------------------------
 
     /**
      * Load the LLM-compatible schema for {{ component_name }}.
@@ -54,6 +90,10 @@ public class {{ class_name }} {
         return loadResource("schemas/{{ original_path }}");
     }
 
+    // -----------------------------------------------------------------------
+    // Generate methods
+    // -----------------------------------------------------------------------
+
     /**
      * Run a full LLM roundtrip for {{ component_name }} using pre-built schema artifacts.
      *
@@ -77,6 +117,35 @@ public class {{ class_name }} {
                 schema(),
                 prompt);
     }
+
+    /**
+     * Run a full LLM roundtrip for {{ component_name }} with RFC 6902 JSON Patch
+     * operations applied to the source schema before conversion.
+     *
+     * <p>Applies the patch to the original schema via the WASM engine, then converts
+     * at runtime — producing a fresh schema/codec pair for the patched structure.
+     *
+     * <p>Use this to enrich, constrain, or restructure opaque fields (e.g., replacing
+     * {@code {"type": "object"}} with a typed structure) without modifying the upstream schema.
+     *
+     * @param prompt the natural language prompt for the LLM
+     * @param engine an initialized {@link LlmRoundtripEngine}
+     * @param ops    RFC 6902 JSON Patch operations to apply to the source schema
+     * @return the roundtrip result with rehydrated data and validation info
+     * @throws IOException           if any schema resource cannot be read
+     * @throws LlmTransportException if the transport fails
+     */
+    public static RoundtripResult generate(
+            String prompt,
+            LlmRoundtripEngine engine,
+            List<JsonPatchOp> ops) throws IOException, LlmTransportException {
+        String patchJson = MAPPER.writeValueAsString(ops);
+        return engine.generateWithPatch(original().toString(), prompt, patchJson);
+    }
+
+    // -----------------------------------------------------------------------
+    // Internal
+    // -----------------------------------------------------------------------
 
     private static JsonNode loadResource(String path) throws IOException {
         try (InputStream is = {{ class_name }}.class.getClassLoader().getResourceAsStream(path)) {

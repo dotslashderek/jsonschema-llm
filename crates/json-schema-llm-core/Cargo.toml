@@ -10,6 +10,7 @@ keywords = ["json-schema", "llm", "structured-output", "openai", "schema"]
 categories = ["encoding", "parser-implementations", "wasm"]
 
 [dependencies]
+json-patch = "3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
