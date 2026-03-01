@@ -1,0 +1,29 @@
+package {{ package_name }};
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+/**
+ * RFC 6902 JSON Patch operation types — zero third-party dependencies.
+ *
+ * <p>Serialize with Jackson to produce standard RFC 6902 JSON:
+ * {@code [{"op":"replace","path":"/foo","value":42}]}
+ */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "op")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = JsonPatchOp.Add.class, name = "add"),
+    @JsonSubTypes.Type(value = JsonPatchOp.Remove.class, name = "remove"),
+    @JsonSubTypes.Type(value = JsonPatchOp.Replace.class, name = "replace"),
+    @JsonSubTypes.Type(value = JsonPatchOp.Move.class, name = "move"),
+    @JsonSubTypes.Type(value = JsonPatchOp.Copy.class, name = "copy"),
+    @JsonSubTypes.Type(value = JsonPatchOp.Test.class, name = "test"),
+})
+public sealed interface JsonPatchOp {
+    record Add(@JsonProperty("path") String path, @JsonProperty("value") Object value) implements JsonPatchOp {}
+    record Remove(@JsonProperty("path") String path) implements JsonPatchOp {}
+    record Replace(@JsonProperty("path") String path, @JsonProperty("value") Object value) implements JsonPatchOp {}
+    record Move(@JsonProperty("path") String path, @JsonProperty("from") String from) implements JsonPatchOp {}
+    record Copy(@JsonProperty("path") String path, @JsonProperty("from") String from) implements JsonPatchOp {}
+    record Test(@JsonProperty("path") String path, @JsonProperty("value") Object value) implements JsonPatchOp {}
+}

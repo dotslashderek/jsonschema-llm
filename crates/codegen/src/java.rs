@@ -145,6 +145,14 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
         &src_dir.join("SchemaGenerator.java"),
     )?;
 
+    // Generate the JsonPatchOp shared class (uses gen_ctx for package_name)
+    render_to_file(
+        &tera,
+        "JsonPatchOp.java.tera",
+        &gen_ctx,
+        &src_dir.join("JsonPatchOp.java"),
+    )?;
+
     // Generate README
     let readme_ctx = tera::Context::from_serialize(&gen_ctx)?;
     let readme_content = tera.render("README.md.tera", &readme_ctx)?;
@@ -339,34 +347,41 @@ mod tests {
             "UserProfile.java should delegate to generateWithPreconverted"
         );
 
-        // Verify JsonPatchOp sealed interface and record variants
+        // Verify JsonPatchOp shared class exists and contains sealed interface
+        let json_patch_java = fs::read_to_string(java_src.join("JsonPatchOp.java")).unwrap();
         assert!(
-            user_profile_java.contains("public sealed interface JsonPatchOp"),
-            "UserProfile.java should contain JsonPatchOp sealed interface"
+            json_patch_java.contains("public sealed interface JsonPatchOp"),
+            "JsonPatchOp.java should contain sealed interface"
         );
         assert!(
-            user_profile_java.contains("record Add("),
-            "UserProfile.java should contain Add record variant"
+            json_patch_java.contains("record Add("),
+            "JsonPatchOp.java should contain Add record"
         );
         assert!(
-            user_profile_java.contains("record Replace("),
-            "UserProfile.java should contain Replace record variant"
+            json_patch_java.contains("record Replace("),
+            "JsonPatchOp.java should contain Replace record"
         );
         assert!(
-            user_profile_java.contains("record Remove("),
-            "UserProfile.java should contain Remove record variant"
+            json_patch_java.contains("record Remove("),
+            "JsonPatchOp.java should contain Remove record"
         );
         assert!(
-            user_profile_java.contains("record Move("),
-            "UserProfile.java should contain Move record variant"
+            json_patch_java.contains("record Move("),
+            "JsonPatchOp.java should contain Move record"
         );
         assert!(
-            user_profile_java.contains("record Copy("),
-            "UserProfile.java should contain Copy record variant"
+            json_patch_java.contains("record Copy("),
+            "JsonPatchOp.java should contain Copy record"
         );
         assert!(
-            user_profile_java.contains("record Test("),
-            "UserProfile.java should contain Test record variant"
+            json_patch_java.contains("record Test("),
+            "JsonPatchOp.java should contain Test record"
+        );
+
+        // Verify component does NOT duplicate the sealed interface
+        assert!(
+            !user_profile_java.contains("sealed interface JsonPatchOp"),
+            "UserProfile.java should NOT duplicate JsonPatchOp sealed interface"
         );
 
         // Verify generate() overload with List<JsonPatchOp>
