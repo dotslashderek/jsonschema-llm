@@ -297,6 +297,36 @@ public class SchemaLlmEngine implements AutoCloseable {
     }
 
     /**
+     * Apply an RFC 6902 JSON Patch to a JSON Schema.
+     *
+     * <p>
+     * Thread-safe: creates a fresh WASM Instance per call.
+     *
+     * @param schema    the JSON Schema (any Jackson-serializable object)
+     * @param patchJson the JSON Patch operations as a JSON array string
+     * @return the patched schema as a JsonNode
+     * @throws JslException          if the WASM module returns an error (e.g.
+     *                               invalid path)
+     * @throws IllegalStateException if the engine has been closed
+     */
+    public com.fasterxml.jackson.databind.JsonNode applyPatch(Object schema, String patchJson)
+            throws JslException {
+        ensureOpen();
+        try (WasiScope scope = openWasiScope()) {
+            String schemaJson = MAPPER.writeValueAsString(schema);
+
+            verifyAbiOnce(scope.instance);
+            com.fasterxml.jackson.databind.JsonNode raw = JslAbi.callExport(scope.instance, "jsl_apply_patch",
+                    schemaJson, patchJson);
+            return raw.get("schema");
+        } catch (JslException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("applyPatch failed", e);
+        }
+    }
+
+    /**
      * Release the cached Module. After this call, all operations throw
      * {@link IllegalStateException}.
      *

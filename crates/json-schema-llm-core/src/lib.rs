@@ -291,9 +291,45 @@ pub fn convert_all_components(
 // JSON-String Bridge API (FFI surface)
 // ---------------------------------------------------------------------------
 
+/// Re-export the JSON Patch type for Rust consumers.
+pub use json_patch::Patch as JsonPatch;
+
 /// Format a `ConvertError` as a JSON string for FFI consumers.
 fn err_json(e: ConvertError) -> String {
     e.to_json().to_string()
+}
+
+/// Apply an RFC 6902 JSON Patch to a JSON Schema.
+///
+/// This is the FFI-friendly entry point — accepts and returns plain JSON strings.
+///
+/// # Arguments
+///
+/// * `schema_json` — A JSON Schema document as a string
+/// * `patch_json` — An RFC 6902 JSON Patch (array of operations) as a string
+///
+/// # Returns
+///
+/// * `Ok(String)` — `{"apiVersion": "1.0", "schema": {...}}` (the patched schema)
+/// * `Err(String)` — `{"code": "...", "message": "...", "path": null}`
+pub fn apply_patch_json(schema_json: &str, patch_json: &str) -> Result<String, String> {
+    let mut schema: Value =
+        serde_json::from_str(schema_json).map_err(|e| err_json(ConvertError::JsonError(e)))?;
+    let patch: json_patch::Patch =
+        serde_json::from_str(patch_json).map_err(|e| err_json(ConvertError::JsonError(e)))?;
+    json_patch::patch(&mut schema, &patch).map_err(|e| {
+        serde_json::json!({
+            "code": "patch_failed",
+            "message": format!("Failed to apply JSON Patch: {}", e),
+            "path": null
+        })
+        .to_string()
+    })?;
+    let result = serde_json::json!({
+        "apiVersion": API_VERSION,
+        "schema": schema,
+    });
+    serde_json::to_string(&result).map_err(|e| err_json(ConvertError::JsonError(e)))
 }
 
 // ---------------------------------------------------------------------------
@@ -800,5 +836,59 @@ mod tests {
     fn test_extract_options_defaults_to_none() {
         let opts = ExtractOptions::default();
         assert!(opts.max_depth.is_none());
+    }
+
+    // -----------------------------------------------------------------------
+    // apply_patch_json() — JSON Patch bridge tests (#261)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_apply_patch_json_replace_op() {
+        let schema = json!({
+            "type": "object",
+            "properties": {
+                "config": { "type": "object" }
+            }
+        });
+        let patch = json!([
+            { "op": "replace", "path": "/properties/config", "value": {
+                "type": "object",
+                "properties": {
+                    "rate": { "type": "integer" }
+                },
+                "required": ["rate"]
+            }}
+        ]);
+        let result = apply_patch_json(
+            &serde_json::to_string(&schema).unwrap(),
+            &serde_json::to_string(&patch).unwrap(),
+        )
+        .expect("apply_patch_json should succeed");
+        let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+        assert_eq!(parsed["apiVersion"], "1.0");
+        let patched = &parsed["schema"];
+        assert_eq!(
+            patched["properties"]["config"]["properties"]["rate"]["type"],
+            "integer"
+        );
+    }
+
+    #[test]
+    fn test_apply_patch_json_invalid_patch_json() {
+        let schema_json = r#"{"type": "object"}"#;
+        let result = apply_patch_json(schema_json, "not valid json");
+        assert!(result.is_err(), "invalid patch JSON should return Err");
+        let err: serde_json::Value = serde_json::from_str(&result.unwrap_err()).unwrap();
+        assert!(err.get("code").is_some());
+    }
+
+    #[test]
+    fn test_apply_patch_json_test_op_failure() {
+        let schema_json = r#"{"type": "object"}"#;
+        let patch_json = r#"[{"op": "test", "path": "/type", "value": "string"}]"#;
+        let result = apply_patch_json(schema_json, patch_json);
+        assert!(result.is_err(), "test op mismatch should return Err");
+        let err: serde_json::Value = serde_json::from_str(&result.unwrap_err()).unwrap();
+        assert_eq!(err["code"], "patch_failed");
     }
 }

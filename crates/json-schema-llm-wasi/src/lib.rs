@@ -271,6 +271,38 @@ pub extern "C" fn jsl_convert(
     )) as u32
 }
 
+/// Apply an RFC 6902 JSON Patch to a JSON Schema.
+///
+/// # Arguments
+///
+/// - `schema_ptr` / `schema_len`: JSON Schema document (UTF-8 bytes in linear memory)
+/// - `patch_ptr` / `patch_len`: JSON Patch array (UTF-8 bytes in linear memory)
+///
+/// # Returns
+///
+/// Pointer to a `JslResult` in linear memory. `status=0` payload: `{"apiVersion":"1.0","schema":{...}}`.
+#[no_mangle]
+pub extern "C" fn jsl_apply_patch(
+    schema_ptr: u32,
+    schema_len: u32,
+    patch_ptr: u32,
+    patch_len: u32,
+) -> u32 {
+    let schema_str = match unsafe { read_guest_str(schema_ptr, schema_len) } {
+        Ok(s) => s,
+        Err(err_ptr) => return err_ptr as u32,
+    };
+    let patch_str = match unsafe { read_guest_str(patch_ptr, patch_len) } {
+        Ok(s) => s,
+        Err(err_ptr) => return err_ptr as u32,
+    };
+
+    result_from_bridge(json_schema_llm_core::apply_patch_json(
+        &schema_str,
+        &patch_str,
+    )) as u32
+}
+
 /// Rehydrate LLM output back to the original schema shape.
 ///
 /// # Arguments

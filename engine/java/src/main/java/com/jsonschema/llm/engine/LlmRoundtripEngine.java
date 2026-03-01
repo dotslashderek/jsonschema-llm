@@ -123,6 +123,50 @@ public class LlmRoundtripEngine implements AutoCloseable {
     }
 
     /**
+     * Execute a full roundtrip with a JSON Patch (RFC 6902) applied to the schema
+     * before conversion.
+     *
+     * <p>
+     * Applies the patch operations to the source schema via the WASM engine,
+     * then performs the standard convert → format → LLM → rehydrate → validate
+     * pipeline on the patched schema.
+     *
+     * @param schemaJson   the original JSON Schema as a string
+     * @param prompt       the natural language prompt for the LLM
+     * @param jsonPatchOps RFC 6902 JSON Patch operations as a JSON array string
+     * @return the roundtrip result with rehydrated data and validation info
+     * @throws LlmTransportException if the transport fails
+     * @throws EngineException       if patch application, schema conversion,
+     *                               rehydration, or parsing fails
+     */
+    public RoundtripResult generateWithPatch(
+            String schemaJson,
+            String prompt,
+            String jsonPatchOps) throws LlmTransportException {
+
+        // Apply the patch via WASM and get the patched schema
+        JsonNode patchedSchema;
+        try {
+            patchedSchema = wasiEngine.applyPatch(
+                    parseJson(schemaJson, "input schema"), jsonPatchOps);
+        } catch (Exception e) {
+            throw new EngineException(
+                    "Failed to apply JSON Patch: " + e.getMessage(), e);
+        }
+
+        // Convert the patched schema
+        ConvertResult convertResult;
+        try {
+            convertResult = wasiEngine.convert(patchedSchema);
+        } catch (JslException e) {
+            throw new EngineException.SchemaConversionException(
+                    "Schema conversion failed on patched schema: " + e.getMessage(), e);
+        }
+
+        return generateWithConvertResult(patchedSchema, convertResult, prompt);
+    }
+
+    /**
      * Execute a roundtrip with a pre-converted schema and codec.
      *
      * <p>
