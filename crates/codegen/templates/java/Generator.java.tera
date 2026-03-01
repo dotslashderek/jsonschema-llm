@@ -3,17 +3,104 @@ package {{ package_name }};
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Facade for accessing all schema components.
  *
  * <p>Provides typed static methods to load each component's
- * LLM-compatible schema and codec.
+ * LLM-compatible schema, codec, and unified generation dispatch.
  */
 public class SchemaGenerator {
 
     private SchemaGenerator() {}
+
+    /**
+     * Available schema components.
+     */
+    public enum Component {
 {% for component in components %}
+        {{ component.enum_name }}("{{ component.component_name }}"),
+{% endfor %}
+        ;
+
+        private final String value;
+
+        Component(String value) {
+            this.value = value;
+        }
+
+        /** The raw component name. */
+        public String value() {
+            return value;
+        }
+
+        /**
+         * Look up a component by its raw name.
+         *
+         * @param name the raw component name (e.g. "api", "flow")
+         * @return the matching Component
+         * @throws IllegalArgumentException if no component matches
+         */
+        public static Component from(String name) {
+            for (Component c : values()) {
+                if (c.value.equals(name)) {
+                    return c;
+                }
+            }
+            throw new IllegalArgumentException("Unknown component: " + name);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Unified generate dispatch
+    // -----------------------------------------------------------------------
+
+    /**
+     * Run a full LLM roundtrip for the given component.
+     *
+     * @param component the target component
+     * @param prompt    the natural language prompt
+     * @param engine    an initialized LlmRoundtripEngine
+     * @return RoundtripResult with rehydrated data and validation info
+     */
+    public static RoundtripResult generate(
+            Component component,
+            String prompt,
+            LlmRoundtripEngine engine) throws IOException, LlmTransportException {
+        return switch (component) {
+{% for component in components %}
+            case {{ component.enum_name }} -> {{ component.class_name }}.generate(prompt, engine);
+{% endfor %}
+        };
+    }
+
+    /**
+     * Run a full LLM roundtrip with RFC 6902 JSON Patch for the given component.
+     *
+     * @param component the target component
+     * @param prompt    the natural language prompt
+     * @param engine    an initialized LlmRoundtripEngine
+     * @param ops       RFC 6902 JSON Patch operations
+     * @return RoundtripResult with rehydrated data and validation info
+     */
+    public static RoundtripResult generate(
+            Component component,
+            String prompt,
+            LlmRoundtripEngine engine,
+            List<JsonPatchOp> ops) throws IOException, LlmTransportException {
+        return switch (component) {
+{% for component in components %}
+            case {{ component.enum_name }} -> {{ component.class_name }}.generate(prompt, engine, ops);
+{% endfor %}
+        };
+    }
+
+    // -----------------------------------------------------------------------
+    // Schema / Codec accessors
+    // -----------------------------------------------------------------------
+{% for component in components %}
+
     /**
      * Load the "{{ component.component_name }}" schema.
      */

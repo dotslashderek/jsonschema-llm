@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use heck::ToSnakeCase;
+use heck::{ToShoutySnakeCase, ToSnakeCase};
 use rust_embed::Embed;
 use serde::Serialize;
 use tera::Tera;
@@ -33,6 +33,7 @@ struct GeneratorContext {
 struct ComponentContext {
     package_name: String,
     module_name: String,
+    enum_name: String,
     component_name: String,
     schema_path: String,
     codec_path: String,
@@ -118,6 +119,7 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
         let ctx = ComponentContext {
             package_name: import_name.clone(),
             module_name: module_name.clone(),
+            enum_name: component.name.to_shouty_snake_case(),
             component_name: component.name.clone(),
             schema_path: component.schema_path.clone(),
             codec_path: component.codec_path.clone(),
@@ -394,6 +396,29 @@ mod tests {
         assert!(
             !pyproject.contains("json-patch"),
             "pyproject.toml should NOT contain third-party json-patch dependency"
+        );
+
+        // Verify unified generator entrypoint (#271)
+        let generator_py = fs::read_to_string(pkg_dir.join("generator.py")).unwrap();
+        assert!(
+            generator_py.contains("class Component"),
+            "generator.py should contain Component enum class"
+        );
+        assert!(
+            generator_py.contains("USER_PROFILE"),
+            "generator.py should contain USER_PROFILE enum variant"
+        );
+        assert!(
+            generator_py.contains("ORDER_ITEM"),
+            "generator.py should contain ORDER_ITEM enum variant"
+        );
+        assert!(
+            generator_py.contains("def generate("),
+            "generator.py should contain generate() dispatch function"
+        );
+        assert!(
+            generator_py.contains("component: Component"),
+            "generator.py generate() should accept Component parameter"
         );
     }
 

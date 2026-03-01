@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use heck::ToUpperCamelCase;
+use heck::{ToShoutySnakeCase, ToUpperCamelCase};
 use rust_embed::Embed;
 use serde::Serialize;
 use tera::Tera;
@@ -33,6 +33,7 @@ struct GeneratorContext {
 struct ComponentContext {
     package_name: String,
     class_name: String,
+    enum_name: String,
     component_name: String,
     schema_path: String,
     codec_path: String,
@@ -109,9 +110,11 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
         }
 
         let class_name = component.name.to_upper_camel_case();
+        let enum_name = component.name.to_shouty_snake_case();
         let ctx = ComponentContext {
             package_name: config.package.clone(),
             class_name: class_name.clone(),
+            enum_name,
             component_name: component.name.clone(),
             schema_path: component.schema_path.clone(),
             codec_path: component.codec_path.clone(),
@@ -412,6 +415,36 @@ mod tests {
         assert!(
             !pom_content.contains("<artifactId>json-patch</artifactId>"),
             "pom.xml should NOT contain third-party json-patch dependency"
+        );
+
+        // Verify unified generator entrypoint (#271)
+        let generator_java = fs::read_to_string(java_src.join("SchemaGenerator.java")).unwrap();
+        // Component enum
+        assert!(
+            generator_java.contains("enum Component"),
+            "SchemaGenerator.java should contain Component enum"
+        );
+        assert!(
+            generator_java.contains("USER_PROFILE"),
+            "SchemaGenerator.java should contain USER_PROFILE enum variant"
+        );
+        assert!(
+            generator_java.contains("ORDER_ITEM"),
+            "SchemaGenerator.java should contain ORDER_ITEM enum variant"
+        );
+        // from() factory
+        assert!(
+            generator_java.contains("static Component from("),
+            "SchemaGenerator.java should contain from() factory method"
+        );
+        // generate() dispatch
+        assert!(
+            generator_java.contains("static RoundtripResult generate("),
+            "SchemaGenerator.java should contain generate() dispatch method"
+        );
+        assert!(
+            generator_java.contains("Component component"),
+            "SchemaGenerator.java generate() should accept Component parameter"
         );
     }
 

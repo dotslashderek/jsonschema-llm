@@ -4,6 +4,7 @@
 //! Follows the same architecture as `java.rs`, `python.rs`, and `typescript.rs`.
 
 use anyhow::{Context, Result};
+use heck::ToShoutySnakeCase;
 use rust_embed::Embed;
 use serde::Serialize;
 use std::fs;
@@ -39,6 +40,7 @@ struct GeneratorContext {
 #[derive(Serialize)]
 struct GeneratorComponent {
     name: String,
+    enum_name: String,
     module_name: String,
     file_name: String,
 }
@@ -150,6 +152,7 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
 
         gen_components.push(GeneratorComponent {
             name: comp.name.clone(),
+            enum_name: comp.name.to_shouty_snake_case(),
             module_name: module_name.clone(),
             file_name: file_name.clone(),
         });
@@ -493,6 +496,20 @@ mod tests {
         assert!(
             !gemspec.contains("json_patch"),
             "gemspec should NOT contain json_patch dependency"
+        );
+
+        // Verify unified generator entrypoint (#271)
+        assert!(
+            generator_rb.contains("PET"),
+            "generator.rb should contain PET constant"
+        );
+        assert!(
+            generator_rb.contains("def self.generate("),
+            "generator.rb should contain generate() dispatch method"
+        );
+        assert!(
+            generator_rb.contains("def self.from_name("),
+            "generator.rb should contain from_name() lookup method"
         );
     }
 
