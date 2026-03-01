@@ -399,7 +399,7 @@ mod tests {
 
         // Verify typed Jackson writer for JsonPatchOp serialization (type erasure fix #269)
         assert!(
-            user_profile_java.contains("TypeReference<java.util.List<JsonPatchOp>>"),
+            user_profile_java.contains("new TypeReference<List<JsonPatchOp>>() {}"),
             "UserProfile.java should use TypeReference to preserve generic type info"
         );
         assert!(
