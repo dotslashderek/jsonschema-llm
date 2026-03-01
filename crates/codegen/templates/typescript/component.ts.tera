@@ -15,56 +15,11 @@ import type {
   LlmRoundtripEngine,
   RoundtripResult,
 } from "@json-schema-llm/engine";
+import type { JsonPatchOp } from "./jsonPatch.js";
+
+export type { JsonPatchOp } from "./jsonPatch.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-
-// -----------------------------------------------------------------------
-// RFC 6902 JSON Patch types — zero third-party dependencies
-// -----------------------------------------------------------------------
-
-/** Add operation: insert or replace a value at the target path. */
-export interface AddOp {
-  readonly op: "add";
-  readonly path: string;
-  readonly value: unknown;
-}
-
-/** Remove operation: delete the value at the target path. */
-export interface RemoveOp {
-  readonly op: "remove";
-  readonly path: string;
-}
-
-/** Replace operation: replace the value at the target path. */
-export interface ReplaceOp {
-  readonly op: "replace";
-  readonly path: string;
-  readonly value: unknown;
-}
-
-/** Move operation: move a value from one path to another. */
-export interface MoveOp {
-  readonly op: "move";
-  readonly path: string;
-  readonly from: string;
-}
-
-/** Copy operation: copy a value from one path to another. */
-export interface CopyOp {
-  readonly op: "copy";
-  readonly path: string;
-  readonly from: string;
-}
-
-/** Test operation: verify a value at the target path matches. */
-export interface TestOp {
-  readonly op: "test";
-  readonly path: string;
-  readonly value: unknown;
-}
-
-/** An RFC 6902 JSON Patch operation. */
-export type JsonPatchOp = AddOp | RemoveOp | ReplaceOp | MoveOp | CopyOp | TestOp;
 
 // -----------------------------------------------------------------------
 // Schema accessors
@@ -82,7 +37,7 @@ export function schema(): Record<string, unknown> {
     if (!parsed || typeof parsed !== "object") {
       throw new Error(`Invalid schema JSON in {{ schema_path }}`);
     }
-    _schemaCache = parsed as Record<string, unknown>; // We have to assert here but we validated it
+    _schemaCache = parsed as Record<string, unknown>;
   }
   return _schemaCache;
 }
@@ -120,13 +75,8 @@ export function original(): Record<string, unknown> {
 /**
  * Run a full LLM roundtrip for {{ component_name }} using pre-built schema artifacts.
  *
- * Convenience wrapper that wires the pre-built {@link original}, {@link codec},
- * and {@link schema} into {@link LlmRoundtripEngine.generateWithPreconverted}
- * so callers don't need to manage the three-way split themselves.
- *
  * @param prompt - The natural language prompt for the LLM.
- * @param engine - An initialized {@link LlmRoundtripEngine} already configured
- *                 with formatter, config, and transport.
+ * @param engine - An initialized LlmRoundtripEngine.
  * @returns RoundtripResult with rehydrated data and validation info.
  */
 export async function generate(
@@ -142,18 +92,10 @@ export async function generate(
 }
 
 /**
- * Run a full LLM roundtrip for {{ component_name }} with RFC 6902 JSON Patch
- * operations applied to the source schema before conversion.
- *
- * Applies the patch to the original schema via the WASM engine, then converts
- * at runtime — producing a fresh schema/codec pair for the patched structure.
- *
- * Use this to enrich, constrain, or restructure opaque fields (e.g., replacing
- * `{"type": "object"}` with a typed structure) without modifying the upstream schema.
+ * Run a full LLM roundtrip with RFC 6902 JSON Patch applied before conversion.
  *
  * @param prompt - The natural language prompt for the LLM.
- * @param engine - An initialized {@link LlmRoundtripEngine} already configured
- *                 with formatter, config, and transport.
+ * @param engine - An initialized LlmRoundtripEngine.
  * @param ops - RFC 6902 JSON Patch operations to apply to the source schema.
  * @returns RoundtripResult with rehydrated data and validation info.
  */

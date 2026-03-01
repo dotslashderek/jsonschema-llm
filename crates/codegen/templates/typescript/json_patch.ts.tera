@@ -1,0 +1,50 @@
+/**
+ * RFC 6902 JSON Patch types — zero third-party dependencies.
+ *
+ * Provides type definitions for all six JSON Patch operations.
+ * Import these from the component modules to use with `generateWithPatch()`.
+ */
+
+/** Add operation: insert or replace a value at the target path. */
+export interface AddOp {
+  readonly op: "add";
+  readonly path: string;
+  readonly value: unknown;
+}
+
+/** Remove operation: delete the value at the target path. */
+export interface RemoveOp {
+  readonly op: "remove";
+  readonly path: string;
+}
+
+/** Replace operation: replace the value at the target path. */
+export interface ReplaceOp {
+  readonly op: "replace";
+  readonly path: string;
+  readonly value: unknown;
+}
+
+/** Move operation: move a value from one path to another. */
+export interface MoveOp {
+  readonly op: "move";
+  readonly path: string;
+  readonly from: string;
+}
+
+/** Copy operation: copy a value from one path to another. */
+export interface CopyOp {
+  readonly op: "copy";
+  readonly path: string;
+  readonly from: string;
+}
+
+/** Test operation: verify a value at the target path matches. */
+export interface TestOp {
+  readonly op: "test";
+  readonly path: string;
+  readonly value: unknown;
+}
+
+/** An RFC 6902 JSON Patch operation. */
+export type JsonPatchOp = AddOp | RemoveOp | ReplaceOp | MoveOp | CopyOp | TestOp;

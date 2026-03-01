@@ -1,0 +1,80 @@
+"""RFC 6902 JSON Patch types — zero third-party dependencies.
+
+Provides dataclass types for all six JSON Patch operations.
+Import these from the component modules to use with ``generate_with_patch()``.
+"""
+
+from __future__ import annotations
+
+import dataclasses
+from typing import Any, Union
+
+
+@dataclasses.dataclass(frozen=True)
+class Add:
+    """Add operation: insert or replace a value at the target path."""
+
+    path: str
+    value: Any
+
+    def to_dict(self) -> dict:
+        return {"op": "add", "path": self.path, "value": self.value}
+
+
+@dataclasses.dataclass(frozen=True)
+class Remove:
+    """Remove operation: delete the value at the target path."""
+
+    path: str
+
+    def to_dict(self) -> dict:
+        return {"op": "remove", "path": self.path}
+
+
+@dataclasses.dataclass(frozen=True)
+class Replace:
+    """Replace operation: replace the value at the target path."""
+
+    path: str
+    value: Any
+
+    def to_dict(self) -> dict:
+        return {"op": "replace", "path": self.path, "value": self.value}
+
+
+@dataclasses.dataclass(frozen=True)
+class Move:
+    """Move operation: move a value from one path to another."""
+
+    path: str
+    from_path: str
+
+    def to_dict(self) -> dict:
+        return {"op": "move", "path": self.path, "from": self.from_path}
+
+
+@dataclasses.dataclass(frozen=True)
+class Copy:
+    """Copy operation: copy a value from one path to another."""
+
+    path: str
+    from_path: str
+
+    def to_dict(self) -> dict:
+        return {"op": "copy", "path": self.path, "from": self.from_path}
+
+
+@dataclasses.dataclass(frozen=True)
+class Test:
+    """Test operation: verify a value at the target path matches."""
+
+    path: str
+    value: Any
+
+    def to_dict(self) -> dict:
+        return {"op": "test", "path": self.path, "value": self.value}
+
+
+JsonPatchOp = Union[Add, Remove, Replace, Move, Copy, Test]
+
+__all__ = ["Add", "Remove", "Replace", "Move", "Copy", "Test", "JsonPatchOp"]

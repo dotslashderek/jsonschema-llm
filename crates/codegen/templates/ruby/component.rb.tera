@@ -4,6 +4,7 @@
 # Component: {{ component_name }}
 
 require "json"
+require_relative "json_patch"
 
 module {{ generator_module }}
   module {{ module_name }}
@@ -12,53 +13,10 @@ module {{ generator_module }}
     ORIGINAL_PATH = File.join(__dir__, "schemas", "{{ original_path }}")
 
     # -------------------------------------------------------------------
-    # RFC 6902 JSON Patch types — zero third-party dependencies
-    # -------------------------------------------------------------------
-
-    module JsonPatchOp
-      Add = Struct.new(:path, :value, keyword_init: true) do
-        def to_h
-          { op: "add", path: path, value: value }
-        end
-      end
-
-      Remove = Struct.new(:path, keyword_init: true) do
-        def to_h
-          { op: "remove", path: path }
-        end
-      end
-
-      Replace = Struct.new(:path, :value, keyword_init: true) do
-        def to_h
-          { op: "replace", path: path, value: value }
-        end
-      end
-
-      Move = Struct.new(:path, :from_path, keyword_init: true) do
-        def to_h
-          { op: "move", path: path, from: from_path }
-        end
-      end
-
-      Copy = Struct.new(:path, :from_path, keyword_init: true) do
-        def to_h
-          { op: "copy", path: path, from: from_path }
-        end
-      end
-
-      Test = Struct.new(:path, :value, keyword_init: true) do
-        def to_h
-          { op: "test", path: path, value: value }
-        end
-      end
-    end
-
-    # -------------------------------------------------------------------
     # Schema accessors
     # -------------------------------------------------------------------
 
     # Load the LLM-compatible schema for {{ component_name }}.
-    # Note: Schemas are memoized at the module level.
     # @return [Hash] the parsed JSON schema
     def self.schema
       @schema ||= JSON.parse(File.read(SCHEMA_PATH))
@@ -94,8 +52,7 @@ module {{ generator_module }}
       )
     end
 
-    # Run a full LLM roundtrip for {{ component_name }} with RFC 6902 JSON Patch
-    # operations applied to the source schema before conversion.
+    # Run a full LLM roundtrip with RFC 6902 JSON Patch applied before conversion.
     #
     # @param prompt [String] the natural language prompt
     # @param engine [JsonSchemaLlmEngine::LlmRoundtripEngine] the roundtrip engine

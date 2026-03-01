@@ -197,6 +197,14 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
         &src_dir.join("index.ts"),
     )?;
 
+    // Generate the jsonPatch shared module (static — no template variables)
+    render_to_file(
+        &tera,
+        "json_patch.ts.tera",
+        &std::collections::HashMap::<String, String>::new(),
+        &src_dir.join("jsonPatch.ts"),
+    )?;
+
     // Generate README.md
     render_to_file(
         &tera,
@@ -335,37 +343,48 @@ mod tests {
             "userProfile.ts should import LlmRoundtripEngine from @json-schema-llm/engine"
         );
 
-        // Verify JsonPatchOp types (RFC 6902)
+        // Verify JsonPatchOp shared module exists and contains types
+        let json_patch_ts = fs::read_to_string(output_dir.path().join("src/jsonPatch.ts")).unwrap();
         assert!(
-            user_profile_ts.contains("JsonPatchOp"),
-            "userProfile.ts should contain JsonPatchOp type"
+            json_patch_ts.contains("JsonPatchOp"),
+            "jsonPatch.ts should contain JsonPatchOp type"
         );
         assert!(
-            user_profile_ts.contains("AddOp"),
-            "userProfile.ts should contain AddOp type"
+            json_patch_ts.contains("AddOp"),
+            "jsonPatch.ts should contain AddOp type"
         );
         assert!(
-            user_profile_ts.contains("ReplaceOp"),
-            "userProfile.ts should contain ReplaceOp type"
+            json_patch_ts.contains("ReplaceOp"),
+            "jsonPatch.ts should contain ReplaceOp type"
         );
         assert!(
-            user_profile_ts.contains("RemoveOp"),
-            "userProfile.ts should contain RemoveOp type"
+            json_patch_ts.contains("RemoveOp"),
+            "jsonPatch.ts should contain RemoveOp type"
         );
         assert!(
-            user_profile_ts.contains("MoveOp"),
-            "userProfile.ts should contain MoveOp type"
+            json_patch_ts.contains("MoveOp"),
+            "jsonPatch.ts should contain MoveOp type"
         );
         assert!(
-            user_profile_ts.contains("CopyOp"),
-            "userProfile.ts should contain CopyOp type"
+            json_patch_ts.contains("CopyOp"),
+            "jsonPatch.ts should contain CopyOp type"
         );
         assert!(
-            user_profile_ts.contains("TestOp"),
-            "userProfile.ts should contain TestOp type"
+            json_patch_ts.contains("TestOp"),
+            "jsonPatch.ts should contain TestOp type"
         );
 
-        // Verify generateWithPatch function
+        // Verify component imports from shared module (not inline defs)
+        assert!(
+            user_profile_ts.contains("jsonPatch"),
+            "userProfile.ts should import from jsonPatch module"
+        );
+        assert!(
+            !user_profile_ts.contains("interface AddOp"),
+            "userProfile.ts should NOT duplicate type definitions"
+        );
+
+        // Verify generateWithPatch function in component
         assert!(
             user_profile_ts.contains("generateWithPatch"),
             "userProfile.ts should contain generateWithPatch function"
