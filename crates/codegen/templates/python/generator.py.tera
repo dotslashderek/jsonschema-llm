@@ -33,24 +33,6 @@ class Component(enum.Enum):
     {{ component.enum_name }} = "{{ component.component_name }}"
 {% endfor %}
 
-    @classmethod
-    def from_name(cls, name: str) -> Component:
-        """Look up a component by its raw name.
-
-        Args:
-            name: The raw component name (e.g. "api", "flow").
-
-        Returns:
-            The matching Component.
-
-        Raises:
-            ValueError: If no component matches.
-        """
-        for member in cls:
-            if member.value == name:
-                return member
-        raise ValueError(f"Unknown component: {name}")
-
 
 # -----------------------------------------------------------------------
 # Unified generate dispatch

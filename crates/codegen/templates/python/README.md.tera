@@ -35,7 +35,7 @@ result = generate(Component.{{ components.0.enum_name }}, "Your prompt here", en
 print(result.data)
 
 # Dynamic lookup from a string
-component = Component.from_name("{{ components.0.component_name }}")
+component = Component("{{ components.0.component_name }}")
 result2 = generate(component, "Your prompt here", engine)
 ```
 
