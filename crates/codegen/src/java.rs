@@ -72,7 +72,7 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
     let pom_ctx = PomContext {
         group_id: config.package.clone(),
         artifact_id: config.artifact_name.clone(),
-        engine_version: "0.1.0-ALPHA".to_string(),
+        engine_version: env!("CARGO_PKG_VERSION").to_string(),
     };
     render_to_file(
         &tera,
@@ -136,9 +136,39 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
         component_contexts.push(ctx);
     }
 
-    // Deduplicate contexts by enum_name to avoid compilation errors on conflicting generated components
+    // Sort contexts so adjacent entries share the same enum_name (needed for collision detection)
     component_contexts.sort_by(|a, b| a.enum_name.cmp(&b.enum_name));
-    component_contexts.dedup_by(|a, b| a.enum_name == b.enum_name);
+
+    // Hard-fail if two manifest component names collide under ToShoutySnakeCase.
+    // Silently dropping entries would produce an incomplete SchemaGenerator dispatch without any warning.
+    let mut collisions: Vec<(String, Vec<String>)> = Vec::new();
+    let mut i = 0;
+    while i < component_contexts.len() {
+        let current_enum = component_contexts[i].enum_name.clone();
+        let mut names = vec![component_contexts[i].component_name.clone()];
+        let mut j = i + 1;
+        while j < component_contexts.len() && component_contexts[j].enum_name == current_enum {
+            names.push(component_contexts[j].component_name.clone());
+            j += 1;
+        }
+        if names.len() > 1 {
+            collisions.push((current_enum, names));
+        }
+        i = j;
+    }
+
+    if !collisions.is_empty() {
+        let mut msg =
+            String::from("Found components with colliding enum names under ToShoutySnakeCase:\n");
+        for (enum_name, component_names) in collisions {
+            msg.push_str(&format!(
+                "  enum name '{}' is produced by manifest components: {}\n",
+                enum_name,
+                component_names.join(", ")
+            ));
+        }
+        anyhow::bail!(msg);
+    }
 
     // Generate the Generator facade class
     let gen_ctx = GeneratorContext {
