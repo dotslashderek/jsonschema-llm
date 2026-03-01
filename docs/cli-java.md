@@ -5,7 +5,7 @@ End-to-end guide: convert a JSON Schema, generate a typed Java SDK, and use it i
 ## Prerequisites
 
 - `json-schema-llm` CLI ([install](../README.md#quick-start))
-- Java 17+
+- Java 17+ (generated code uses switch expressions, requires Java 14+)
 - Maven 3.8+
 
 ---
