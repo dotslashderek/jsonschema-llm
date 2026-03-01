@@ -26,31 +26,37 @@ npm run build
 
 ## Usage
 
-### Roundtrip generation (recommended)
+### Unified generation (recommended for generic operations)
+
+Use the `Component` enum and top-level `generate()` for dynamic dispatch — ideal when the target component is determined at runtime.
 
 ```typescript
+import { Component, generate } from "{{ package_name }}";
 import { LlmRoundtripEngine, OpenAIFormatter, FetchTransport } from "@json-schema-llm/engine";
-{% for component in components %}import * as {{ component.module_name }} from "{{ package_name }}/{{ component.module_name }}";
-{% endfor %}
+
 const engine = new LlmRoundtripEngine(
   new OpenAIFormatter(),
   { url: "https://api.openai.com/v1/chat/completions", model: "gpt-4o", headers: { Authorization: `Bearer ${apiKey}` } },
   new FetchTransport(),
 );
-const result = await {{ components.0.module_name }}.generate(
-  "Your prompt here",
-  engine,
-);
+
+// Generate any component by enum
+const result = await generate(Component.{{ components.0.enum_name }}, "Your prompt here", engine);
 console.log(result.data);
 engine.close();
 ```
 
-### Low-level access
+### Focused component access
+
+Import a specific component module directly when you know exactly which component you need at compile time.
 
 ```typescript
 {% for component in components %}import * as {{ component.module_name }} from "{{ package_name }}/{{ component.module_name }}";
 {% endfor %}
-// Access individual artifacts if needed
+// Direct generation
+const result = await {{ components.0.module_name }}.generate("Your prompt here", engine);
+
+// Access individual artifacts
 const llmSchema  = {{ components.0.module_name }}.schema();
 const codec      = {{ components.0.module_name }}.codec();
 const original   = {{ components.0.module_name }}.original();
@@ -68,7 +74,7 @@ engine.close();
 
 ## Components
 
-| Component | Module | Schema | Codec |
-|-----------|--------|--------|-------|
-{% for component in components %}| {{ component.component_name }} | `{{ component.module_name }}` | `schemas/{{ component.schema_path }}` | `schemas/{{ component.codec_path }}` |
+| Component | Enum | Module |
+|-----------|------|--------|
+{% for component in components %}| {{ component.component_name }} | `Component.{{ component.enum_name }}` | `{{ component.module_name }}` |
 {% endfor %}
