@@ -4,7 +4,6 @@
 //! Follows the same architecture as `java.rs`, `python.rs`, and `typescript.rs`.
 
 use anyhow::{Context, Result};
-use heck::ToShoutySnakeCase;
 use rust_embed::Embed;
 use serde::Serialize;
 use std::fs;
@@ -146,23 +145,25 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
     // Build component data
     let mut gen_components = Vec::new();
     let mut readme_components = Vec::new();
+    let component_names: Vec<String> = manifest.components.iter().map(|c| c.name.clone()).collect();
+    let resolved_components = crate::resolve_collisions(&component_names);
 
-    for comp in &manifest.components {
-        let module_name = to_module_name(&comp.name);
-        let file_name = component_to_file_name(&comp.name);
+    for (comp, resolved) in manifest.components.iter().zip(resolved_components.iter()) {
+        let module_name = resolved.class_name.clone();
+        let file_name = resolved.module_name.clone();
 
         gen_components.push(GeneratorComponent {
-            name: comp.name.clone(),
-            enum_name: comp.name.to_shouty_snake_case(),
+            name: resolved.original_name.clone(),
+            enum_name: resolved.enum_name.clone(),
             module_name: module_name.clone(),
             file_name: file_name.clone(),
         });
 
         readme_components.push(ReadmeComponent {
-            name: comp.name.clone(),
-            enum_name: comp.name.to_shouty_snake_case(),
+            name: resolved.original_name.clone(),
+            enum_name: resolved.enum_name.clone(),
             module_name: module_name.clone(),
-            description: format!("Generate a {}", comp.name),
+            description: format!("Generate a {}", resolved.original_name),
         });
 
         // Copy schema files for this component

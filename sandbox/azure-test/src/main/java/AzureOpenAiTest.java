@@ -1,7 +1,6 @@
 import com.jsonschema.llm.engine.LlmRoundtripEngine;
 import com.jsonschema.llm.engine.ProviderConfig;
 import com.jsonschema.llm.engine.LlmTransport;
-import com.jsonschema.llm.engine.LlmRequest;
 import com.jsonschema.llm.engine.RoundtripResult;
 import com.jsonschema.llm.engine.ChatCompletionsFormatter;
 import java.net.http.HttpClient;
@@ -37,11 +36,16 @@ public class AzureOpenAiTest {
 
                 HttpResponse<String> response = client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() >= 300) {
-                    throw new RuntimeException("HTTP " + response.statusCode() + ": " + response.body());
+                    throw new com.jsonschema.llm.engine.LlmTransportException(
+                            "HTTP " + response.statusCode() + ": " + response.body(),
+                            response.statusCode());
                 }
                 return response.body();
+            } catch (com.jsonschema.llm.engine.LlmTransportException e) {
+                throw e;
             } catch (Exception e) {
-                throw new RuntimeException("Transport failed", e);
+                throw new com.jsonschema.llm.engine.LlmTransportException("Transport I/O failure: " + e.getMessage(),
+                        -1, e);
             }
         };
 

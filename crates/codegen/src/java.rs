@@ -2,7 +2,6 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use heck::{ToShoutySnakeCase, ToUpperCamelCase};
 use rust_embed::Embed;
 use serde::Serialize;
 use tera::Tera;
@@ -97,8 +96,11 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
     })?;
 
     // Build component contexts and generate component classes
+    let component_names: Vec<String> = manifest.components.iter().map(|c| c.name.clone()).collect();
+    let resolved_components = crate::resolve_collisions(&component_names);
+
     let mut component_contexts = Vec::new();
-    for component in &manifest.components {
+    for (component, resolved) in manifest.components.iter().zip(resolved_components.iter()) {
         // Validate paths are relative and don't contain traversal
         for path in [&component.schema_path, &component.codec_path] {
             if path.contains("..") || path.starts_with('/') {
@@ -109,13 +111,18 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
             }
         }
 
-        let class_name = component.name.to_upper_camel_case();
-        let enum_name = component.name.to_shouty_snake_case();
+        // We use the safe identifier for the class name and enum name
+        let class_name = resolved.class_name.clone();
+        let enum_name = resolved.enum_name.clone();
+
+        // We use the verbatim component name for the runtime JSON value
+        let component_name = resolved.original_name.clone();
+
         let ctx = ComponentContext {
             package_name: config.package.clone(),
             class_name: class_name.clone(),
             enum_name,
-            component_name: component.name.clone(),
+            component_name,
             schema_path: component.schema_path.clone(),
             codec_path: component.codec_path.clone(),
             original_path: component.original_path.clone(),
@@ -134,40 +141,6 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
         copy_schema_file(&config.schema_dir, &component.original_path, &resources_dir)?;
 
         component_contexts.push(ctx);
-    }
-
-    // Sort contexts so adjacent entries share the same enum_name (needed for collision detection)
-    component_contexts.sort_by(|a, b| a.enum_name.cmp(&b.enum_name));
-
-    // Hard-fail if two manifest component names collide under ToShoutySnakeCase.
-    // Silently dropping entries would produce an incomplete SchemaGenerator dispatch without any warning.
-    let mut collisions: Vec<(String, Vec<String>)> = Vec::new();
-    let mut i = 0;
-    while i < component_contexts.len() {
-        let current_enum = component_contexts[i].enum_name.clone();
-        let mut names = vec![component_contexts[i].component_name.clone()];
-        let mut j = i + 1;
-        while j < component_contexts.len() && component_contexts[j].enum_name == current_enum {
-            names.push(component_contexts[j].component_name.clone());
-            j += 1;
-        }
-        if names.len() > 1 {
-            collisions.push((current_enum, names));
-        }
-        i = j;
-    }
-
-    if !collisions.is_empty() {
-        let mut msg =
-            String::from("Found components with colliding enum names under ToShoutySnakeCase:\n");
-        for (enum_name, component_names) in collisions {
-            msg.push_str(&format!(
-                "  enum name '{}' is produced by manifest components: {}\n",
-                enum_name,
-                component_names.join(", ")
-            ));
-        }
-        anyhow::bail!(msg);
     }
 
     // Generate the Generator facade class
