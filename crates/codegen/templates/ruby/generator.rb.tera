@@ -5,13 +5,57 @@
 
 {% for component in components %}require_relative "{{ component.file_name }}"
 {% endfor %}
-
 module {{ generator_module }}
+  # -----------------------------------------------------------------------
+  # Component constants
+  # -----------------------------------------------------------------------
+{% for component in components %}
+  {{ component.enum_name }} = "{{ component.name }}"
+{% endfor %}
+
   # All available component schemas.
   COMPONENTS = {
     {% for component in components %}"{{ component.name }}" => {{ component.module_name }},
     {% endfor %}
   }.freeze
+
+  # Look up a component module by its raw name.
+  #
+  # @param name [String] the raw component name (e.g. "Pet", "Flow")
+  # @return [Module] the matching component module
+  # @raise [ArgumentError] if no component matches
+  def self.from_name(name)
+    COMPONENTS.fetch(name) { raise ArgumentError, "Unknown component: #{name}" }
+  end
+
+  # -----------------------------------------------------------------------
+  # Unified generate dispatch
+  # -----------------------------------------------------------------------
+
+  # Run a full LLM roundtrip for the given component.
+  #
+  # @param component [String] the raw component name
+  # @param prompt [String] the natural language prompt
+  # @param engine [JsonSchemaLlmEngine::LlmRoundtripEngine] the roundtrip engine
+  # @return [JsonSchemaLlmEngine::RoundtripResult]
+  def self.generate(component, prompt, engine)
+    from_name(component).generate(prompt, engine)
+  end
+
+  # Run a full LLM roundtrip with RFC 6902 JSON Patch for the given component.
+  #
+  # @param component [String] the raw component name
+  # @param prompt [String] the natural language prompt
+  # @param engine [JsonSchemaLlmEngine::LlmRoundtripEngine] the roundtrip engine
+  # @param ops [Array] RFC 6902 JSON Patch operations
+  # @return [JsonSchemaLlmEngine::RoundtripResult]
+  def self.generate_with_patch(component, prompt, engine, ops:)
+    from_name(component).generate_with_patch(prompt, engine, ops: ops)
+  end
+
+  # -----------------------------------------------------------------------
+  # Schema / Codec accessors
+  # -----------------------------------------------------------------------
 
   # Load all schemas as a name → schema mapping.
   # @return [Hash<String, Hash>]

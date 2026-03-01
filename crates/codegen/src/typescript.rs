@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use heck::ToLowerCamelCase;
+use heck::{ToLowerCamelCase, ToUpperCamelCase};
 use rust_embed::Embed;
 use serde::Serialize;
 use tera::Tera;
@@ -24,6 +24,7 @@ struct PackageContext {
 struct ComponentContext {
     component_name: String,
     module_name: String,
+    enum_name: String,
     schema_path: String,
     codec_path: String,
     original_path: String,
@@ -168,6 +169,7 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
         let ctx = ComponentContext {
             component_name: component.name.clone(),
             module_name: module_name.clone(),
+            enum_name: component.name.to_upper_camel_case(),
             schema_path: component.schema_path.clone(),
             codec_path: component.codec_path.clone(),
             original_path: component.original_path.clone(),
@@ -400,6 +402,25 @@ mod tests {
         assert!(
             !pkg_str.contains("fast-json-patch"),
             "package.json should NOT contain third-party fast-json-patch dependency"
+        );
+
+        // Verify unified generator entrypoint (#271)
+        let index_ts = fs::read_to_string(output_dir.path().join("src/index.ts")).unwrap();
+        assert!(
+            index_ts.contains("enum Component"),
+            "index.ts should contain Component enum"
+        );
+        assert!(
+            index_ts.contains("UserProfile"),
+            "index.ts should contain UserProfile enum variant"
+        );
+        assert!(
+            index_ts.contains("async function generate("),
+            "index.ts should contain generate() dispatch function"
+        );
+        assert!(
+            index_ts.contains("component: Component"),
+            "index.ts generate() should accept Component parameter"
         );
     }
 

@@ -2,15 +2,116 @@
 
 from __future__ import annotations
 
-from typing import Any
+import enum
+from typing import Any, List, TYPE_CHECKING
 {% for component in components %}
 from {{ package_name }}.{{ component.module_name }} import (
     codec as {{ component.module_name }}_codec,
+    generate as {{ component.module_name }}_generate,
+    generate_with_patch as {{ component.module_name }}_generate_with_patch,
     schema as {{ component.module_name }}_schema,
 )
 {% endfor %}
 
+from {{ package_name }}.json_patch import JsonPatchOp
+
+if TYPE_CHECKING:
+    from json_schema_llm_engine import (
+        LlmRoundtripEngine,
+        RoundtripResult,
+    )
+
+
+# -----------------------------------------------------------------------
+# Component enum
+# -----------------------------------------------------------------------
+
+
+class Component(enum.Enum):
+    """Available schema components."""
+{% for component in components %}
+    {{ component.enum_name }} = "{{ component.component_name }}"
+{% endfor %}
+
+    @classmethod
+    def from_name(cls, name: str) -> Component:
+        """Look up a component by its raw name.
+
+        Args:
+            name: The raw component name (e.g. "api", "flow").
+
+        Returns:
+            The matching Component.
+
+        Raises:
+            ValueError: If no component matches.
+        """
+        for member in cls:
+            if member.value == name:
+                return member
+        raise ValueError(f"Unknown component: {name}")
+
+
+# -----------------------------------------------------------------------
+# Unified generate dispatch
+# -----------------------------------------------------------------------
+
+
+_DISPATCH = {
+{% for component in components %}
+    Component.{{ component.enum_name }}: {{ component.module_name }}_generate,
+{% endfor %}
+}
+
+_PATCH_DISPATCH = {
+{% for component in components %}
+    Component.{{ component.enum_name }}: {{ component.module_name }}_generate_with_patch,
+{% endfor %}
+}
+
+
+def generate(component: Component, prompt: str, engine: LlmRoundtripEngine) -> RoundtripResult:
+    """Run a full LLM roundtrip for the given component.
+
+    Args:
+        component: The target component.
+        prompt: The natural language prompt for the LLM.
+        engine: An initialized LlmRoundtripEngine.
+
+    Returns:
+        RoundtripResult with rehydrated data and validation info.
+    """
+    return _DISPATCH[component](prompt, engine)
+
+
+def generate_with_patch(
+    component: Component,
+    prompt: str,
+    engine: LlmRoundtripEngine,
+    ops: List[JsonPatchOp],
+) -> RoundtripResult:
+    """Run a full LLM roundtrip with RFC 6902 JSON Patch for the given component.
+
+    Args:
+        component: The target component.
+        prompt: The natural language prompt for the LLM.
+        engine: An initialized LlmRoundtripEngine.
+        ops: RFC 6902 JSON Patch operations.
+
+    Returns:
+        RoundtripResult with rehydrated data and validation info.
+    """
+    return _PATCH_DISPATCH[component](prompt, engine, ops)
+
+
+# -----------------------------------------------------------------------
+# Schema / Codec accessors
+# -----------------------------------------------------------------------
+
 __all__ = [
+    "Component",
+    "generate",
+    "generate_with_patch",
 {% for component in components %}
     "{{ component.module_name }}_schema",
     "{{ component.module_name }}_codec",

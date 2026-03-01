@@ -1,13 +1,78 @@
 /**
  * {{ package_name }} — generated SDK entry point.
  *
- * Re-exports all component accessors for convenient access.
+ * Re-exports all component accessors and provides unified generation dispatch.
  */
 
 {% for component in components %}
 import * as {{ component.module_name }} from "./{{ component.module_name }}.js";
 {% endfor %}
+import type {
+  LlmRoundtripEngine,
+  RoundtripResult,
+} from "@json-schema-llm/engine";
+import type { JsonPatchOp } from "./jsonPatch.js";
 
 {% for component in components %}
 export { {{ component.module_name }} };
 {% endfor %}
+export type { JsonPatchOp } from "./jsonPatch.js";
+
+// -----------------------------------------------------------------------
+// Component enum
+// -----------------------------------------------------------------------
+
+/** Available schema components. */
+export enum Component {
+{% for component in components %}
+  {{ component.enum_name }} = "{{ component.component_name }}",
+{% endfor %}
+}
+
+// -----------------------------------------------------------------------
+// Unified generate dispatch
+// -----------------------------------------------------------------------
+
+/**
+ * Run a full LLM roundtrip for the given component.
+ *
+ * @param component - The target component.
+ * @param prompt - The natural language prompt for the LLM.
+ * @param engine - An initialized LlmRoundtripEngine.
+ * @returns RoundtripResult with rehydrated data and validation info.
+ */
+export async function generate(
+  component: Component,
+  prompt: string,
+  engine: LlmRoundtripEngine,
+): Promise<RoundtripResult> {
+  switch (component) {
+{% for component in components %}
+    case Component.{{ component.enum_name }}:
+      return {{ component.module_name }}.generate(prompt, engine);
+{% endfor %}
+  }
+}
+
+/**
+ * Run a full LLM roundtrip with RFC 6902 JSON Patch for the given component.
+ *
+ * @param component - The target component.
+ * @param prompt - The natural language prompt for the LLM.
+ * @param engine - An initialized LlmRoundtripEngine.
+ * @param ops - RFC 6902 JSON Patch operations.
+ * @returns RoundtripResult with rehydrated data and validation info.
+ */
+export async function generateWithPatch(
+  component: Component,
+  prompt: string,
+  engine: LlmRoundtripEngine,
+  ops: JsonPatchOp[],
+): Promise<RoundtripResult> {
+  switch (component) {
+{% for component in components %}
+    case Component.{{ component.enum_name }}:
+      return {{ component.module_name }}.generateWithPatch(prompt, engine, ops);
+{% endfor %}
+  }
+}
