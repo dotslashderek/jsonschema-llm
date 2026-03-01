@@ -95,6 +95,37 @@ module JsonSchemaLlmEngine
       raise SchemaConversionError, "Schema conversion failed: #{e.message}"
     end
 
+    # Execute a full roundtrip with RFC 6902 JSON Patch applied before conversion.
+    #
+    # Applies the patch operations to the source schema via the WASM core,
+    # then converts and runs the standard LLM roundtrip pipeline.
+    #
+    # @param schema_json [String] the original JSON Schema as a string
+    # @param prompt [String] the natural language prompt for the LLM
+    # @param patch_json [String] RFC 6902 JSON Patch operations as a JSON string
+    # @return [RoundtripResult]
+    # @raise [SchemaConversionError] if schema conversion fails
+    def generate_with_patch(schema_json:, prompt:, patch_json:)
+      # Step 1: Apply patch to schema via WASM
+      patch_result = call_wasi("jsl_apply_patch", schema_json, patch_json)
+      patched_schema = patch_result["schema"] || {}
+      patched_schema_json = JSON.generate(patched_schema)
+
+      # Step 2: Convert patched schema to LLM-compatible form
+      convert_result = call_wasi("jsl_convert", patched_schema_json, "{}")
+      llm_schema = convert_result["schema"] || {}
+      codec = convert_result["codec"] || {}
+
+      generate_with_preconverted(
+        original_schema_json: patched_schema_json,
+        codec_json: JSON.generate(codec),
+        llm_schema: llm_schema,
+        prompt: prompt
+      )
+    rescue JslWasiError => e
+      raise SchemaConversionError, "Schema conversion failed: #{e.message}"
+    end
+
     # Execute a roundtrip with a pre-converted schema (skips the convert step).
     #
     # @param original_schema_json [String] the original JSON Schema as a string

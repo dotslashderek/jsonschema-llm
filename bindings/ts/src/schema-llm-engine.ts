@@ -124,6 +124,20 @@ export class SchemaLlmEngine {
     return this.engine.convert(schema, options);
   }
 
+  /**
+   * Apply RFC 6902 JSON Patch operations to a JSON Schema via the WASM core.
+   *
+   * @param schema    - The JSON Schema to patch.
+   * @param patchJson - RFC 6902 patch operations as a JSON string.
+   * @returns The patched schema as a plain object.
+   */
+  async applyPatch(
+    schema: unknown,
+    patchJson: string,
+  ): Promise<Record<string, unknown>> {
+    return this.engine.applyPatch(schema, patchJson);
+  }
+
   /** Rehydrate LLM output back to the original schema shape. */
   async rehydrate(
     data: unknown,

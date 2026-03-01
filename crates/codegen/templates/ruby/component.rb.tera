@@ -11,6 +11,52 @@ module {{ generator_module }}
     CODEC_PATH  = File.join(__dir__, "schemas", "{{ codec_path }}")
     ORIGINAL_PATH = File.join(__dir__, "schemas", "{{ original_path }}")
 
+    # -------------------------------------------------------------------
+    # RFC 6902 JSON Patch types — zero third-party dependencies
+    # -------------------------------------------------------------------
+
+    module JsonPatchOp
+      Add = Struct.new(:path, :value, keyword_init: true) do
+        def to_h
+          { op: "add", path: path, value: value }
+        end
+      end
+
+      Remove = Struct.new(:path, keyword_init: true) do
+        def to_h
+          { op: "remove", path: path }
+        end
+      end
+
+      Replace = Struct.new(:path, :value, keyword_init: true) do
+        def to_h
+          { op: "replace", path: path, value: value }
+        end
+      end
+
+      Move = Struct.new(:path, :from_path, keyword_init: true) do
+        def to_h
+          { op: "move", path: path, from: from_path }
+        end
+      end
+
+      Copy = Struct.new(:path, :from_path, keyword_init: true) do
+        def to_h
+          { op: "copy", path: path, from: from_path }
+        end
+      end
+
+      Test = Struct.new(:path, :value, keyword_init: true) do
+        def to_h
+          { op: "test", path: path, value: value }
+        end
+      end
+    end
+
+    # -------------------------------------------------------------------
+    # Schema accessors
+    # -------------------------------------------------------------------
+
     # Load the LLM-compatible schema for {{ component_name }}.
     # Note: Schemas are memoized at the module level.
     # @return [Hash] the parsed JSON schema
@@ -30,6 +76,10 @@ module {{ generator_module }}
       @original ||= JSON.parse(File.read(ORIGINAL_PATH))
     end
 
+    # -------------------------------------------------------------------
+    # Generate methods
+    # -------------------------------------------------------------------
+
     # Run a full LLM roundtrip for {{ component_name }} using pre-built artifacts.
     #
     # @param prompt [String] the natural language prompt
@@ -41,6 +91,22 @@ module {{ generator_module }}
         codec_json: JSON.generate(codec),
         llm_schema: schema,
         prompt: prompt
+      )
+    end
+
+    # Run a full LLM roundtrip for {{ component_name }} with RFC 6902 JSON Patch
+    # operations applied to the source schema before conversion.
+    #
+    # @param prompt [String] the natural language prompt
+    # @param engine [JsonSchemaLlmEngine::LlmRoundtripEngine] the roundtrip engine
+    # @param ops [Array<JsonPatchOp::Add, JsonPatchOp::Remove, ...>] patch operations
+    # @return [JsonSchemaLlmEngine::RoundtripResult]
+    def self.generate_with_patch(prompt, engine, ops:)
+      patch_json = JSON.generate(ops.map(&:to_h))
+      engine.generate_with_patch(
+        schema_json: JSON.generate(original),
+        prompt: prompt,
+        patch_json: patch_json
       )
     end
   end
