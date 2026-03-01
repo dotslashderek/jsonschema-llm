@@ -152,6 +152,14 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
         &pkg_dir.join("generator.py"),
     )?;
 
+    // Generate the json_patch shared module (static — no template variables)
+    render_to_file(
+        &tera,
+        "json_patch.py.tera",
+        &std::collections::HashMap::<String, String>::new(),
+        &pkg_dir.join("json_patch.py"),
+    )?;
+
     // Generate README
     let readme_ctx = tera::Context::from_serialize(&gen_ctx)?;
     let readme_content = tera.render("README.md.tera", &readme_ctx)?;
@@ -330,44 +338,51 @@ mod tests {
             "user_profile.py should type-hint LlmRoundtripEngine"
         );
 
-        // Verify JsonPatchOp types (RFC 6902)
+        // Verify JsonPatchOp shared module exists and contains types
+        let json_patch_py = fs::read_to_string(pkg_dir.join("json_patch.py")).unwrap();
         assert!(
-            user_profile_py.contains("class Add"),
-            "user_profile.py should contain Add dataclass"
+            json_patch_py.contains("class Add"),
+            "json_patch.py should contain Add dataclass"
         );
         assert!(
-            user_profile_py.contains("class Replace"),
-            "user_profile.py should contain Replace dataclass"
+            json_patch_py.contains("class Replace"),
+            "json_patch.py should contain Replace dataclass"
         );
         assert!(
-            user_profile_py.contains("class Remove"),
-            "user_profile.py should contain Remove dataclass"
+            json_patch_py.contains("class Remove"),
+            "json_patch.py should contain Remove dataclass"
         );
         assert!(
-            user_profile_py.contains("class Move"),
-            "user_profile.py should contain Move dataclass"
+            json_patch_py.contains("class Move"),
+            "json_patch.py should contain Move dataclass"
         );
         assert!(
-            user_profile_py.contains("class Copy"),
-            "user_profile.py should contain Copy dataclass"
+            json_patch_py.contains("class Copy"),
+            "json_patch.py should contain Copy dataclass"
         );
         assert!(
-            user_profile_py.contains("class Test"),
-            "user_profile.py should contain Test dataclass"
+            json_patch_py.contains("class Test"),
+            "json_patch.py should contain Test dataclass"
         );
         assert!(
-            user_profile_py.contains("JsonPatchOp"),
-            "user_profile.py should contain JsonPatchOp type alias"
+            json_patch_py.contains("JsonPatchOp"),
+            "json_patch.py should contain JsonPatchOp type alias"
+        );
+
+        // Verify component imports from shared module (not inline defs)
+        assert!(
+            user_profile_py.contains("from") && user_profile_py.contains("json_patch"),
+            "user_profile.py should import from json_patch module"
+        );
+        assert!(
+            !user_profile_py.contains("class Add"),
+            "user_profile.py should NOT duplicate type definitions"
         );
 
         // Verify generate_with_patch function
         assert!(
             user_profile_py.contains("def generate_with_patch("),
             "user_profile.py should contain generate_with_patch function"
-        );
-        assert!(
-            user_profile_py.contains("generate_with_patch"),
-            "user_profile.py should delegate to engine.generate_with_patch"
         );
 
         // Verify no third-party json-patch dependency

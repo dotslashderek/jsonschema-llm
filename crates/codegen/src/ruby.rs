@@ -128,6 +128,7 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
         "gemspec.tera",
         "component.rb.tera",
         "generator.rb.tera",
+        "json_patch.rb.tera",
         "README.md.tera",
         "gitignore.tera",
     ] {
@@ -215,6 +216,14 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
         "generator.rb.tera",
         &gen_ctx,
         &module_dir.join("generator.rb"),
+    )?;
+
+    // Generate the json_patch shared module (static — no template variables)
+    render_to_file(
+        &tera,
+        "json_patch.rb.tera",
+        &std::collections::HashMap::<String, String>::new(),
+        &module_dir.join("json_patch.rb"),
     )?;
 
     // Render barrel require file
@@ -427,44 +436,52 @@ mod tests {
         assert!(generator_rb.contains("module MyPetstoreSdk"));
         assert!(generator_rb.contains("COMPONENTS"));
 
-        // Verify JsonPatchOp types (RFC 6902)
+        // Verify JsonPatchOp shared module exists and contains types
+        let json_patch_rb =
+            fs::read_to_string(output_dir.join("lib/my_petstore_sdk/json_patch.rb")).unwrap();
         assert!(
-            component_rb.contains("JsonPatchOp"),
-            "pet.rb should contain JsonPatchOp module"
+            json_patch_rb.contains("JsonPatchOp"),
+            "json_patch.rb should contain JsonPatchOp module"
         );
         assert!(
-            component_rb.contains("Add = Struct"),
-            "pet.rb should contain Add struct"
+            json_patch_rb.contains("Add = Struct"),
+            "json_patch.rb should contain Add struct"
         );
         assert!(
-            component_rb.contains("Replace = Struct"),
-            "pet.rb should contain Replace struct"
+            json_patch_rb.contains("Replace = Struct"),
+            "json_patch.rb should contain Replace struct"
         );
         assert!(
-            component_rb.contains("Remove = Struct"),
-            "pet.rb should contain Remove struct"
+            json_patch_rb.contains("Remove = Struct"),
+            "json_patch.rb should contain Remove struct"
         );
         assert!(
-            component_rb.contains("Move = Struct"),
-            "pet.rb should contain Move struct"
+            json_patch_rb.contains("Move = Struct"),
+            "json_patch.rb should contain Move struct"
         );
         assert!(
-            component_rb.contains("Copy = Struct"),
-            "pet.rb should contain Copy struct"
+            json_patch_rb.contains("Copy = Struct"),
+            "json_patch.rb should contain Copy struct"
         );
         assert!(
-            component_rb.contains("Test = Struct"),
-            "pet.rb should contain Test struct"
+            json_patch_rb.contains("Test = Struct"),
+            "json_patch.rb should contain Test struct"
         );
 
-        // Verify generate_with_patch method
+        // Verify component imports from shared module (not inline defs)
+        assert!(
+            component_rb.contains("require_relative \"json_patch\""),
+            "pet.rb should require json_patch module"
+        );
+        assert!(
+            !component_rb.contains("Add = Struct"),
+            "pet.rb should NOT duplicate type definitions"
+        );
+
+        // Verify generate_with_patch method in component
         assert!(
             component_rb.contains("def self.generate_with_patch"),
             "pet.rb should contain generate_with_patch method"
-        );
-        assert!(
-            component_rb.contains("generate_with_patch"),
-            "pet.rb should delegate to engine.generate_with_patch"
         );
 
         // Verify no third-party json-patch dependency
