@@ -394,6 +394,20 @@ mod tests {
             "UserProfile.java should delegate to engine.generateWithPatch"
         );
 
+        // Verify typed Jackson writer for JsonPatchOp serialization (type erasure fix #269)
+        assert!(
+            user_profile_java.contains("TypeReference<java.util.List<JsonPatchOp>>"),
+            "UserProfile.java should use TypeReference to preserve generic type info"
+        );
+        assert!(
+            user_profile_java.contains("PATCH_WRITER.writeValueAsString(ops)"),
+            "UserProfile.java should use PATCH_WRITER constant, not raw MAPPER.writeValueAsString"
+        );
+        assert!(
+            !user_profile_java.contains("MAPPER.writeValueAsString(ops)"),
+            "UserProfile.java should NOT use raw writeValueAsString(ops) — causes type erasure"
+        );
+
         // Verify no third-party json-patch dependency in POM
         assert!(
             !pom_content.contains("<artifactId>json-patch</artifactId>"),
