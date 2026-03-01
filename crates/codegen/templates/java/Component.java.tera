@@ -19,6 +19,8 @@ import java.util.List;
 public class {{ class_name }} {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectWriter PATCH_WRITER =
+            MAPPER.writerFor(new com.fasterxml.jackson.core.type.TypeReference<java.util.List<JsonPatchOp>>() {});
 
     private {{ class_name }}() {}
 
@@ -108,7 +110,7 @@ public class {{ class_name }} {
             String prompt,
             LlmRoundtripEngine engine,
             List<JsonPatchOp> ops) throws IOException, LlmTransportException {
-        String patchJson = MAPPER.writeValueAsString(ops);
+        String patchJson = PATCH_WRITER.writeValueAsString(ops);
         return engine.generateWithPatch(original().toString(), prompt, patchJson);
     }
 
