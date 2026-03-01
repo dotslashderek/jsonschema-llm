@@ -66,67 +66,82 @@ json-schema-llm extract schema.json --pointer '#/$defs/Address'
 
 ## Generated SDKs
 
-The primary consumer-facing feature. Run `gen-sdk` to produce a typed SDK — every component gets a `generate()` convenience function that wires the schema, codec, and original artifacts for you.
+The primary consumer-facing feature. Run `gen-sdk` to produce a typed SDK for any supported language. Each SDK includes a **`Component` enum** for dynamic dispatch across all components, plus direct per-component access for focused work.
 
 ```bash
-json-schema-llm gen-sdk --language typescript --schema ./output/ --package @my-org/my-sdk --output ./sdk/
+# Generate a Java SDK (also supports: typescript, python, ruby)
+json-schema-llm gen-sdk \
+  --language java \
+  --schema ./converted/ \
+  --package com.example.petstore \
+  --output ./my-sdk/
+```
+
+### Java (recommended path)
+
+**Unified generator** — use the `Component` enum when the target component is dynamic (e.g. from user input or config):
+
+```java
+import com.example.petstore.SchemaGenerator;
+import com.example.petstore.SchemaGenerator.Component;
+import com.jsonschema.llm.engine.*;
+
+var engine = LlmRoundtripEngine.create(
+    new OpenAIFormatter(),
+    new ProviderConfig("https://api.openai.com/v1/chat/completions", "gpt-4o",
+        Map.of("Authorization", "Bearer " + apiKey)),
+    new HttpTransport()
+);
+
+// Generate any component by enum
+var result = SchemaGenerator.generate(Component.PET, "Generate a pet named Max", engine);
+
+// Dynamic lookup from a string (e.g. HTTP request body)
+Component component = Component.from("Pet");
+var result2 = SchemaGenerator.generate(component, "Generate a Pet", engine);
+
+// With JSON Patch for schema customization
+var result3 = SchemaGenerator.generate(Component.PET, "Generate a pet", engine, myPatches);
+```
+
+**Focused component access** — import directly when you know exactly which component you need:
+
+```java
+import com.example.petstore.Pet;
+
+var result = Pet.generate("Generate a pet named Max", engine);
+var schema = Pet.schema();   // LLM-compatible schema
+var codec  = Pet.codec();    // Rehydration codec
 ```
 
 ### TypeScript
 
 ```typescript
+import { Component, generate } from "@my-org/my-sdk";
 import {
   LlmRoundtripEngine,
   OpenAIFormatter,
   FetchTransport,
 } from "@json-schema-llm/engine";
-import * as UserProfile from "@my-org/my-sdk/userProfile";
 
-const engine = new LlmRoundtripEngine(
-  new OpenAIFormatter(),
-  {
-    url: "https://api.openai.com/v1/chat/completions",
-    model: "gpt-4o",
-    headers: { Authorization: "Bearer ..." },
-  },
-  new FetchTransport(),
+const engine = new LlmRoundtripEngine(/* ... */);
+const result = await generate(
+  Component.UserProfile,
+  "Generate a user profile",
+  engine,
 );
-const result = await UserProfile.generate("Generate a user profile", engine);
-console.log(result.data);
-engine.close();
 ```
 
 ### Python
 
 ```python
-from my_sdk import user_profile
-from json_schema_llm_engine import LlmRoundtripEngine, OpenAIFormatter, ProviderConfig, HttpTransport
+from my_sdk.generator import Component, generate
 
-engine = LlmRoundtripEngine(
-    formatter=OpenAIFormatter(),
-    config=ProviderConfig(url="https://api.openai.com/v1/chat/completions", model="gpt-4o", headers={"Authorization": "Bearer ..."}),
-    transport=HttpTransport(),
-)
-result = user_profile.generate("Generate a user profile", engine)
-print(result.data)
+engine = LlmRoundtripEngine(formatter=OpenAIFormatter(), config=ProviderConfig(...), transport=HttpTransport())
+result = generate(Component.USER_PROFILE, "Generate a user profile", engine)
 ```
 
-### Java
-
-```java
-import com.example.sdk.UserProfile;
-import com.jsonschema.llm.engine.*;
-
-var engine = LlmRoundtripEngine.create(
-    new OpenAIFormatter(),
-    new ProviderConfig("https://api.openai.com/v1/chat/completions", "gpt-4o", Map.of("Authorization", "Bearer ...")),
-    new HttpTransport()
-);
-RoundtripResult result = UserProfile.generate("Generate a user profile", engine);
-System.out.println(result.data());
-```
-
-Step-by-step SDK guides: [Python](docs/cli-python.md) · [Java](docs/cli-java.md) · [TypeScript](docs/cli-typescript.md)
+Step-by-step SDK guides: **[Java](docs/cli-java.md)** · [Python](docs/cli-python.md) · [TypeScript](docs/cli-typescript.md)
 
 ---
 
