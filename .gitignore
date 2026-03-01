@@ -52,6 +52,7 @@ bindings/java/target/
 !gradle-wrapper.jar
 .gradle/
 **/build/
+sandbox/**/target/
 bindings/java/src/main/resources/native/
 
 # Test outputs
