@@ -18,11 +18,14 @@ bundle install
 
 ## Usage
 
+### Unified generation (recommended for generic operations)
+
+Use `generate` and `from_name` for dynamic dispatch — ideal when the target component is determined at runtime.
+
 ```ruby
 require "{{ module_name }}"
 require "json_schema_llm_engine"
 
-# Create the engine with your provider configuration
 engine = JsonSchemaLlmEngine::LlmRoundtripEngine.new(
   formatter: JsonSchemaLlmEngine::Formatters::ChatCompletions.new,
   config: JsonSchemaLlmEngine::ProviderConfig.new(
@@ -33,8 +36,24 @@ engine = JsonSchemaLlmEngine::LlmRoundtripEngine.new(
   transport: my_transport
 )
 
-# Generate using a pre-built component
-{% for component in components %}result = {{ generator_module }}::{{ component.module_name }}.generate("{{ component.description }}", engine)
+# Generate any component by name
+result = {{ generator_module }}.generate("{{ components.0.name }}", "Your prompt here", engine)
+
+# Available component constants:
+{% for component in components %}# {{ generator_module }}::{{ component.enum_name }} => "{{ component.name }}"
+{% endfor %}
+```
+
+### Focused component access
+
+Access a specific component module directly when you know exactly which component you need.
+
+```ruby
+{% for component in components %}# {{ component.name }}
+{{ generator_module }}::{{ component.module_name }}.generate("Your prompt here", engine)
+{{ generator_module }}::{{ component.module_name }}.schema    # LLM-compatible schema
+{{ generator_module }}::{{ component.module_name }}.codec     # Rehydration codec
+{{ generator_module }}::{{ component.module_name }}.original  # Original JSON Schema
 {% endfor %}
 ```
 
@@ -43,12 +62,9 @@ engine = JsonSchemaLlmEngine::LlmRoundtripEngine.new(
 {% for component in components %}
 ### {{ component.name }}
 
-```ruby
-{{ generator_module }}::{{ component.module_name }}.schema    # LLM-compatible schema
-{{ generator_module }}::{{ component.module_name }}.codec     # Rehydration codec
-{{ generator_module }}::{{ component.module_name }}.original  # Original JSON Schema
-{{ generator_module }}::{{ component.module_name }}.generate(prompt, engine)  # Full roundtrip
-```
+| Constant | `{{ generator_module }}::{{ component.enum_name }}` |
+|---|---|
+| Module | `{{ generator_module }}::{{ component.module_name }}` |
 {% endfor %}
 
 ## License

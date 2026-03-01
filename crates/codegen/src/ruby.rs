@@ -58,6 +58,7 @@ struct ComponentContext {
 #[derive(Serialize)]
 struct ReadmeComponent {
     name: String,
+    enum_name: String,
     module_name: String,
     description: String,
 }
@@ -159,6 +160,7 @@ pub fn generate(config: &SdkConfig) -> Result<()> {
 
         readme_components.push(ReadmeComponent {
             name: comp.name.clone(),
+            enum_name: comp.name.to_shouty_snake_case(),
             module_name: module_name.clone(),
             description: format!("Generate a {}", comp.name),
         });
