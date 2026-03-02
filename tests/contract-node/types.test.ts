@@ -150,6 +150,9 @@ if (warnings.length > 0) {
     case "path_not_found":
       // No extra fields
       break;
+    case "invalid_transform_input":
+      const _tr: string = kind.transform;
+      break;
     default: {
       // Exhaustive check — fails at compile time if a new variant is added
       const _exhaustive: never = kind;

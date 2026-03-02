@@ -301,7 +301,8 @@ export interface RehydrateResult {
 export type WarningKind =
   | { type: "constraint_violation"; constraint: string }
   | { type: "constraint_unevaluable"; constraint: string }
-  | { type: "path_not_found" };
+  | { type: "path_not_found" }
+  | { type: "invalid_transform_input"; transform: string };
 
 export interface Warning {
   dataPath: string;
