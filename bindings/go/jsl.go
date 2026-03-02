@@ -55,6 +55,7 @@ type ConvertResult struct {
 type WarningKind struct {
 	Type       string `json:"type"`
 	Constraint string `json:"constraint,omitempty"`
+	Transform  string `json:"transform,omitempty"`
 }
 
 // Warning represents a constraint violation detected during rehydration.

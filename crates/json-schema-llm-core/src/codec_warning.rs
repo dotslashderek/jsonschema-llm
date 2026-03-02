@@ -38,4 +38,10 @@ pub enum WarningKind {
     },
     /// A codec path could not be resolved in the output data.
     PathNotFound,
+    /// A transform received input it could not process (e.g. non-JSON string for
+    /// `json_string_parse`). The value was coerced to `null`.
+    InvalidTransformInput {
+        /// The transform type that encountered the invalid input.
+        transform: String,
+    },
 }

@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::codec::{Codec, Transform, CODEC_MAJOR_VERSION};
+use crate::codec_warning::Warning;
 use crate::error::ConvertError;
 use crate::schema_utils::split_path;
 
@@ -69,6 +70,7 @@ pub fn apply_transforms(data: &Value, codec: &Codec) -> Result<RehydrateResult, 
     validate_codec_version(codec)?;
 
     let mut result = data.clone();
+    let mut warnings = Vec::new();
 
     // Pre-compile all patternProperties regexes from transform and constraint paths
     let regex_cache = build_pattern_properties_cache(codec);
@@ -89,7 +91,13 @@ pub fn apply_transforms(data: &Value, codec: &Codec) -> Result<RehydrateResult, 
         let seg_refs: Vec<&str> = segments.iter().map(|s| s.as_str()).collect();
 
         tracing::debug!(path = %path_str, "applying transform");
-        apply_transform(&mut result, &seg_refs, transform, &regex_cache)?;
+        apply_transform(
+            &mut result,
+            &seg_refs,
+            transform,
+            &regex_cache,
+            &mut warnings,
+        )?;
     }
 
     // ── #120: Replay $defs-sourced transforms at RecursiveInflate sites ──
@@ -100,11 +108,11 @@ pub fn apply_transforms(data: &Value, codec: &Codec) -> Result<RehydrateResult, 
     // root-level `properties/data` instead of the nested data inside recursive
     // nodes. After RecursiveInflate has expanded JSON strings into objects,
     // replay those JSP transforms at each RI location.
-    replay_defs_transforms_at_inflate_sites(&mut result, codec, &regex_cache)?;
+    replay_defs_transforms_at_inflate_sites(&mut result, codec, &regex_cache, &mut warnings)?;
 
     Ok(RehydrateResult {
         data: result,
-        warnings: Vec::new(),
+        warnings,
     })
 }
 
@@ -120,6 +128,7 @@ fn replay_defs_transforms_at_inflate_sites(
     data: &mut Value,
     codec: &Codec,
     regex_cache: &HashMap<String, Result<Regex, String>>,
+    warnings: &mut Vec<Warning>,
 ) -> Result<(), ConvertError> {
     // Collect RecursiveInflate paths and their original $ref values
     let inflate_sites: Vec<(&str, &str)> = codec
@@ -225,7 +234,7 @@ fn replay_defs_transforms_at_inflate_sites(
                     concrete_path = %synthetic_path,
                     "replaying $defs JSP at recursive expansion site"
                 );
-                apply_transform(data, &seg_refs, &synthetic_transform, regex_cache)?;
+                apply_transform(data, &seg_refs, &synthetic_transform, regex_cache, warnings)?;
             }
         }
     }
@@ -471,9 +480,9 @@ mod tests {
         );
     }
 
-    // Test 4: Parse JSON String - Error
+    // Test 4: Parse JSON String - Non-JSON yields null + warning (no longer errors)
     #[test]
-    fn test_parse_json_string_error() {
+    fn test_parse_json_string_non_json_yields_warning() {
         let mut codec = Codec::new();
         codec.transforms.push(Transform::JsonStringParse {
             path: "#/properties/config".to_string(),
@@ -483,8 +492,61 @@ mod tests {
             "config": "{invalid"
         });
 
-        let result = apply_transforms(&data, &codec);
-        assert!(matches!(result, Err(ConvertError::RehydrationError(_))));
+        let result = apply_transforms(&data, &codec).unwrap();
+        assert_eq!(result.data["config"], json!(null));
+        assert_eq!(result.warnings.len(), 1);
+        assert!(matches!(
+            result.warnings[0].kind,
+            WarningKind::InvalidTransformInput { .. }
+        ));
+    }
+
+    // Test 4b: Empty string at codec path yields null, no warning
+    #[test]
+    fn test_parse_json_string_empty_string_integration() {
+        let mut codec = Codec::new();
+        codec.transforms.push(Transform::JsonStringParse {
+            path: "#/properties/dlq".to_string(),
+        });
+
+        let data = json!({
+            "name": "test-api",
+            "dlq": ""
+        });
+
+        let result = apply_transforms(&data, &codec).unwrap();
+        assert_eq!(result.data["dlq"], json!(null));
+        assert_eq!(result.data["name"], json!("test-api"));
+        assert!(result.warnings.is_empty());
+    }
+
+    // Test 4c: Nested array items with empty/invalid dlq strings
+    #[test]
+    fn test_parse_json_string_nested_array_empty_strings() {
+        let mut codec = Codec::new();
+        codec.transforms.push(Transform::JsonStringParse {
+            path: "#/properties/listeners/items/properties/dlq".to_string(),
+        });
+
+        let data = json!({
+            "listeners": [
+                {"type": "http", "dlq": ""},
+                {"type": "ws", "dlq": "{\"endpoint\": \"my-group\"}"},
+                {"type": "sse", "dlq": "my-endpoint"}
+            ]
+        });
+
+        let result = apply_transforms(&data, &codec).unwrap();
+        // Empty string → null, no warning
+        assert_eq!(result.data["listeners"][0]["dlq"], json!(null));
+        // Valid JSON → parsed
+        assert_eq!(
+            result.data["listeners"][1]["dlq"],
+            json!({"endpoint": "my-group"})
+        );
+        // Non-JSON string → null + warning
+        assert_eq!(result.data["listeners"][2]["dlq"], json!(null));
+        assert_eq!(result.warnings.len(), 1);
     }
 
     // Test 5: Combined

@@ -7,19 +7,24 @@
 use serde_json::Value;
 
 use crate::codec::Transform;
+use crate::codec_warning::{Warning, WarningKind};
 use crate::error::ConvertError;
 
 /// Execute a value-level transform at the current data node.
+///
+/// Warnings are accumulated into the provided `warnings` vec rather than returned
+/// as errors, allowing the rehydration pipeline to continue processing.
 pub(super) fn execute_transform(
     data: &mut Value,
     transform: &Transform,
+    warnings: &mut Vec<Warning>,
 ) -> Result<(), ConvertError> {
     match transform {
         Transform::MapToArray { key_field, .. } => {
             restore_map(data, key_field)?;
         }
-        Transform::JsonStringParse { .. } => {
-            parse_json_string(data)?;
+        Transform::JsonStringParse { path, .. } => {
+            parse_json_string(data, path, "json_string_parse", warnings)?;
         }
         Transform::ExtractAdditionalProperties { property_name, .. } => {
             restore_additional_properties(data, property_name)?;
@@ -30,8 +35,8 @@ pub(super) fn execute_transform(
         Transform::DiscriminatorAnyOf { .. } => {
             // No-op
         }
-        Transform::RecursiveInflate { .. } => {
-            parse_json_string(data)?;
+        Transform::RecursiveInflate { path, .. } => {
+            parse_json_string(data, path, "recursive_inflate", warnings)?;
         }
         Transform::RootObjectWrapper { wrapper_key, .. } => {
             // Unwrap: extract data[wrapper_key] and promote it to root.
@@ -134,17 +139,51 @@ fn restore_map(data: &mut Value, key_field: &str) -> Result<(), ConvertError> {
     Ok(())
 }
 
-fn parse_json_string(data: &mut Value) -> Result<(), ConvertError> {
+/// Parse a JSON-encoded string value back into a structured JSON value.
+///
+/// Gracefully handles common LLM failure modes:
+/// - **Empty/whitespace-only strings** → `Value::Null` (the LLM's way of saying "nothing"
+///   when the field is required and typed as string)
+/// - **Non-empty, non-JSON strings** → `Value::Null` + advisory warning (possible hallucination)
+/// - **Valid JSON strings** → parsed value (happy path)
+/// - **Non-string values** (null, numbers, etc.) → no-op
+fn parse_json_string(
+    data: &mut Value,
+    schema_path: &str,
+    transform_name: &str,
+    warnings: &mut Vec<Warning>,
+) -> Result<(), ConvertError> {
     if let Some(s) = data.as_str() {
+        // Empty or whitespace-only → null (clear "nothing" intent from LLM)
+        if s.trim().is_empty() {
+            *data = Value::Null;
+            return Ok(());
+        }
+
         match serde_json::from_str::<Value>(s) {
             Ok(parsed) => *data = parsed,
             Err(e) => {
-                // Truncate to avoid leaking large LLM output into logs
+                // Non-JSON string → coerce to null and emit advisory warning
                 let preview: String = s.chars().take(100).collect();
-                return Err(ConvertError::RehydrationError(format!(
-                    "Failed to parse JSON string ({}): {}...",
-                    e, preview
-                )));
+                tracing::warn!(
+                    path = %schema_path,
+                    error = %e,
+                    preview = %preview,
+                    transform = %transform_name,
+                    "{}: non-JSON string coerced to null", transform_name
+                );
+                warnings.push(Warning {
+                    data_path: schema_path.to_string(),
+                    schema_path: schema_path.to_string(),
+                    kind: WarningKind::InvalidTransformInput {
+                        transform: transform_name.to_string(),
+                    },
+                    message: format!(
+                        "{}: value is not valid JSON ({}), coerced to null: {}...",
+                        transform_name, e, preview
+                    ),
+                });
+                *data = Value::Null;
             }
         }
     }
@@ -219,22 +258,91 @@ mod tests {
     #[test]
     fn parse_json_string_non_string_is_no_op() {
         let mut data = json!(42);
-        parse_json_string(&mut data).unwrap();
+        let mut warnings = Vec::new();
+        parse_json_string(&mut data, "#/test", "json_string_parse", &mut warnings).unwrap();
         assert_eq!(data, json!(42));
+        assert!(warnings.is_empty());
     }
 
     #[test]
     fn parse_json_string_null_is_no_op() {
         let mut data = json!(null);
-        parse_json_string(&mut data).unwrap();
+        let mut warnings = Vec::new();
+        parse_json_string(&mut data, "#/test", "json_string_parse", &mut warnings).unwrap();
         assert_eq!(data, json!(null));
+        assert!(warnings.is_empty());
     }
 
     #[test]
-    fn parse_json_string_invalid_json_returns_error() {
-        let mut data = json!("{not valid json}");
-        let result = parse_json_string(&mut data);
-        assert!(result.is_err());
+    fn parse_json_string_valid_json_object() {
+        let mut data = json!("{\"key\": true}");
+        let mut warnings = Vec::new();
+        parse_json_string(&mut data, "#/test", "json_string_parse", &mut warnings).unwrap();
+        assert_eq!(data, json!({"key": true}));
+        assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn parse_json_string_valid_null_string() {
+        let mut data = json!("null");
+        let mut warnings = Vec::new();
+        parse_json_string(&mut data, "#/test", "json_string_parse", &mut warnings).unwrap();
+        assert_eq!(data, json!(null));
+        assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn parse_json_string_empty_string_yields_null() {
+        let mut data = json!("");
+        let mut warnings = Vec::new();
+        parse_json_string(&mut data, "#/test", "json_string_parse", &mut warnings).unwrap();
+        assert_eq!(data, json!(null));
+        assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn parse_json_string_whitespace_only_yields_null() {
+        let mut data = json!("   ");
+        let mut warnings = Vec::new();
+        parse_json_string(&mut data, "#/test", "json_string_parse", &mut warnings).unwrap();
+        assert_eq!(data, json!(null));
+        assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn parse_json_string_non_json_yields_null_with_warning() {
+        let mut data = json!("my-endpoint");
+        let mut warnings = Vec::new();
+        parse_json_string(
+            &mut data,
+            "#/properties/dlq",
+            "json_string_parse",
+            &mut warnings,
+        )
+        .unwrap();
+        assert_eq!(data, json!(null));
+        assert_eq!(warnings.len(), 1);
+        assert!(matches!(
+            warnings[0].kind,
+            WarningKind::InvalidTransformInput { .. }
+        ));
+        assert!(warnings[0].message.contains("not valid JSON"));
+    }
+
+    #[test]
+    fn parse_json_string_slash_yields_null_with_warning() {
+        let mut data = json!("/");
+        let mut warnings = Vec::new();
+        parse_json_string(
+            &mut data,
+            "#/properties/dlq",
+            "json_string_parse",
+            &mut warnings,
+        )
+        .unwrap();
+        assert_eq!(data, json!(null));
+        assert_eq!(warnings.len(), 1);
+        assert!(warnings[0].message.contains("not valid JSON"));
     }
 
     // -----------------------------------------------------------------------
@@ -264,33 +372,36 @@ mod tests {
     #[test]
     fn enum_stringify_reverses_integer() {
         let mut data = json!("42");
+        let mut warnings = Vec::new();
         let transform = Transform::EnumStringify {
             path: String::new(),
             original_values: vec![json!(42), json!(99)],
         };
-        execute_transform(&mut data, &transform).unwrap();
+        execute_transform(&mut data, &transform, &mut warnings).unwrap();
         assert_eq!(data, json!(42));
     }
 
     #[test]
     fn enum_stringify_reverses_boolean() {
         let mut data = json!("true");
+        let mut warnings = Vec::new();
         let transform = Transform::EnumStringify {
             path: String::new(),
             original_values: vec![json!(true), json!(false)],
         };
-        execute_transform(&mut data, &transform).unwrap();
+        execute_transform(&mut data, &transform, &mut warnings).unwrap();
         assert_eq!(data, json!(true));
     }
 
     #[test]
     fn enum_stringify_no_match_preserves_string() {
         let mut data = json!("unknown");
+        let mut warnings = Vec::new();
         let transform = Transform::EnumStringify {
             path: String::new(),
             original_values: vec![json!(1), json!(2)],
         };
-        execute_transform(&mut data, &transform).unwrap();
+        execute_transform(&mut data, &transform, &mut warnings).unwrap();
         assert_eq!(data, json!("unknown"));
     }
 }
