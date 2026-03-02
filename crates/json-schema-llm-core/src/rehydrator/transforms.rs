@@ -24,7 +24,7 @@ pub(super) fn execute_transform(
             restore_map(data, key_field)?;
         }
         Transform::JsonStringParse { path, .. } => {
-            parse_json_string(data, path, warnings)?;
+            parse_json_string(data, path, "json_string_parse", warnings)?;
         }
         Transform::ExtractAdditionalProperties { property_name, .. } => {
             restore_additional_properties(data, property_name)?;
@@ -36,7 +36,7 @@ pub(super) fn execute_transform(
             // No-op
         }
         Transform::RecursiveInflate { path, .. } => {
-            parse_json_string(data, path, warnings)?;
+            parse_json_string(data, path, "recursive_inflate", warnings)?;
         }
         Transform::RootObjectWrapper { wrapper_key, .. } => {
             // Unwrap: extract data[wrapper_key] and promote it to root.
@@ -150,6 +150,7 @@ fn restore_map(data: &mut Value, key_field: &str) -> Result<(), ConvertError> {
 fn parse_json_string(
     data: &mut Value,
     schema_path: &str,
+    transform_name: &str,
     warnings: &mut Vec<Warning>,
 ) -> Result<(), ConvertError> {
     if let Some(s) = data.as_str() {
@@ -168,17 +169,18 @@ fn parse_json_string(
                     path = %schema_path,
                     error = %e,
                     preview = %preview,
-                    "json_string_parse: non-JSON string coerced to null"
+                    transform = %transform_name,
+                    "{}: non-JSON string coerced to null", transform_name
                 );
                 warnings.push(Warning {
                     data_path: schema_path.to_string(),
                     schema_path: schema_path.to_string(),
                     kind: WarningKind::InvalidTransformInput {
-                        transform: "json_string_parse".to_string(),
+                        transform: transform_name.to_string(),
                     },
                     message: format!(
-                        "json_string_parse: value is not valid JSON ({}), coerced to null: {}...",
-                        e, preview
+                        "{}: value is not valid JSON ({}), coerced to null: {}...",
+                        transform_name, e, preview
                     ),
                 });
                 *data = Value::Null;
@@ -257,7 +259,7 @@ mod tests {
     fn parse_json_string_non_string_is_no_op() {
         let mut data = json!(42);
         let mut warnings = Vec::new();
-        parse_json_string(&mut data, "#/test", &mut warnings).unwrap();
+        parse_json_string(&mut data, "#/test", "json_string_parse", &mut warnings).unwrap();
         assert_eq!(data, json!(42));
         assert!(warnings.is_empty());
     }
@@ -266,7 +268,7 @@ mod tests {
     fn parse_json_string_null_is_no_op() {
         let mut data = json!(null);
         let mut warnings = Vec::new();
-        parse_json_string(&mut data, "#/test", &mut warnings).unwrap();
+        parse_json_string(&mut data, "#/test", "json_string_parse", &mut warnings).unwrap();
         assert_eq!(data, json!(null));
         assert!(warnings.is_empty());
     }
@@ -275,7 +277,7 @@ mod tests {
     fn parse_json_string_valid_json_object() {
         let mut data = json!("{\"key\": true}");
         let mut warnings = Vec::new();
-        parse_json_string(&mut data, "#/test", &mut warnings).unwrap();
+        parse_json_string(&mut data, "#/test", "json_string_parse", &mut warnings).unwrap();
         assert_eq!(data, json!({"key": true}));
         assert!(warnings.is_empty());
     }
@@ -284,7 +286,7 @@ mod tests {
     fn parse_json_string_valid_null_string() {
         let mut data = json!("null");
         let mut warnings = Vec::new();
-        parse_json_string(&mut data, "#/test", &mut warnings).unwrap();
+        parse_json_string(&mut data, "#/test", "json_string_parse", &mut warnings).unwrap();
         assert_eq!(data, json!(null));
         assert!(warnings.is_empty());
     }
@@ -293,7 +295,7 @@ mod tests {
     fn parse_json_string_empty_string_yields_null() {
         let mut data = json!("");
         let mut warnings = Vec::new();
-        parse_json_string(&mut data, "#/test", &mut warnings).unwrap();
+        parse_json_string(&mut data, "#/test", "json_string_parse", &mut warnings).unwrap();
         assert_eq!(data, json!(null));
         assert!(warnings.is_empty());
     }
@@ -302,7 +304,7 @@ mod tests {
     fn parse_json_string_whitespace_only_yields_null() {
         let mut data = json!("   ");
         let mut warnings = Vec::new();
-        parse_json_string(&mut data, "#/test", &mut warnings).unwrap();
+        parse_json_string(&mut data, "#/test", "json_string_parse", &mut warnings).unwrap();
         assert_eq!(data, json!(null));
         assert!(warnings.is_empty());
     }
@@ -311,7 +313,13 @@ mod tests {
     fn parse_json_string_non_json_yields_null_with_warning() {
         let mut data = json!("my-endpoint");
         let mut warnings = Vec::new();
-        parse_json_string(&mut data, "#/properties/dlq", &mut warnings).unwrap();
+        parse_json_string(
+            &mut data,
+            "#/properties/dlq",
+            "json_string_parse",
+            &mut warnings,
+        )
+        .unwrap();
         assert_eq!(data, json!(null));
         assert_eq!(warnings.len(), 1);
         assert!(matches!(
@@ -325,7 +333,13 @@ mod tests {
     fn parse_json_string_slash_yields_null_with_warning() {
         let mut data = json!("/");
         let mut warnings = Vec::new();
-        parse_json_string(&mut data, "#/properties/dlq", &mut warnings).unwrap();
+        parse_json_string(
+            &mut data,
+            "#/properties/dlq",
+            "json_string_parse",
+            &mut warnings,
+        )
+        .unwrap();
         assert_eq!(data, json!(null));
         assert_eq!(warnings.len(), 1);
         assert!(warnings[0].message.contains("not valid JSON"));
