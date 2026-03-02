@@ -8,6 +8,8 @@ use std::collections::HashMap;
 use regex::Regex;
 use serde_json::Value;
 
+use crate::codec_warning::Warning;
+
 use super::{SKIP_PAIR, SKIP_SINGLE};
 use crate::codec::Transform;
 use crate::error::ConvertError;
@@ -21,11 +23,12 @@ pub(super) fn apply_transform(
     path_parts: &[&str],
     transform: &Transform,
     regex_cache: &HashMap<String, Result<Regex, String>>,
+    warnings: &mut Vec<Warning>,
 ) -> Result<(), ConvertError> {
     // End of path — execute the transform
     if path_parts.is_empty() {
         tracing::trace!("reached end of path, executing transform");
-        return execute_transform(data, transform);
+        return execute_transform(data, transform, warnings);
     }
 
     let segment = path_parts[0];
@@ -34,7 +37,7 @@ pub(super) fn apply_transform(
     // 1. Schema-structural: skip keyword only
     if SKIP_SINGLE.contains(&segment) {
         tracing::trace!(segment, "skipping schema-structural keyword");
-        return apply_transform(data, rest, transform, regex_cache);
+        return apply_transform(data, rest, transform, regex_cache, warnings);
     }
 
     // 2. Schema-structural: skip keyword + next segment (index/name)
@@ -58,7 +61,13 @@ pub(super) fn apply_transform(
                         if let Some(obj) = data.as_object_mut() {
                             for (key, val) in obj.iter_mut() {
                                 if re.is_match(key) {
-                                    apply_transform(val, skip_to, transform, regex_cache)?;
+                                    apply_transform(
+                                        val,
+                                        skip_to,
+                                        transform,
+                                        regex_cache,
+                                        warnings,
+                                    )?;
                                 }
                             }
                         }
@@ -76,14 +85,14 @@ pub(super) fn apply_transform(
             return Ok(());
         }
 
-        return apply_transform(data, skip_to, transform, regex_cache);
+        return apply_transform(data, skip_to, transform, regex_cache, warnings);
     }
 
     // 3. Array iteration: "items"
     if segment == "items" {
         if let Some(arr) = data.as_array_mut() {
             for item in arr {
-                apply_transform(item, rest, transform, regex_cache)?;
+                apply_transform(item, rest, transform, regex_cache, warnings)?;
             }
         }
         return Ok(());
@@ -93,7 +102,7 @@ pub(super) fn apply_transform(
     if let Ok(index) = segment.parse::<usize>() {
         if let Some(arr) = data.as_array_mut() {
             if let Some(item) = arr.get_mut(index) {
-                return apply_transform(item, rest, transform, regex_cache);
+                return apply_transform(item, rest, transform, regex_cache, warnings);
             }
         }
         return Ok(());
@@ -126,7 +135,7 @@ pub(super) fn apply_transform(
             // Normal navigation into property
             if let Some(obj) = data.as_object_mut() {
                 if let Some(child) = obj.get_mut(*key) {
-                    return apply_transform(child, remaining, transform, regex_cache);
+                    return apply_transform(child, remaining, transform, regex_cache, warnings);
                 }
             }
             return Ok(());
@@ -161,7 +170,7 @@ mod tests {
             original_required: false,
         };
         let path = &["dependentSchemas", "foo", "properties", "name"];
-        apply_transform(&mut data, path, &transform, &empty_cache()).unwrap();
+        apply_transform(&mut data, path, &transform, &empty_cache(), &mut Vec::new()).unwrap();
         // name was null-optional and null → removed, but "Alice" is non-null → kept
         assert_eq!(data, json!({"name": "Alice"}));
     }
@@ -175,7 +184,7 @@ mod tests {
             original_required: false,
         };
         let path = &["$defs", "Thing", "properties", "x"];
-        apply_transform(&mut data, path, &transform, &empty_cache()).unwrap();
+        apply_transform(&mut data, path, &transform, &empty_cache(), &mut Vec::new()).unwrap();
         // x was null and not originally required → removed
         assert_eq!(data, json!({}));
     }
@@ -194,7 +203,7 @@ mod tests {
         };
         let path = &["futureKeyword", "properties", "a"];
         // futureKeyword is unknown — should return Ok without modifying data
-        let result = apply_transform(&mut data, path, &transform, &empty_cache());
+        let result = apply_transform(&mut data, path, &transform, &empty_cache(), &mut Vec::new());
         assert!(result.is_ok());
         assert_eq!(data, original);
     }
@@ -210,7 +219,7 @@ mod tests {
             path: String::new(),
             wrapper_key: "expected_key".to_string(),
         };
-        let result = apply_transform(&mut data, &[], &transform, &empty_cache());
+        let result = apply_transform(&mut data, &[], &transform, &empty_cache(), &mut Vec::new());
         assert!(result.is_err());
         let err_msg = format!("{}", result.unwrap_err());
         assert!(err_msg.contains("expected_key"));
@@ -223,7 +232,7 @@ mod tests {
             path: String::new(),
             wrapper_key: "wrapper".to_string(),
         };
-        let result = apply_transform(&mut data, &[], &transform, &empty_cache());
+        let result = apply_transform(&mut data, &[], &transform, &empty_cache(), &mut Vec::new());
         assert!(result.is_err());
     }
 
@@ -234,7 +243,7 @@ mod tests {
             path: String::new(),
             wrapper_key: "wrapper".to_string(),
         };
-        apply_transform(&mut data, &[], &transform, &empty_cache()).unwrap();
+        apply_transform(&mut data, &[], &transform, &empty_cache(), &mut Vec::new()).unwrap();
         // Should unwrap to inner value, stripping "leaked"
         assert_eq!(data, json!({"inner": 42}));
     }
